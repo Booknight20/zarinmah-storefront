@@ -201,7 +201,69 @@ function openOrder(){showModal('orderModal')}
 function showTerms(e){e.preventDefault();showModal('termsModal')}
 function details(id){const p=products.find(x=>x.id===id);toast(`${p.name} | ${p.weight} | ${p.karat} | ${money(p.price)} — مشخصات نمونه است.`)}
 document.getElementById('checkoutForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('customerName').value.trim();const code='ZM-'+Math.random().toString(36).slice(2,7).toUpperCase();const total=cart.reduce((s,x)=>s+products.find(p=>p.id===x.id).price*x.qty,0);document.getElementById('checkoutContent').style.display='none';document.getElementById('checkoutSuccess').classList.add('show');document.getElementById('successText').textContent=`${name} عزیز، کد نمایشی درخواست شما ${code} است. جمع تقریبی سبد ${money(total)} بود. این اطلاعات فقط در همین پیش‌نمایش تولید شده و برای فروشگاه ارسال نشده است.`;cart=[];updateCart()});
-document.getElementById('sellerForm').addEventListener('submit',e=>{e.preventDefault();document.getElementById('sellerForm').style.display='none';document.getElementById('sellerSuccess').classList.add('show')});
+
+document.getElementById('sellerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalText = submitButton.textContent;
+
+  const payload = {
+    name: document.getElementById('sellerName').value.trim(),
+    phone: document.getElementById('sellerPhone').value.trim(),
+    product_type: document.getElementById('sellerItem').value,
+    city: document.getElementById('sellerCity').value.trim(),
+    description: document.getElementById('sellerDescription').value.trim(),
+    weight: document.getElementById('sellerWeight').value.trim(),
+    weight_unit: 'گرم',
+    pricing_method: document.getElementById('sellerPricingMethod').value,
+    price: document.getElementById('sellerPrice').value.trim()
+  };
+
+  if (!payload.city || !payload.pricing_method) {
+    toast('لطفاً شهر و روش قیمت‌گذاری را وارد کن.');
+    return;
+  }
+
+  submitButton.disabled = true;
+  submitButton.textContent = 'در حال ارسال...';
+
+  try {
+    const response = await fetch(
+      'https://zarinmah-seller-bot.vercel.app/api/listings',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || data.ok !== true) {
+      throw new Error(data.message || 'ثبت آگهی انجام نشد.');
+    }
+
+    if (data.admin_notification_sent === false) {
+      throw new Error('آگهی دریافت شد، اما ارسال اعلان به مدیر تأیید نشد. لطفاً با پشتیبانی تماس بگیر.');
+    }
+
+    form.style.display = 'none';
+    document.getElementById('sellerSuccess').querySelector('h3').textContent =
+      'درخواست ثبت شد';
+    document.getElementById('sellerSuccess').querySelector('p').textContent =
+      'آگهی شما برای بررسی ارسال شد و پس از تأیید مدیر منتشر می‌شود.';
+    document.getElementById('sellerSuccess').classList.add('show');
+
+  } catch (error) {
+    toast(error.message || 'خطا در اتصال به سرور؛ دوباره تلاش کن.');
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
+  }
+});
+
 document.getElementById('orderForm').addEventListener('submit',e=>{e.preventDefault();toast('پیگیری واقعی پس از اتصال سامانه فعال می‌شود.');closeModal('orderModal')});
 document.querySelectorAll('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();document.querySelectorAll('.modal-wrap').forEach(m=>m.classList.remove('show'))}});
