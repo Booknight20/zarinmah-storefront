@@ -1,4 +1,4 @@
-
+javascript
 const SOURCE_URL = "https://t.me/s/navasanchannel";
 const MAX_AGE_MINUTES = 360;
 
@@ -11,64 +11,108 @@ function tehranTimeParts(date = new Date()) {
   }).formatToParts(date);
 
   const values = Object.fromEntries(parts.map(p => [p.type, p.value]));
+
   return {
     hour: Number(values.hour),
     minute: Number(values.minute)
   };
 }
 
-function parsePrice(text, patterns) {
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (!match) continue;
-
-    const digits = match[1].replace(/[,\u066C]/g, "");
-    const value = Number(digits);
-
-    if (Number.isSafeInteger(value) && value > 0) {
-      return value;
-    }
-  }
-  return null;
-}
-
-function extractPrices(html) {
-  const text = html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&#160;/g, " ")
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ");
-
-  const number = "([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬]*)";
-
-  const toEnglish = value => value
+function normalizeDigits(value) {
+  return value
     .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
     .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
-    .replace(/٬/g, ",");
+    .replace(/[٬،]/g, ",");
+}
 
-  const normalized = toEnglish(text);
+function cleanHtml(value) {
+  return normalizeDigits(
+    value
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+        String.fromCodePoint(parseInt(hex, 16))
+      )
+      .replace(/&#(\d+);/g, (_, dec) =>
+        String.fromCodePoint(Number(dec))
+      )
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
 
+function parseAmount(text, pattern) {
+  const match = text.match(pattern);
+  if (!match) return null;
+
+  const digits = match[1].replace(/,/g, "");
+  const value = Number(digits);
+
+  return Number.isSafeInteger(value) && value > 0
+    ? value
+    : null;
+}
+
+function extractPricesFromMessage(text) {
   const prices = {
-    gold18: parsePrice(normalized, [
-      new RegExp("طلای\\s*18\\s*عیار\\s*(?:هر\\s*گرم)?\\s*[^0-9]{0,25}" + number, "i"),
-      new RegExp("طلای\\s*۱۸\\s*عیار\\s*(?:هر\\s*گرم)?\\s*[^0-9]{0,25}" + number, "i")
-    ]),
-    emami: parsePrice(normalized, [
-      new RegExp("سکه\\s*امامی\\s*[^0-9]{0,25}" + number, "i")
-    ]),
-    half: parsePrice(normalized, [
-      new RegExp("نیم\\s*سکه\\s*[^0-9]{0,25}" + number, "i")
-    ]),
-    dollar: parsePrice(normalized, [
-      new RegExp("دلار\\s*آمریکا\\s*فروش\\s*[^0-9]{0,25}" + number, "i"),
-      new RegExp("دلار\\s*[^0-9]{0,25}" + number, "i")
-    ])
+    gold18: parseAmount(
+      text,
+      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    ),
+
+    emami: parseAmount(
+      text,
+      /سکه\s*امامی\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    ),
+
+    half: parseAmount(
+      text,
+      /نیم\s*سکه\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    ),
+
+    dollar: parseAmount(
+      text,
+      /دلار\s*آمریکا\s*فروش\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    )
   };
 
-  return prices;
+  const required = ["gold18", "emami", "half", "dollar"];
+  const missing = required.filter(key => prices[key] === null);
+
+  return {
+    prices,
+    missing,
+    valid: missing.length === 0
+  };
+}
+
+function extractMessages(html) {
+  const messages = [];
+
+  const regex =
+    /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+
+  let match;
+
+  while ((match = regex.exec(html)) !== null) {
+    const text = cleanHtml(match[1]);
+
+    const hasAllLabels =
+      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم/i.test(text) &&
+      /سکه\s*امامی/i.test(text) &&
+      /نیم\s*سکه/i.test(text) &&
+      /دلار\s*آمریکا\s*فروش/i.test(text);
+
+    if (hasAllLabels) {
+      messages.push(text);
+    }
+  }
+
+  return messages;
 }
 
 module.exports = async function handler(req, res) {
@@ -90,9 +134,9 @@ module.exports = async function handler(req, res) {
 
   const now = new Date();
   const tehran = tehranTimeParts(now);
+
   const isMarketHours =
-    (tehran.hour > 9 || (tehran.hour === 9 && tehran.minute >= 0)) &&
-    tehran.hour < 22;
+    tehran.hour >= 9 && tehran.hour < 22;
 
   if (!isMarketHours) {
     return res.status(200).json({
@@ -118,21 +162,40 @@ module.exports = async function handler(req, res) {
 
     const html = await response.text();
 
-    if (!html.includes("navasanchannel")) {
+    if (!html.includes("tgme_widget_message_text")) {
       throw new Error("Unexpected source page");
     }
 
-    const prices = extractPrices(html);
-    const required = ["gold18", "emami", "half", "dollar"];
-    const missing = required.filter(key =>
-      !Number.isSafeInteger(prices[key]) || prices[key] <= 0
-    );
+    const messages = extractMessages(html);
 
-    if (missing.length) {
+    if (messages.length === 0) {
+      return res.status(502).json({
+        ok: false,
+        error: "پیام کامل قیمت پیدا نشد.",
+        prices: null
+      });
+    }
+
+    // از جدیدترین پیام کامل شروع می‌کنیم.
+    // اگر استخراج قیمت آن ناقص بود، پیام کامل قبلی بررسی می‌شود.
+    let selected = null;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const result = extractPricesFromMessage(messages[i]);
+
+      if (result.valid) {
+        selected = {
+          prices: result.prices,
+          sourceText: messages[i]
+        };
+        break;
+      }
+    }
+
+    if (!selected) {
       return res.status(502).json({
         ok: false,
         error: "قیمت معتبر برای همه دارایی‌ها پیدا نشد.",
-        missing,
         prices: null
       });
     }
@@ -144,7 +207,7 @@ module.exports = async function handler(req, res) {
       currency: "تومان",
       updatedAt: now.toISOString(),
       timezone: "Asia/Tehran",
-      prices
+      prices: selected.prices
     });
   } catch (error) {
     console.error("Market API error:", error.message);
