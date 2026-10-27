@@ -13,9 +13,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const response = await fetch(SOURCE_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0"
-      },
+      headers: { "User-Agent": "Mozilla/5.0" },
       signal: AbortSignal.timeout(12000)
     });
 
@@ -25,22 +23,34 @@ module.exports = async function handler(req, res) {
 
     const html = await response.text();
 
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;|&#160;/g, " ")
-      .replace(/\s+/g, " ");
+    const messages = [];
+    const messageRegex =
+      /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+
+    let match;
+
+    while ((match = messageRegex.exec(html)) !== null) {
+      const text = match[1]
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;|&#160;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;|&#039;/g, "'")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (/طلا|سکه|دلار|۱۸ عیار|نیم.?سکه|امامی/i.test(text)) {
+        messages.push(text);
+      }
+    }
 
     return res.status(200).json({
       ok: true,
       test: true,
       source: SOURCE_URL,
-      sourceReachable: true,
-      pageLength: html.length,
-      containsGold: /طلا|طلای|سکه/.test(text),
-      containsDollar: /دلار/.test(text),
-      message: "صفحه منبع دریافت شد؛ این آزمون هنوز قیمت‌ها را استخراج یا تأیید نمی‌کند."
+      messagesFound: messages.length,
+      messages: messages.slice(-15)
     });
   } catch (error) {
     console.error("Market test error:", error.message);
@@ -48,8 +58,7 @@ module.exports = async function handler(req, res) {
     return res.status(502).json({
       ok: false,
       test: true,
-      sourceReachable: false,
-      error: "دریافت صفحه نوسان ناموفق بود."
+      error: "دریافت یا بررسی پیام‌های نوسان ناموفق بود."
     });
   }
 };
