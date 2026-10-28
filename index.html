@@ -122,7 +122,11 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   padding: 15px;
 }
 .market-label { color: var(--muted); font-size: 12px; }
-.market-value { font-size: 20px; color: var(--gold); font-weight: bold; }
+.market-value { font-size: 20px; color: var(--gold); font-weight: bold; direction: rtl; }
+.market-change { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+.market-change.up { color: #4bd18b; }
+.market-change.down { color: #ff6868; }
+.market-change.same { color: #b9b1a2; }
 .market-disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; }
 
 .products {
@@ -336,15 +340,15 @@ footer h3 { color: var(--gold); font-size: 14px; }
     <div class="section-head">
       <span class="section-kicker">نبض بازار</span>
       <h2>نمای کلی بازار طلا</h2>
-      <p class="section-desc">قیمت‌های زنده هنوز به این نسخه از سایت متصل نشده‌اند.</p>
+      <p class="section-desc">قیمت‌ها از منبع بازار دریافت می‌شوند و تغییر روزانه فقط در صورت موجودبودن اطلاعات روز قبل نمایش داده می‌شود.</p>
     </div>
-    <div class="market-strip">
-      <div class="market-item"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">—</div><small>در انتظار اتصال قیمت زنده</small></div>
-      <div class="market-item"><div class="market-label">سکه امامی</div><div class="market-value">—</div><small>در انتظار اتصال قیمت زنده</small></div>
-      <div class="market-item"><div class="market-label">نیم‌سکه</div><div class="market-value">—</div><small>در انتظار اتصال قیمت زنده</small></div>
-      <div class="market-item"><div class="market-label">دلار</div><div class="market-value">—</div><small>در انتظار اتصال قیمت زنده</small></div>
+    <div class="market-strip" id="marketStrip" aria-live="polite">
+      <div class="market-item" data-market-key="gold18"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
+      <div class="market-item" data-market-key="emami"><div class="market-label">سکه امامی</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
+      <div class="market-item" data-market-key="half"><div class="market-label">نیم‌سکه</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
+      <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
     </div>
-    <p class="market-disclaimer">برای جلوگیری از نمایش قیمت نادرست، تا زمان اتصال منبع معتبر قیمت درج نمی‌شود.</p>
+    <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
   </div>
 </section>
 
@@ -873,6 +877,80 @@ document.addEventListener('keydown', event => {
   }
 });
 
+const marketLabels = {
+  up: '▲ افزایش',
+  down: '▼ کاهش',
+  same: '● بدون تغییر',
+  unknown: '— در انتظار اطلاعات مقایسه'
+};
+
+function formatMarketPrice(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return 'قیمت نامشخص';
+  return number.toLocaleString('fa-IR') + ' تومان';
+}
+
+function renderMarket(data) {
+  const cards = document.querySelectorAll('[data-market-key]');
+  cards.forEach(card => {
+    const key = card.dataset.marketKey;
+    const value = card.querySelector('.market-value');
+    const change = card.querySelector('.market-change');
+    const price = data.prices && data.prices[key];
+    const daily = data.dailyChanges && data.dailyChanges[key];
+
+    value.textContent = formatMarketPrice(price);
+    change.className = 'market-change';
+
+    if (!daily || !['up', 'down', 'same'].includes(daily.direction)) {
+      change.textContent = marketLabels.unknown;
+      change.classList.add('same');
+      return;
+    }
+
+    const difference = Number(daily.difference);
+    const percent = Number(daily.percent);
+    let detail = marketLabels[daily.direction];
+    if (Number.isFinite(difference) && Number.isFinite(percent)) {
+      const sign = difference > 0 ? '+' : '';
+      detail += ` · ${sign}${difference.toLocaleString('fa-IR')} تومان (${sign}${percent.toLocaleString('fa-IR', { maximumFractionDigits: 2 })}٪)`;
+    }
+    change.textContent = detail;
+    change.classList.add(daily.direction);
+  });
+
+  const disclaimer = document.getElementById('marketDisclaimer');
+  if (data.updatedAt) {
+    const date = new Date(data.updatedAt);
+    const formatted = new Intl.DateTimeFormat('fa-IR', {
+      timeZone: 'Asia/Tehran', dateStyle: 'short', timeStyle: 'short'
+    }).format(date);
+    disclaimer.textContent = `آخرین دریافت: ${formatted} به وقت تهران · قیمت‌ها به تومان هستند.`;
+  }
+}
+
+async function loadMarketPrices() {
+  const disclaimer = document.getElementById('marketDisclaimer');
+  try {
+    const response = await fetch('/api/market', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Market API returned an error');
+    const data = await response.json();
+    if (!data.ok || !data.prices) throw new Error('Market data is unavailable');
+    renderMarket(data);
+  } catch (error) {
+    document.querySelectorAll('[data-market-key]').forEach(card => {
+      card.querySelector('.market-value').textContent = 'فعلاً در دسترس نیست';
+      const change = card.querySelector('.market-change');
+      change.textContent = 'دریافت قیمت ناموفق بود';
+      change.className = 'market-change';
+    });
+    disclaimer.textContent = 'دریافت قیمت بازار با مشکل روبه‌رو شد؛ کمی بعد دوباره تلاش می‌کنیم.';
+  }
+}
+
+renderProducts();
+loadMarketPrices();
+setInterval(loadMarketPrices, 60000);
 renderProducts();
 </script>
 </body>
