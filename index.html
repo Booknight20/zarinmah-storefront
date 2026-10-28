@@ -828,39 +828,105 @@ invoiceInput.addEventListener('change', () => {
   }
 });
 
-document.getElementById('sellerForm').addEventListener('submit', event => {
+
+document.getElementById('sellerForm').addEventListener('submit', async event => {
   event.preventDefault();
 
   const form = event.currentTarget;
-
   if (!form.reportValidity()) return;
 
-  if (!photoInput.files.length) {
-    showToast('لطفاً عکس محصول را انتخاب کن.');
+  const photo = document.getElementById('sellerPhoto').files[0];
+  const invoice = document.getElementById('sellerInvoice').files[0];
+  const invoiceConfirmed = document.getElementById('invoiceConfirm').checked;
+
+  if (!photo || !invoice) {
+    showToast('عکس محصول و فاکتور فروش الزامی هستند.');
     return;
   }
 
-  if (!invoiceInput.files.length) {
-    showToast('بارگذاری فاکتور فروش معتبر الزامی است.');
-    return;
-  }
-
-  if (!document.getElementById('invoiceConfirm').checked) {
+  if (!invoiceConfirmed) {
     showToast('تأیید داشتن فاکتور فروش معتبر الزامی است.');
     return;
   }
 
-  /*
-    نکته مهم:
-    این بخش هنوز آگهی را به سرور یا ربات ارسال نمی‌کند.
-    برای ارسال واقعی، باید یک API امن سمت سرور تعریف شود
-    و فایل عکس و فاکتور نیز به همان API ارسال شوند.
-  */
+  const allowedPhotos = ['image/jpeg', 'image/png', 'image/webp'];
+  const allowedInvoices = [
+    'image/jpeg', 'image/png', 'image/webp', 'application/pdf'
+  ];
 
-  document.getElementById('sellerResult').style.display = 'block';
-  form.style.display = 'none';
+  if (!allowedPhotos.includes(photo.type)) {
+    showToast('فرمت عکس محصول مجاز نیست.');
+    return;
+  }
 
-  showToast('اعتبارسنجی اولیه فرم انجام شد؛ آگهی ارسال نشده است.');
+  if (!allowedInvoices.includes(invoice.type)) {
+    showToast('فرمت فاکتور مجاز نیست.');
+    return;
+  }
+
+  // محدودیت موقت برای سازگاری با محدودیت درخواست Vercel
+  const maxFileSize = 1.5 * 1024 * 1024;
+  if (photo.size > maxFileSize || invoice.size > maxFileSize) {
+    showToast('برای ارسال مطمئن، حجم هر فایل باید حداکثر ۱٫۵ مگابایت باشد.');
+    return;
+  }
+
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalText = submitButton.textContent;
+
+  submitButton.disabled = true;
+  submitButton.textContent = 'در حال ارسال آگهی…';
+
+  try {
+    const formData = new FormData(form);
+
+    const response = await fetch('/api/listings', {
+      method: 'POST',
+      body: formData,
+      cache: 'no-store'
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || 'ثبت آگهی انجام نشد. لطفاً دوباره تلاش کن.'
+      );
+    }
+
+    form.style.display = 'none';
+
+    const resultBox = document.getElementById('sellerResult');
+    resultBox.style.display = 'block';
+
+    resultBox.querySelector('h3').textContent =
+      `آگهی شماره ${result.id} ثبت شد`;
+
+    resultBox.querySelector('p').textContent =
+      result.admin_notification_sent
+        ? (
+            'آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' +
+            (result.invoice_sent
+              ? 'فاکتور نیز به مدیر ارسال شد.'
+              : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.')
+          )
+        : (
+            'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. ' +
+            'از ثبت دوباره آگهی خودداری کن تا از ایجاد مورد تکراری جلوگیری شود.'
+          );
+
+    showToast(
+      result.admin_notification_sent
+        ? 'آگهی برای بررسی مدیر ارسال شد.'
+        : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'
+    );
+
+  } catch (error) {
+    showToast(error.message || 'خطا در ارتباط با سرور.');
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
+  }
 });
 
 document.querySelectorAll('.modal-wrap').forEach(modal => {
