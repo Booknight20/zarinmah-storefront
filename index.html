@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>زرین ماه | طلای کم‌اجرت</title>
-
+<link rel="icon" type="image/png" href="/logo.png">
+  
 <style>
 :root {
   --gold: #c7a24b;
@@ -51,14 +52,15 @@ header {
 }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--gold);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--gold);
-  font-size: 24px;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  display: inline-block;
+  border: none;
+  border-radius: 8px;
+  background: #000 url('/logo.png') center / contain no-repeat;
+  box-shadow: 0 0 18px rgba(199, 162, 75, 0.15);
+  font-size: 0;
 }
 .brand-name { font-weight: 900; font-size: 20px; }
 .brand-sub { display: block; color: var(--muted); font-size: 11px; }
