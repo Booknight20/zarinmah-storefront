@@ -3,10 +3,12 @@ const SOURCE_URL = "https://t.me/s/navasanchannel";
 const REPO = "Booknight20/zarinmah-storefront";
 const STATE_PATH = "data/market-daily.json";
 const BRANCH = "main";
+const TIMEZONE = "Asia/Tehran";
+const ASSETS = ["gold18", "emami", "half", "dollar"];
 
 function tehranParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Tehran",
+    timeZone: TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -20,8 +22,8 @@ function tehranParts(date = new Date()) {
 
 function normalizeDigits(value) {
   return String(value)
-    .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
-    .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/[۰-۹]/g, d => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)])
+    .replace(/[٠-٩]/g, d => "0123456789"["٠١٢٣٤٥٦٧٨٩".indexOf(d)])
     .replace(/[٬،]/g, ",");
 }
 
@@ -76,11 +78,9 @@ function extractPricesFromMessage(text) {
     )
   };
 
-  const required = ["gold18", "emami", "half", "dollar"];
-
   return {
     prices,
-    valid: required.every(key => prices[key] !== null)
+    valid: ASSETS.every(key => Number.isSafeInteger(prices[key]) && prices[key] > 0)
   };
 }
 
@@ -120,8 +120,15 @@ function getPreviousDate(dateString) {
 function calculateChanges(current, previous) {
   const result = {};
 
-  for (const key of ["gold18", "emami", "half", "dollar"]) {
-    if (!previous || !Number.isFinite(previous[key])) {
+  for (const key of ASSETS) {
+    const oldValue = previous?.[key];
+    const newValue = current?.[key];
+
+    if (
+      !Number.isFinite(newValue) ||
+      !Number.isFinite(oldValue) ||
+      oldValue <= 0
+    ) {
       result[key] = {
         direction: "unknown",
         difference: null,
@@ -130,16 +137,14 @@ function calculateChanges(current, previous) {
       continue;
     }
 
-    const difference = current[key] - previous[key];
+    const difference = newValue - oldValue;
 
     result[key] = {
       direction:
         difference > 0 ? "up" :
         difference < 0 ? "down" : "same",
       difference,
-      percent: previous[key]
-        ? Number(((difference / previous[key]) * 100).toFixed(2))
-        : null
+      percent: Number(((difference / oldValue) * 100).toFixed(2))
     };
   }
 
@@ -165,10 +170,7 @@ async function readState(token) {
   });
 
   if (response.status === 404) {
-    return {
-      state: { days: {} },
-      sha: null
-    };
+    return { state: { days: {} }, sha: null };
   }
 
   if (!response.ok) {
@@ -177,18 +179,11 @@ async function readState(token) {
 
   const file = await response.json();
   const decoded = Buffer.from(file.content, "base64").toString("utf8");
-
-  let state;
-
-  try {
-    state = JSON.parse(decoded);
-  } catch {
-    throw new Error("Daily market history file contains invalid JSON");
-  }
+  const state = JSON.parse(decoded);
 
   if (!state || typeof state !== "object" ||
       !state.days || typeof state.days !== "object") {
-    state = { days: {} };
+    throw new Error("Invalid daily market history structure");
   }
 
   return { state, sha: file.sha };
@@ -217,35 +212,31 @@ async function writeState(token, state, sha) {
   });
 
   if (!response.ok) {
-    throw new Error(`GitHub write failed: ${response.status}`);
+    const detail = await response.text();
+    throw new Error(`GitHub write failed: ${response.status} ${detail}`);
   }
 }
 
 async function saveTodayPrices(token, dateString, prices) {
-  // Retry to reduce conflicts if multiple requests arrive together.
   for (let attempt = 0; attempt < 3; attempt++) {
     const { state, sha } = await readState(token);
-
-    if (!state.days) state.days = {};
-
     const previousDate = getPreviousDate(dateString);
     const previous = state.days[previousDate] || null;
 
-    // Keep the latest successful price snapshot for today.
-    // Never replace yesterday's record with today's prices.
     state.days[dateString] = {
       prices,
       updatedAt: new Date().toISOString()
     };
 
-    // Keep the latest 14 calendar dates to limit file size.
     const dates = Object.keys(state.days).sort();
+
     for (const oldDate of dates.slice(0, Math.max(0, dates.length - 14))) {
       delete state.days[oldDate];
     }
 
     try {
       await writeState(token, state, sha);
+
       return {
         previousDate,
         previousPrices: previous?.prices || null,
@@ -253,6 +244,7 @@ async function saveTodayPrices(token, dateString, prices) {
       };
     } catch (error) {
       if (attempt === 2) throw error;
+      console.error(`History save attempt ${attempt + 1} failed:`, error.message);
     }
   }
 
@@ -260,7 +252,7 @@ async function saveTodayPrices(token, dateString, prices) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store, max-age=0");
+  res.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -285,7 +277,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: false,
       marketOpen: false,
-      timezone: "Asia/Tehran",
+      timezone: TIMEZONE,
       message: "به‌روزرسانی فقط از ساعت ۹ تا ۲۲ تهران انجام می‌شود.",
       prices: null
     });
@@ -300,7 +292,7 @@ module.exports = async function handler(req, res) {
     });
 
     if (!response.ok) {
-      throw new Error("Source returned HTTP " + response.status);
+      throw new Error(`Source returned HTTP ${response.status}`);
     }
 
     const html = await response.text();
@@ -310,15 +302,6 @@ module.exports = async function handler(req, res) {
     }
 
     const messages = extractMessages(html);
-
-    if (!messages.length) {
-      return res.status(502).json({
-        ok: false,
-        error: "پیام کامل قیمت پیدا نشد.",
-        prices: null
-      });
-    }
-
     let selected = null;
 
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -351,15 +334,13 @@ module.exports = async function handler(req, res) {
     } catch (error) {
       console.error("Market history save error:", error.message);
 
-      // Current prices can still be returned if history storage fails.
-      // Daily comparisons must not be guessed.
       return res.status(200).json({
         ok: true,
         marketOpen: true,
         source: SOURCE_URL,
         currency: "تومان",
         updatedAt: now.toISOString(),
-        timezone: "Asia/Tehran",
+        timezone: TIMEZONE,
         prices: selected,
         previousDate: getPreviousDate(dateString),
         dailyChanges: calculateChanges(selected, null),
@@ -374,13 +355,10 @@ module.exports = async function handler(req, res) {
       source: SOURCE_URL,
       currency: "تومان",
       updatedAt: now.toISOString(),
-      timezone: "Asia/Tehran",
+      timezone: TIMEZONE,
       prices: selected,
       previousDate: history.previousDate,
-      dailyChanges: calculateChanges(
-        selected,
-        history.previousPrices
-      ),
+      dailyChanges: calculateChanges(selected, history.previousPrices),
       historySaved: history.saved
     });
   } catch (error) {
