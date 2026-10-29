@@ -80,7 +80,9 @@ function extractPricesFromMessage(text) {
 
   return {
     prices,
-    valid: ASSETS.every(key => Number.isSafeInteger(prices[key]) && prices[key] > 0)
+    valid: ASSETS.every(
+      key => Number.isSafeInteger(prices[key]) && prices[key] > 0
+    )
   };
 }
 
@@ -151,6 +153,15 @@ function calculateChanges(current, previous) {
   return result;
 }
 
+function validPrices(prices) {
+  return Boolean(
+    prices &&
+    ASSETS.every(
+      key => Number.isSafeInteger(prices[key]) && prices[key] > 0
+    )
+  );
+}
+
 function githubHeaders(token) {
   return {
     Authorization: `Bearer ${token}`,
@@ -181,8 +192,12 @@ async function readState(token) {
   const decoded = Buffer.from(file.content, "base64").toString("utf8");
   const state = JSON.parse(decoded);
 
-  if (!state || typeof state !== "object" ||
-      !state.days || typeof state.days !== "object") {
+  if (
+    !state ||
+    typeof state !== "object" ||
+    !state.days ||
+    typeof state.days !== "object"
+  ) {
     throw new Error("Invalid daily market history structure");
   }
 
@@ -194,7 +209,7 @@ async function writeState(token, state, sha) {
     `https://api.github.com/repos/${REPO}/contents/${STATE_PATH}`;
 
   const body = {
-    message: "Update daily market price history",
+    message: "Update ZarinMah market prices",
     branch: BRANCH,
     content: Buffer.from(
       JSON.stringify(state, null, 2),
@@ -217,7 +232,80 @@ async function writeState(token, state, sha) {
   }
 }
 
-async function saveTodayPrices(token, dateString, prices) {
+function getLatestSaved(state) {
+  if (
+    state?.latest &&
+    validPrices(state.latest.prices) &&
+    state.latest.updatedAt
+  ) {
+    const savedDate =
+      state.latest.date ||
+      (() => {
+        const parts = tehranParts(new Date(state.latest.updatedAt));
+        return `${parts.year}-${parts.month}-${parts.day}`;
+      })();
+
+    return {
+      prices: state.latest.prices,
+      updatedAt: state.latest.updatedAt,
+      date: savedDate
+    };
+  }
+
+  const dates = Object.keys(state?.days || {}).sort().reverse();
+
+  for (const date of dates) {
+    const entry = state.days[date];
+
+    if (validPrices(entry?.prices) && entry?.updatedAt) {
+      return {
+        prices: entry.prices,
+        updatedAt: entry.updatedAt,
+        date
+      };
+    }
+  }
+
+  return null;
+}
+
+function buildCachedResponse(state, marketOpen, message) {
+  const latest = getLatestSaved(state);
+
+  if (!latest) {
+    return {
+      ok: false,
+      marketOpen,
+      timezone: TIMEZONE,
+      source: SOURCE_URL,
+      currency: "تومان",
+      prices: null,
+      message: message ||
+        "هنوز قیمت معتبری ذخیره نشده است. لطفاً کمی بعد دوباره تلاش کنید."
+    };
+  }
+
+  const previousDate = getPreviousDate(latest.date);
+  const previousPrices = state?.days?.[previousDate]?.prices || null;
+
+  return {
+    ok: true,
+    marketOpen,
+    source: SOURCE_URL,
+    currency: "تومان",
+    timezone: TIMEZONE,
+    prices: latest.prices,
+    updatedAt: latest.updatedAt,
+    previousDate,
+    dailyChanges: calculateChanges(latest.prices, previousPrices),
+    historySaved: true,
+    cached: true,
+    message: message ||
+      "آخرین قیمت معتبر ذخیره‌شده نمایش داده می‌شود."
+  };
+}
+
+async function saveTodayPrices(token, dateString, prices, updatedAt) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const { state, sha } = await readState(token);
     const previousDate = getPreviousDate(dateString);
@@ -225,7 +313,14 @@ async function saveTodayPrices(token, dateString, prices) {
 
     state.days[dateString] = {
       prices,
-      updatedAt: new Date().toISOString()
+      updatedAt
+    };
+
+    // آخرین قیمت معتبر را مستقل از تاریخ روز نگه می‌داریم.
+    state.latest = {
+      prices,
+      updatedAt,
+      date: dateString
     };
 
     const dates = Object.keys(state.days).sort();
@@ -244,11 +339,44 @@ async function saveTodayPrices(token, dateString, prices) {
       };
     } catch (error) {
       if (attempt === 2) throw error;
-      console.error(`History save attempt ${attempt + 1} failed:`, error.message);
+
+      console.error(
+        `History save attempt ${attempt + 1} failed:`,
+        error.message
+      );
     }
   }
 
   throw new Error("Could not save daily price history");
+}
+
+async function fetchSourcePrices() {
+  const response = await fetch(SOURCE_URL, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
+    },
+    signal: AbortSignal.timeout(12000)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Source returned HTTP ${response.status}`);
+  }
+
+  const html = await response.text();
+
+  if (!html.includes("tgme_widget_message_text")) {
+    throw new Error("Unexpected source page");
+  }
+
+  const messages = extractMessages(html);
+
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const result = extractPricesFromMessage(messages[i]);
+
+    if (result.valid) return result.prices;
+  }
+
+  throw new Error("No valid prices found for all assets");
 }
 
 module.exports = async function handler(req, res) {
@@ -272,81 +400,60 @@ module.exports = async function handler(req, res) {
   const tehran = tehranParts(now);
   const dateString = `${tehran.year}-${tehran.month}-${tehran.day}`;
   const hour = Number(tehran.hour);
+  const marketOpen = hour >= 9 && hour < 22;
+  const token = process.env.GITHUB_TOKEN;
 
-  if (hour < 9 || hour >= 22) {
-    return res.status(200).json({
-      ok: false,
-      marketOpen: false,
-      timezone: TIMEZONE,
-      message: "به‌روزرسانی فقط از ساعت ۹ تا ۲۲ تهران انجام می‌شود.",
-      prices: null
-    });
+  let state = { days: {} };
+  let stateAvailable = false;
+
+  // سابقه را ابتدا می‌خوانیم تا حتی هنگام بسته بودن بازار
+  // بتوانیم آخرین قیمت معتبر را نمایش دهیم.
+  if (token) {
+    try {
+      const result = await readState(token);
+      state = result.state;
+      stateAvailable = true;
+    } catch (error) {
+      console.error("Market history read error:", error.message);
+    }
+  } else {
+    console.error("GITHUB_TOKEN is not configured");
+  }
+
+  // خارج از ساعت به‌روزرسانی، قیمت ذخیره‌شده نمایش داده می‌شود.
+  if (!marketOpen) {
+    const payload = buildCachedResponse(
+      state,
+      false,
+      "ساعات به‌روزرسانی بازار ۹ تا ۲۲ به وقت تهران است؛ آخرین قیمت معتبر نمایش داده شده است."
+    );
+
+    return res.status(payload.ok ? 200 : 503).json(payload);
   }
 
   try {
-    const response = await fetch(SOURCE_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
-      },
-      signal: AbortSignal.timeout(12000)
-    });
+    const prices = await fetchSourcePrices();
+    const updatedAt = new Date().toISOString();
 
-    if (!response.ok) {
-      throw new Error(`Source returned HTTP ${response.status}`);
-    }
+    let previousPrices =
+      state.days?.[getPreviousDate(dateString)]?.prices || null;
 
-    const html = await response.text();
+    let historySaved = false;
 
-    if (!html.includes("tgme_widget_message_text")) {
-      throw new Error("Unexpected source page");
-    }
+    if (token) {
+      try {
+        const history = await saveTodayPrices(
+          token,
+          dateString,
+          prices,
+          updatedAt
+        );
 
-    const messages = extractMessages(html);
-    let selected = null;
-
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const result = extractPricesFromMessage(messages[i]);
-
-      if (result.valid) {
-        selected = result.prices;
-        break;
+        previousPrices = history.previousPrices;
+        historySaved = history.saved;
+      } catch (error) {
+        console.error("Market history save error:", error.message);
       }
-    }
-
-    if (!selected) {
-      return res.status(502).json({
-        ok: false,
-        error: "قیمت معتبر برای همه دارایی‌ها پیدا نشد.",
-        prices: null
-      });
-    }
-
-    const token = process.env.GITHUB_TOKEN;
-
-    if (!token) {
-      throw new Error("GITHUB_TOKEN is not configured");
-    }
-
-    let history;
-
-    try {
-      history = await saveTodayPrices(token, dateString, selected);
-    } catch (error) {
-      console.error("Market history save error:", error.message);
-
-      return res.status(200).json({
-        ok: true,
-        marketOpen: true,
-        source: SOURCE_URL,
-        currency: "تومان",
-        updatedAt: now.toISOString(),
-        timezone: TIMEZONE,
-        prices: selected,
-        previousDate: getPreviousDate(dateString),
-        dailyChanges: calculateChanges(selected, null),
-        historySaved: false,
-        message: "قیمت دریافت شد، اما ذخیره سابقه روزانه ناموفق بود."
-      });
     }
 
     return res.status(200).json({
@@ -354,20 +461,36 @@ module.exports = async function handler(req, res) {
       marketOpen: true,
       source: SOURCE_URL,
       currency: "تومان",
-      updatedAt: now.toISOString(),
+      updatedAt,
       timezone: TIMEZONE,
-      prices: selected,
-      previousDate: history.previousDate,
-      dailyChanges: calculateChanges(selected, history.previousPrices),
-      historySaved: history.saved
+      prices,
+      previousDate: getPreviousDate(dateString),
+      dailyChanges: calculateChanges(prices, previousPrices),
+      historySaved,
+      cached: false,
+      message: historySaved
+        ? "قیمت‌ها با موفقیت دریافت و ذخیره شدند."
+        : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
     });
   } catch (error) {
     console.error("Market API error:", error.message);
 
+    // اگر منبع قیمت خطا داشت، به‌جای خالی کردن کارت‌ها
+    // آخرین قیمت ذخیره‌شده را برمی‌گردانیم.
+    const payload = buildCachedResponse(
+      state,
+      true,
+      "دریافت قیمت جدید ناموفق بود؛ آخرین قیمت معتبر ذخیره‌شده نمایش داده شده است."
+    );
+
+    if (payload.ok) {
+      return res.status(200).json(payload);
+    }
+
     return res.status(502).json({
-      ok: false,
-      error: "دریافت قیمت یا آماده‌سازی سابقه بازار ناموفق بود.",
-      prices: null
+      ...payload,
+      error: "دریافت قیمت جدید ناموفق بود و قیمت ذخیره‌شده‌ای نیز در دسترس نیست.",
+      historyAvailable: stateAvailable
     });
   }
 };
