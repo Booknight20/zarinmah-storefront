@@ -170,6 +170,10 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   border-radius: 6px;
   font-size: 10px;
 }
+.product-status.sold {
+  color: #8b3030;
+  background: #fde8e8;
+}
 .empty-products {
   grid-column: 1 / -1;
   text-align: center;
@@ -639,10 +643,6 @@ footer h3 { color: var(--gold); font-size: 14px; }
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-/* =====================================================
-   تنظیمات اصلی
-===================================================== */
-
 const LISTINGS_API = 'https://zarinmah-seller-bot.vercel.app/api/listings';
 const MARKET_API = '/api/market';
 
@@ -651,15 +651,10 @@ let currentFilter = 'all';
 let previewUrl = null;
 let listingsLoading = false;
 
-/* =====================================================
-   ابزارهای عمومی
-===================================================== */
-
 function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.classList.add('show');
-
   clearTimeout(window.toastTimer);
   window.toastTimer = setTimeout(() => {
     toast.classList.remove('show');
@@ -681,9 +676,7 @@ function showTerms(event) {
 
 document.querySelectorAll('.modal-wrap').forEach(modal => {
   modal.addEventListener('click', event => {
-    if (event.target === modal) {
-      modal.classList.remove('show');
-    }
+    if (event.target === modal) modal.classList.remove('show');
   });
 });
 
@@ -695,33 +688,13 @@ document.addEventListener('keydown', event => {
   }
 });
 
-/* =====================================================
-   ویترین آگهی‌های واقعی
-===================================================== */
-
-function normalizeDigits(value) {
-  return String(value ?? '').replace(/[۰-۹]/g, digit =>
-    String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit))
-  );
-}
-
 function getListingType(item) {
-  const type = String(
-    item.product_type || item.item_type || ''
-  ).trim();
+  const type = String(item.product_type || item.item_type || '').trim();
 
-  if (type.includes('سکه') || type.includes('پارسیان')) {
-    return 'coin';
-  }
+  if (type.includes('سکه') || type.includes('پارسیان')) return 'coin';
+  if (type.includes('انگشتر')) return 'ring';
 
-  if (type.includes('انگشتر')) {
-    return 'ring';
-  }
-
-  if (
-    type.includes('دستبند') ||
-    type.includes('النگو')
-  ) {
+  if (type.includes('دستبند') || type.includes('النگو')) {
     return 'bracelet';
   }
 
@@ -741,10 +714,7 @@ function getListingType(item) {
 function makeElement(tag, className, content) {
   const element = document.createElement(tag);
 
-  if (className) {
-    element.className = className;
-  }
-
+  if (className) element.className = className;
   if (content !== undefined && content !== null) {
     element.textContent = String(content);
   }
@@ -754,7 +724,6 @@ function makeElement(tag, className, content) {
 
 function createListingCard(item) {
   const article = makeElement('article', 'product');
-
   const visual = makeElement('div', 'product-visual');
   const photo = document.createElement('img');
 
@@ -768,17 +737,14 @@ function createListingCard(item) {
 
   const imageUrl = String(item.photo_url || '').trim();
 
-  if (
-    imageUrl &&
-    /^https:\/\//i.test(imageUrl)
-  ) {
+  if (imageUrl && /^https:\/\//i.test(imageUrl)) {
     photo.src = imageUrl;
   } else {
     photo.src = fallbackImage;
   }
 
   photo.onerror = () => {
-    if (photo.src !== fallbackImage) {
+    if (!photo.src.includes('placehold.co')) {
       photo.src = fallbackImage;
     }
   };
@@ -790,27 +756,18 @@ function createListingCard(item) {
   const title = makeElement(
     'h3',
     '',
-    item.product_type ||
-    item.item_type ||
-    'محصول طلا'
+    item.product_type || item.item_type || 'محصول طلا'
   );
 
   const details = [];
 
   if (item.weight) {
-    details.push(
-      `وزن: ${item.weight} ${item.weight_unit || 'گرم'}`
-    );
+    details.push(`وزن: ${item.weight} ${item.weight_unit || 'گرم'}`);
   }
 
-  if (item.karat) {
-    details.push(item.karat);
-  }
+  if (item.karat) details.push(item.karat);
 
-  if (
-    item.city &&
-    item.city !== 'ثبت نشده'
-  ) {
+  if (item.city && item.city !== 'ثبت نشده') {
     details.push(item.city);
   }
 
@@ -832,20 +789,15 @@ function createListingCard(item) {
     item.price || 'قیمت اعلام نشده'
   );
 
+  const isSold = String(item.status || '').toLowerCase() === 'sold';
+
   const status = makeElement(
     'span',
-    'product-status',
-    'تأیید و منتشرشده'
+    isSold ? 'product-status sold' : 'product-status',
+    isSold ? 'فروخته شد' : 'آماده فروش'
   );
 
-  info.append(
-    title,
-    meta,
-    description,
-    price,
-    status
-  );
-
+  info.append(title, meta, description, price, status);
   article.append(visual, info);
 
   return article;
@@ -863,15 +815,13 @@ function renderProducts(filter = currentFilter) {
   });
 
   if (!filtered.length) {
-    const empty = makeElement(
+    grid.appendChild(makeElement(
       'div',
       'empty-products',
       liveListings.length
-        ? 'در این دسته‌بندی هنوز آگهی منتشرشده‌ای وجود ندارد.'
+        ? 'در این دسته‌بندی هنوز آگهی‌ای وجود ندارد.'
         : 'هنوز آگهی تأییدشده‌ای برای نمایش وجود ندارد.'
-    );
-
-    grid.appendChild(empty);
+    ));
     return;
   }
 
@@ -882,16 +832,13 @@ function renderProducts(filter = currentFilter) {
 
 async function loadListings() {
   if (listingsLoading) return;
-
   listingsLoading = true;
 
   try {
     const response = await fetch(LISTINGS_API, {
       method: 'GET',
       cache: 'no-store',
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers: { 'Accept': 'application/json' }
     });
 
     if (!response.ok) {
@@ -900,24 +847,18 @@ async function loadListings() {
 
     const data = await response.json();
 
-    if (
-      !data ||
-      data.ok !== true ||
-      !Array.isArray(data.listings)
-    ) {
+    if (!data || data.ok !== true || !Array.isArray(data.listings)) {
       throw new Error('ساختار پاسخ آگهی‌ها معتبر نیست.');
     }
 
     liveListings = data.listings.filter(item => {
-      return String(item.status || '').toLowerCase() === 'published';
+      const status = String(item.status || '').toLowerCase();
+      return status === 'published' || status === 'sold';
     });
 
     renderProducts(currentFilter);
 
-    console.log(
-      'ZarinMah published listings:',
-      liveListings.length
-    );
+    console.log('ZarinMah listings:', liveListings.length);
 
   } catch (error) {
     console.error('Listings API error:', error);
@@ -925,22 +866,16 @@ async function loadListings() {
     const grid = document.getElementById('productsGrid');
     grid.replaceChildren();
 
-    const message = makeElement(
+    grid.appendChild(makeElement(
       'div',
       'empty-products',
       'دریافت آگهی‌ها با مشکل مواجه شد. لطفاً کمی بعد دوباره تلاش کنید.'
-    );
-
-    grid.appendChild(message);
+    ));
 
   } finally {
     listingsLoading = false;
   }
 }
-
-/* =====================================================
-   فیلتر محصولات
-===================================================== */
 
 document.querySelectorAll('.filter').forEach(button => {
   button.addEventListener('click', () => {
@@ -949,35 +884,25 @@ document.querySelectorAll('.filter').forEach(button => {
     });
 
     button.classList.add('active');
-
     renderProducts(button.dataset.filter);
   });
 });
-
-/* =====================================================
-   فرم ثبت آگهی
-===================================================== */
 
 const itemSelect = document.getElementById('sellerItem');
 const pricingSelect = document.getElementById('pricingMethod');
 
 function setSubfield(id, show) {
   const field = document.getElementById(id);
-
   field.classList.toggle('show', show);
 
   field.querySelectorAll('input,select,textarea').forEach(input => {
     input.required = show;
-
-    if (!show) {
-      input.value = '';
-    }
+    if (!show) input.value = '';
   });
 }
 
 function updateItemFields() {
   const type = itemSelect.value;
-
   setSubfield('jewelryTypeField', type === 'jewelry');
   setSubfield('coinTypeField', type === 'coin');
   setSubfield('parsianWeightField', type === 'parsian');
@@ -985,7 +910,6 @@ function updateItemFields() {
 
 function updatePricingFields() {
   const method = pricingSelect.value;
-
   setSubfield('fixedPriceField', method === 'fixed');
   setSubfield('percentField', method === 'percent');
   setSubfield('amountField', method === 'amount');
@@ -993,10 +917,6 @@ function updatePricingFields() {
 
 itemSelect.addEventListener('change', updateItemFields);
 pricingSelect.addEventListener('change', updatePricingFields);
-
-/* =====================================================
-   پیش‌نمایش عکس
-===================================================== */
 
 const photoInput = document.getElementById('sellerPhoto');
 const photoPreview = document.getElementById('photoPreview');
@@ -1015,12 +935,7 @@ photoInput.addEventListener('change', () => {
 
   if (!file) return;
 
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp'
-  ];
-
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   const maxSize = 1.5 * 1024 * 1024;
 
   if (!allowedTypes.includes(file.type)) {
@@ -1040,13 +955,8 @@ photoInput.addEventListener('change', () => {
   photoPreview.classList.add('show');
 });
 
-/* =====================================================
-   بررسی فاکتور
-===================================================== */
-
 invoiceInput.addEventListener('change', () => {
   const file = invoiceInput.files[0];
-
   if (!file) return;
 
   const allowedTypes = [
@@ -1070,17 +980,12 @@ invoiceInput.addEventListener('change', () => {
   }
 });
 
-/* =====================================================
-   ارسال فرم به API ربات فروشنده
-===================================================== */
-
 document.getElementById('sellerForm').addEventListener(
   'submit',
   async event => {
     event.preventDefault();
 
     const form = event.currentTarget;
-
     if (!form.reportValidity()) return;
 
     const photo = photoInput.files[0];
@@ -1098,26 +1003,19 @@ document.getElementById('sellerForm').addEventListener(
 
     const maxFileSize = 1.5 * 1024 * 1024;
 
-    if (
-      photo.size > maxFileSize ||
-      invoice.size > maxFileSize
-    ) {
+    if (photo.size > maxFileSize || invoice.size > maxFileSize) {
       showToast('حجم هر فایل باید حداکثر ۱٫۵ مگابایت باشد.');
       return;
     }
 
-    const estimatedSize =
-      photo.size + invoice.size + 64 * 1024;
+    const estimatedSize = photo.size + invoice.size + 64 * 1024;
 
     if (estimatedSize > 4 * 1024 * 1024) {
       showToast('حجم مجموع فایل‌ها بیشتر از حد مجاز است.');
       return;
     }
 
-    const submitButton = form.querySelector(
-      'button[type="submit"]'
-    );
-
+    const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
 
     submitButton.disabled = true;
@@ -1170,9 +1068,7 @@ document.getElementById('sellerForm').addEventListener(
       );
 
     } catch (error) {
-      showToast(
-        error.message || 'خطا در ارتباط با سرور.'
-      );
+      showToast(error.message || 'خطا در ارتباط با سرور.');
 
     } finally {
       submitButton.disabled = false;
@@ -1180,10 +1076,6 @@ document.getElementById('sellerForm').addEventListener(
     }
   }
 );
-
-/* =====================================================
-   قیمت‌های بازار
-===================================================== */
 
 const marketLabels = {
   up: '▲ افزایش',
@@ -1216,10 +1108,7 @@ function renderMarket(data) {
     value.textContent = formatMarketPrice(price);
     change.className = 'market-change';
 
-    if (
-      !daily ||
-      !['up', 'down', 'same'].includes(daily.direction)
-    ) {
+    if (!daily || !['up', 'down', 'same'].includes(daily.direction)) {
       change.textContent = marketLabels.unknown;
       change.classList.add('same');
       return;
@@ -1230,10 +1119,7 @@ function renderMarket(data) {
 
     let detail = marketLabels[daily.direction];
 
-    if (
-      Number.isFinite(difference) &&
-      Number.isFinite(percent)
-    ) {
+    if (Number.isFinite(difference) && Number.isFinite(percent)) {
       const sign = difference > 0 ? '+' : '';
 
       detail +=
@@ -1293,7 +1179,6 @@ async function loadMarketPrices() {
         'فعلاً در دسترس نیست';
 
       const change = card.querySelector('.market-change');
-
       change.textContent = 'دریافت قیمت ناموفق بود';
       change.className = 'market-change';
     });
@@ -1303,16 +1188,11 @@ async function loadMarketPrices() {
   }
 }
 
-/* =====================================================
-   راه‌اندازی اولیه
-===================================================== */
-
 loadListings();
 loadMarketPrices();
 
 setInterval(loadListings, 60000);
 setInterval(loadMarketPrices, 60000);
-
 </script>
 </body>
 </html>
