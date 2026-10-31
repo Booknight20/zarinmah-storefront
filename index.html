@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -141,12 +142,42 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   border-radius: 14px;
   overflow: hidden;
 }
-.product-visual { height: 180px; background: #eee9df; }
-.product-photo { width: 100%; height: 100%; object-fit: cover; }
+.product-visual {
+  height: 180px;
+  background: #eee9df;
+  overflow: hidden;
+}
+.product-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .product-info { padding: 14px; }
 .product-info h3 { font-size: 14px; margin: 0; }
 .product-meta { font-size: 11px; color: #737b83; }
+.product-description {
+  font-size: 11px;
+  color: #737b83;
+  margin: 7px 0;
+  overflow-wrap: anywhere;
+}
 .product-price { color: #96711f; font-weight: bold; font-size: 15px; margin: 10px 0; }
+.product-status {
+  display: inline-block;
+  color: #247a50;
+  background: #e7f6ed;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+.empty-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted);
+  padding: 30px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .filter {
   border: 1px solid var(--line);
@@ -357,17 +388,19 @@ footer h3 { color: var(--gold); font-size: 14px; }
   <div class="wrap">
     <div class="section-head">
       <span class="section-kicker">ویترین زرین ماه</span>
-      <h2>محصولات پیشنهادی</h2>
-      <p class="section-desc">محصولات زیر نمونه‌های نمایشی هستند؛ قیمت و موجودی آن‌ها واقعی نیست.</p>
+      <h2>آگهی‌های خرید و فروش طلا</h2>
+      <p class="section-desc">آگهی‌های تأییدشده فروشندگان زرین ماه در این بخش نمایش داده می‌شوند.</p>
     </div>
     <div class="filters">
       <button class="filter active" data-filter="all">همه</button>
-      <button class="filter" data-filter="necklace">گردنبند</button>
+      <button class="filter" data-filter="necklace">زیورآلات</button>
       <button class="filter" data-filter="ring">انگشتر</button>
-      <button class="filter" data-filter="bracelet">دستبند</button>
+      <button class="filter" data-filter="bracelet">دستبند و النگو</button>
       <button class="filter" data-filter="coin">سکه</button>
     </div>
-    <div class="products" id="productsGrid"></div>
+    <div class="products" id="productsGrid" aria-live="polite">
+      <p class="empty-products">در حال دریافت آگهی‌ها…</p>
+    </div>
   </div>
 </section>
 
@@ -442,7 +475,6 @@ footer h3 { color: var(--gold); font-size: 14px; }
 
     <form id="sellerForm">
       <div class="form-grid">
-
         <div class="field">
           <label for="sellerName">نام فروشنده *</label>
           <input id="sellerName" name="sellerName" required maxlength="100" placeholder="نام و نام خانوادگی">
@@ -549,7 +581,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
         <div class="field full">
           <label for="sellerPhoto">عکس محصول *</label>
           <input id="sellerPhoto" name="sellerPhoto" type="file" accept="image/jpeg,image/png,image/webp" required>
-          <small>فرمت‌های مجاز: JPG، PNG و WEBP. حجم پیشنهادی حداکثر ۵ مگابایت.</small>
+          <small>فرمت‌های مجاز: JPG، PNG و WEBP. حجم حداکثر ۱٫۵ مگابایت.</small>
           <img id="photoPreview" class="preview-image" alt="پیش‌نمایش عکس محصول">
         </div>
 
@@ -565,7 +597,6 @@ footer h3 { color: var(--gold); font-size: 14px; }
             <span>تأیید می‌کنم این کالا دارای فاکتور فروش معتبر است و اطلاعات ارائه‌شده صحیح هستند. *</span>
           </label>
         </div>
-
       </div>
 
       <div class="form-note">
@@ -575,15 +606,12 @@ footer h3 { color: var(--gold); font-size: 14px; }
         با ارسال فرم، اطلاعات و فایل‌ها برای بررسی مدیر به سامانه ثبت آگهی زرین ماه ارسال می‌شوند.
       </div>
 
-      <button class="btn" type="submit" style="width:100%">بررسی اطلاعات آگهی</button>
+      <button class="btn" type="submit" style="width:100%">ارسال آگهی برای بررسی</button>
     </form>
 
     <div id="sellerResult" style="display:none">
-      <h3>اطلاعات فرم بررسی شد</h3>
-      <p style="font-size:12px;color:var(--muted)">
-        پس از ارسال موفق، وضعیت آگهی و نتیجه اطلاع‌رسانی به مدیر در همین بخش نمایش داده می‌شود.
-        برای ارسال واقعی باید فرم به API امن سایت یا ربات زرین ماه متصل شود.
-      </p>
+      <h3>آگهی ثبت شد</h3>
+      <p style="font-size:12px;color:var(--muted)"></p>
       <button class="btn btn-outline" type="button" onclick="closeModal('sellerModal')">بستن</button>
     </div>
   </div>
@@ -603,7 +631,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
       <li>مشخصات، وزن، عیار و وضعیت محصول باید دقیق و صحیح ثبت شود.</li>
       <li>قیمت و روش قیمت‌گذاری باید برای خریدار روشن باشد.</li>
       <li>آگهی پیش از انتشار توسط مدیر بررسی می‌شود.</li>
-      <li>ثبت فرم در این نسخه آزمایشی به معنی انتشار آگهی یا انجام معامله نیست.</li>
+      <li>ثبت فرم به معنی انجام معامله نیست.</li>
     </ul>
   </div>
 </div>
@@ -611,115 +639,31 @@ footer h3 { color: var(--gold); font-size: 14px; }
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-const products = [
-  {
-    id:1,
-    name:'گردنبند مینیمال ماه',
-    type:'necklace',
-    weight:'۲٫۴ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:2,
-    name:'انگشتر طلای کلاسیک',
-    type:'ring',
-    weight:'۳٫۱ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:3,
-    name:'دستبند زنجیری ظریف',
-    type:'bracelet',
-    weight:'۴٫۲ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:4,
-    name:'گوشواره طرح قطره',
-    type:'necklace',
-    weight:'۱٫۸ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:5,
-    name:'سکه نمونه',
-    type:'coin',
-    weight:'نمونه نمایشی',
-    karat:'نیازمند بررسی',
-    price:'قیمت درج نشده',
-    photo:'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:6,
-    name:'انگشتر نگین‌دار ظریف',
-    type:'ring',
-    weight:'۲٫۷ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1603561596112-0a132b757442?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:7,
-    name:'دستبند طرح گره',
-    type:'bracelet',
-    weight:'۳٫۶ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id:8,
-    name:'گردنبند زنجیری کلاسیک',
-    type:'necklace',
-    weight:'۳٫۹ گرم',
-    karat:'۱۸ عیار',
-    price:'قیمت نمایشی',
-    photo:'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=700&q=85'
-  }
-];
+/* =====================================================
+   تنظیمات اصلی
+===================================================== */
 
-function renderProducts(filter='all') {
-  const list = products.filter(p => filter === 'all' || p.type === filter);
-  document.getElementById('productsGrid').innerHTML = list.map(p => `
-    <article class="product">
-      <div class="product-visual">
-        <img class="product-photo"
-             src="${p.photo}"
-             alt="تصویر نمونه ${p.name}"
-             loading="lazy"
-             decoding="async">
-      </div>
-      <div class="product-info">
-        <h3>${p.name}</h3>
-        <div class="product-meta">${p.weight} · ${p.karat}</div>
-        <div class="product-price">${p.price}</div>
-      </div>
-    </article>
-  `).join('');
-}
+const LISTINGS_API = 'https://zarinmah-seller-bot.vercel.app/api/listings';
+const MARKET_API = '/api/market';
 
-document.querySelectorAll('.filter').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
-    button.classList.add('active');
-    renderProducts(button.dataset.filter);
-  });
-});
+let liveListings = [];
+let currentFilter = 'all';
+let previewUrl = null;
+let listingsLoading = false;
+
+/* =====================================================
+   ابزارهای عمومی
+===================================================== */
 
 function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.classList.add('show');
+
   clearTimeout(window.toastTimer);
-  window.toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  window.toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3500);
 }
 
 function openSeller() {
@@ -735,16 +679,299 @@ function showTerms(event) {
   document.getElementById('termsModal').classList.add('show');
 }
 
+document.querySelectorAll('.modal-wrap').forEach(modal => {
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      modal.classList.remove('show');
+    }
+  });
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    document.querySelectorAll('.modal-wrap').forEach(modal => {
+      modal.classList.remove('show');
+    });
+  }
+});
+
+/* =====================================================
+   ویترین آگهی‌های واقعی
+===================================================== */
+
+function normalizeDigits(value) {
+  return String(value ?? '').replace(/[۰-۹]/g, digit =>
+    String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit))
+  );
+}
+
+function getListingType(item) {
+  const type = String(
+    item.product_type || item.item_type || ''
+  ).trim();
+
+  if (type.includes('سکه') || type.includes('پارسیان')) {
+    return 'coin';
+  }
+
+  if (type.includes('انگشتر')) {
+    return 'ring';
+  }
+
+  if (
+    type.includes('دستبند') ||
+    type.includes('النگو')
+  ) {
+    return 'bracelet';
+  }
+
+  if (
+    type.includes('گردنبند') ||
+    type.includes('گوشواره') ||
+    type.includes('زنجیر') ||
+    type.includes('آویز') ||
+    type.includes('پابند')
+  ) {
+    return 'necklace';
+  }
+
+  return 'all';
+}
+
+function makeElement(tag, className, content) {
+  const element = document.createElement(tag);
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (content !== undefined && content !== null) {
+    element.textContent = String(content);
+  }
+
+  return element;
+}
+
+function createListingCard(item) {
+  const article = makeElement('article', 'product');
+
+  const visual = makeElement('div', 'product-visual');
+  const photo = document.createElement('img');
+
+  photo.className = 'product-photo';
+  photo.alt = 'تصویر محصول طلا';
+  photo.loading = 'lazy';
+  photo.decoding = 'async';
+
+  const fallbackImage =
+    'https://placehold.co/600x400/15130f/c7a24b?text=ZarinMah+Gold';
+
+  const imageUrl = String(item.photo_url || '').trim();
+
+  if (
+    imageUrl &&
+    /^https:\/\//i.test(imageUrl)
+  ) {
+    photo.src = imageUrl;
+  } else {
+    photo.src = fallbackImage;
+  }
+
+  photo.onerror = () => {
+    if (photo.src !== fallbackImage) {
+      photo.src = fallbackImage;
+    }
+  };
+
+  visual.appendChild(photo);
+
+  const info = makeElement('div', 'product-info');
+
+  const title = makeElement(
+    'h3',
+    '',
+    item.product_type ||
+    item.item_type ||
+    'محصول طلا'
+  );
+
+  const details = [];
+
+  if (item.weight) {
+    details.push(
+      `وزن: ${item.weight} ${item.weight_unit || 'گرم'}`
+    );
+  }
+
+  if (item.karat) {
+    details.push(item.karat);
+  }
+
+  if (
+    item.city &&
+    item.city !== 'ثبت نشده'
+  ) {
+    details.push(item.city);
+  }
+
+  const meta = makeElement(
+    'div',
+    'product-meta',
+    details.join(' · ') || 'مشخصات تکمیلی ثبت نشده'
+  );
+
+  const description = makeElement(
+    'p',
+    'product-description',
+    item.description || 'توضیحی ثبت نشده است.'
+  );
+
+  const price = makeElement(
+    'div',
+    'product-price',
+    item.price || 'قیمت اعلام نشده'
+  );
+
+  const status = makeElement(
+    'span',
+    'product-status',
+    'تأیید و منتشرشده'
+  );
+
+  info.append(
+    title,
+    meta,
+    description,
+    price,
+    status
+  );
+
+  article.append(visual, info);
+
+  return article;
+}
+
+function renderProducts(filter = currentFilter) {
+  currentFilter = filter;
+
+  const grid = document.getElementById('productsGrid');
+  grid.replaceChildren();
+
+  const filtered = liveListings.filter(item => {
+    if (filter === 'all') return true;
+    return getListingType(item) === filter;
+  });
+
+  if (!filtered.length) {
+    const empty = makeElement(
+      'div',
+      'empty-products',
+      liveListings.length
+        ? 'در این دسته‌بندی هنوز آگهی منتشرشده‌ای وجود ندارد.'
+        : 'هنوز آگهی تأییدشده‌ای برای نمایش وجود ندارد.'
+    );
+
+    grid.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach(item => {
+    grid.appendChild(createListingCard(item));
+  });
+}
+
+async function loadListings() {
+  if (listingsLoading) return;
+
+  listingsLoading = true;
+
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`خطای سرور: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (
+      !data ||
+      data.ok !== true ||
+      !Array.isArray(data.listings)
+    ) {
+      throw new Error('ساختار پاسخ آگهی‌ها معتبر نیست.');
+    }
+
+    liveListings = data.listings.filter(item => {
+      return String(item.status || '').toLowerCase() === 'published';
+    });
+
+    renderProducts(currentFilter);
+
+    console.log(
+      'ZarinMah published listings:',
+      liveListings.length
+    );
+
+  } catch (error) {
+    console.error('Listings API error:', error);
+
+    const grid = document.getElementById('productsGrid');
+    grid.replaceChildren();
+
+    const message = makeElement(
+      'div',
+      'empty-products',
+      'دریافت آگهی‌ها با مشکل مواجه شد. لطفاً کمی بعد دوباره تلاش کنید.'
+    );
+
+    grid.appendChild(message);
+
+  } finally {
+    listingsLoading = false;
+  }
+}
+
+/* =====================================================
+   فیلتر محصولات
+===================================================== */
+
+document.querySelectorAll('.filter').forEach(button => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.filter').forEach(item => {
+      item.classList.remove('active');
+    });
+
+    button.classList.add('active');
+
+    renderProducts(button.dataset.filter);
+  });
+});
+
+/* =====================================================
+   فرم ثبت آگهی
+===================================================== */
+
 const itemSelect = document.getElementById('sellerItem');
 const pricingSelect = document.getElementById('pricingMethod');
 
 function setSubfield(id, show) {
   const field = document.getElementById(id);
+
   field.classList.toggle('show', show);
 
   field.querySelectorAll('input,select,textarea').forEach(input => {
     input.required = show;
-    if (!show) input.value = '';
+
+    if (!show) {
+      input.value = '';
+    }
   });
 }
 
@@ -767,9 +994,13 @@ function updatePricingFields() {
 itemSelect.addEventListener('change', updateItemFields);
 pricingSelect.addEventListener('change', updatePricingFields);
 
+/* =====================================================
+   پیش‌نمایش عکس
+===================================================== */
+
 const photoInput = document.getElementById('sellerPhoto');
 const photoPreview = document.getElementById('photoPreview');
-let previewUrl = null;
+const invoiceInput = document.getElementById('sellerInvoice');
 
 photoInput.addEventListener('change', () => {
   const file = photoInput.files[0];
@@ -784,8 +1015,13 @@ photoInput.addEventListener('change', () => {
 
   if (!file) return;
 
-  const allowedTypes = ['image/jpeg','image/png','image/webp'];
-  const maxSize = 1500 * 1024;
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+  ];
+
+  const maxSize = 1.5 * 1024 * 1024;
 
   if (!allowedTypes.includes(file.type)) {
     photoInput.value = '';
@@ -804,10 +1040,13 @@ photoInput.addEventListener('change', () => {
   photoPreview.classList.add('show');
 });
 
-const invoiceInput = document.getElementById('sellerInvoice');
+/* =====================================================
+   بررسی فاکتور
+===================================================== */
 
 invoiceInput.addEventListener('change', () => {
   const file = invoiceInput.files[0];
+
   if (!file) return;
 
   const allowedTypes = [
@@ -816,11 +1055,12 @@ invoiceInput.addEventListener('change', () => {
     'image/webp',
     'application/pdf'
   ];
-  const maxSize = 1500 * 1024;
+
+  const maxSize = 1.5 * 1024 * 1024;
 
   if (!allowedTypes.includes(file.type)) {
     invoiceInput.value = '';
-    showToast('فاکتور باید عکس JPG، PNG، WEBP یا فایل PDF باشد.');
+    showToast('فاکتور باید عکس JPG، PNG، WEBP یا PDF باشد.');
     return;
   }
 
@@ -830,126 +1070,120 @@ invoiceInput.addEventListener('change', () => {
   }
 });
 
+/* =====================================================
+   ارسال فرم به API ربات فروشنده
+===================================================== */
 
-document.getElementById('sellerForm').addEventListener('submit', async event => {
-  event.preventDefault();
+document.getElementById('sellerForm').addEventListener(
+  'submit',
+  async event => {
+    event.preventDefault();
 
-  const form = event.currentTarget;
-  if (!form.reportValidity()) return;
+    const form = event.currentTarget;
 
-  const photo = document.getElementById('sellerPhoto').files[0];
-  const invoice = document.getElementById('sellerInvoice').files[0];
-  const invoiceConfirmed = document.getElementById('invoiceConfirm').checked;
+    if (!form.reportValidity()) return;
 
-  if (!photo || !invoice) {
-    showToast('عکس محصول و فاکتور فروش الزامی هستند.');
-    return;
-  }
+    const photo = photoInput.files[0];
+    const invoice = invoiceInput.files[0];
 
-  if (!invoiceConfirmed) {
-    showToast('تأیید داشتن فاکتور فروش معتبر الزامی است.');
-    return;
-  }
-
-  const allowedPhotos = ['image/jpeg', 'image/png', 'image/webp'];
-  const allowedInvoices = [
-    'image/jpeg', 'image/png', 'image/webp', 'application/pdf'
-  ];
-
-  if (!allowedPhotos.includes(photo.type)) {
-    showToast('فرمت عکس محصول مجاز نیست.');
-    return;
-  }
-
-  if (!allowedInvoices.includes(invoice.type)) {
-    showToast('فرمت فاکتور مجاز نیست.');
-    return;
-  }
-
-  // محدودیت موقت برای سازگاری با محدودیت درخواست Vercel
-  const maxFileSize = 1.5 * 1024 * 1024;
-  if (photo.size > maxFileSize || invoice.size > maxFileSize) {
-    showToast('برای ارسال مطمئن، حجم هر فایل باید حداکثر ۱٫۵ مگابایت باشد.');
-    return;
-  }
-
-  const estimatedRequestSize = photo.size + invoice.size + 64 * 1024;
-  if (estimatedRequestSize > 4 * 1024 * 1024) {
-    showToast('حجم مجموع فایل‌ها و اطلاعات فرم بیشتر از حد مجاز است.');
-    return;
-  }
-
-  const submitButton = form.querySelector('button[type="submit"]');
-  const originalText = submitButton.textContent;
-
-  submitButton.disabled = true;
-  submitButton.textContent = 'در حال ارسال آگهی…';
-
-  try {
-    const formData = new FormData(form);
-
-    const response = await fetch('https://zarinmah-seller-bot.vercel.app/api/listings', {
-      method: 'POST',
-      body: formData,
-      cache: 'no-store'
-    });
-
-    const result = await response.json().catch(() => ({}));
-
-    if (!response.ok || !result.ok) {
-      throw new Error(
-        result.error || 'ثبت آگهی انجام نشد. لطفاً دوباره تلاش کن.'
-      );
+    if (!photo || !invoice) {
+      showToast('عکس محصول و فاکتور فروش الزامی هستند.');
+      return;
     }
 
-    form.style.display = 'none';
+    if (!document.getElementById('invoiceConfirm').checked) {
+      showToast('تأیید داشتن فاکتور فروش معتبر الزامی است.');
+      return;
+    }
 
-    const resultBox = document.getElementById('sellerResult');
-    resultBox.style.display = 'block';
+    const maxFileSize = 1.5 * 1024 * 1024;
 
-    resultBox.querySelector('h3').textContent =
-      `آگهی شماره ${result.id} ثبت شد`;
+    if (
+      photo.size > maxFileSize ||
+      invoice.size > maxFileSize
+    ) {
+      showToast('حجم هر فایل باید حداکثر ۱٫۵ مگابایت باشد.');
+      return;
+    }
 
-    resultBox.querySelector('p').textContent =
-      result.admin_notification_sent
-        ? (
-            'آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' +
-            (result.invoice_sent
-              ? 'فاکتور نیز به مدیر ارسال شد.'
-              : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.')
-          )
-        : (
-            'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. ' +
-            'از ثبت دوباره آگهی خودداری کن تا از ایجاد مورد تکراری جلوگیری شود.'
-          );
+    const estimatedSize =
+      photo.size + invoice.size + 64 * 1024;
 
-    showToast(
-      result.admin_notification_sent
-        ? 'آگهی برای بررسی مدیر ارسال شد.'
-        : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'
+    if (estimatedSize > 4 * 1024 * 1024) {
+      showToast('حجم مجموع فایل‌ها بیشتر از حد مجاز است.');
+      return;
+    }
+
+    const submitButton = form.querySelector(
+      'button[type="submit"]'
     );
 
-  } catch (error) {
-    showToast(error.message || 'خطا در ارتباط با سرور.');
-  } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = originalText;
-  }
-});
+    const originalText = submitButton.textContent;
 
-document.querySelectorAll('.modal-wrap').forEach(modal => {
-  modal.addEventListener('click', event => {
-    if (event.target === modal) modal.classList.remove('show');
-  });
-});
+    submitButton.disabled = true;
+    submitButton.textContent = 'در حال ارسال آگهی…';
 
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    document.querySelectorAll('.modal-wrap').forEach(modal => {
-      modal.classList.remove('show');
-    });
+    try {
+      const formData = new FormData(form);
+
+      const response = await fetch(LISTINGS_API, {
+        method: 'POST',
+        body: formData,
+        cache: 'no-store'
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error || 'ثبت آگهی انجام نشد. دوباره تلاش کن.'
+        );
+      }
+
+      form.style.display = 'none';
+
+      const resultBox = document.getElementById('sellerResult');
+      resultBox.style.display = 'block';
+
+      resultBox.querySelector('h3').textContent =
+        `آگهی شماره ${result.id} ثبت شد`;
+
+      resultBox.querySelector('p').textContent =
+        result.admin_notification_sent
+          ? (
+              'آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' +
+              (
+                result.invoice_sent
+                  ? 'فاکتور نیز به مدیر ارسال شد.'
+                  : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.'
+              )
+            )
+          : (
+              'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. ' +
+              'از ثبت دوباره آگهی خودداری کن.'
+            );
+
+      showToast(
+        result.admin_notification_sent
+          ? 'آگهی برای بررسی مدیر ارسال شد.'
+          : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'
+      );
+
+    } catch (error) {
+      showToast(
+        error.message || 'خطا در ارتباط با سرور.'
+      );
+
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+    }
   }
-});
+);
+
+/* =====================================================
+   قیمت‌های بازار
+===================================================== */
 
 const marketLabels = {
   up: '▲ افزایش',
@@ -960,23 +1194,32 @@ const marketLabels = {
 
 function formatMarketPrice(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return 'قیمت نامشخص';
+
+  if (!Number.isFinite(number) || number <= 0) {
+    return 'قیمت نامشخص';
+  }
+
   return number.toLocaleString('fa-IR') + ' تومان';
 }
 
 function renderMarket(data) {
   const cards = document.querySelectorAll('[data-market-key]');
+
   cards.forEach(card => {
     const key = card.dataset.marketKey;
     const value = card.querySelector('.market-value');
     const change = card.querySelector('.market-change');
+
     const price = data.prices && data.prices[key];
     const daily = data.dailyChanges && data.dailyChanges[key];
 
     value.textContent = formatMarketPrice(price);
     change.className = 'market-change';
 
-    if (!daily || !['up', 'down', 'same'].includes(daily.direction)) {
+    if (
+      !daily ||
+      !['up', 'down', 'same'].includes(daily.direction)
+    ) {
       change.textContent = marketLabels.unknown;
       change.classList.add('same');
       return;
@@ -984,48 +1227,92 @@ function renderMarket(data) {
 
     const difference = Number(daily.difference);
     const percent = Number(daily.percent);
+
     let detail = marketLabels[daily.direction];
-    if (Number.isFinite(difference) && Number.isFinite(percent)) {
+
+    if (
+      Number.isFinite(difference) &&
+      Number.isFinite(percent)
+    ) {
       const sign = difference > 0 ? '+' : '';
-      detail += ` · ${sign}${difference.toLocaleString('fa-IR')} تومان (${sign}${percent.toLocaleString('fa-IR', { maximumFractionDigits: 2 })}٪)`;
+
+      detail +=
+        ` · ${sign}${difference.toLocaleString('fa-IR')} تومان` +
+        ` (${sign}${percent.toLocaleString('fa-IR', {
+          maximumFractionDigits: 2
+        })}٪)`;
     }
+
     change.textContent = detail;
     change.classList.add(daily.direction);
   });
 
   const disclaimer = document.getElementById('marketDisclaimer');
+
   if (data.updatedAt) {
     const date = new Date(data.updatedAt);
-    const formatted = new Intl.DateTimeFormat('fa-IR', {
-      timeZone: 'Asia/Tehran', dateStyle: 'short', timeStyle: 'short'
-    }).format(date);
-    disclaimer.textContent = `آخرین دریافت: ${formatted} به وقت تهران · قیمت‌ها به تومان هستند.`;
+
+    if (!Number.isNaN(date.getTime())) {
+      const formatted = new Intl.DateTimeFormat('fa-IR', {
+        timeZone: 'Asia/Tehran',
+        dateStyle: 'short',
+        timeStyle: 'short'
+      }).format(date);
+
+      disclaimer.textContent =
+        `آخرین دریافت: ${formatted} به وقت تهران · قیمت‌ها به تومان هستند.`;
+    }
   }
 }
 
 async function loadMarketPrices() {
   const disclaimer = document.getElementById('marketDisclaimer');
+
   try {
-    const response = await fetch('/api/market', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Market API returned an error');
+    const response = await fetch(MARKET_API, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Market API returned an error');
+    }
+
     const data = await response.json();
-    if (!data.ok || !data.prices) throw new Error('Market data is unavailable');
+
+    if (!data.ok || !data.prices) {
+      throw new Error('Market data is unavailable');
+    }
+
     renderMarket(data);
+
   } catch (error) {
+    console.error('Market API error:', error);
+
     document.querySelectorAll('[data-market-key]').forEach(card => {
-      card.querySelector('.market-value').textContent = 'فعلاً در دسترس نیست';
+      card.querySelector('.market-value').textContent =
+        'فعلاً در دسترس نیست';
+
       const change = card.querySelector('.market-change');
+
       change.textContent = 'دریافت قیمت ناموفق بود';
       change.className = 'market-change';
     });
-    disclaimer.textContent = 'دریافت قیمت بازار با مشکل روبه‌رو شد؛ کمی بعد دوباره تلاش می‌کنیم.';
+
+    disclaimer.textContent =
+      'دریافت قیمت بازار با مشکل روبه‌رو شد؛ کمی بعد دوباره تلاش می‌کنیم.';
   }
 }
 
-renderProducts();
+/* =====================================================
+   راه‌اندازی اولیه
+===================================================== */
+
+loadListings();
 loadMarketPrices();
+
+setInterval(loadListings, 60000);
 setInterval(loadMarketPrices, 60000);
-renderProducts();
+
 </script>
 </body>
 </html>
