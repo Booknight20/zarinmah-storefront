@@ -1,10 +1,36 @@
+const { list, put } = require("@vercel/blob");
 
 const SOURCE_URL = "https://t.me/s/navasanchannel";
-const REPO = "Booknight20/zarinmah-storefront";
-const STATE_PATH = "data/market-daily.json";
-const BRANCH = "main";
+const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
+
+// سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
+const INITIAL_STATE = {
+  days: {
+    "2026-10-28": {
+      prices: { gold18: 26425500, emami: 268000000, half: 141000000, dollar: 269500 },
+      updatedAt: "2026-10-28T18:29:45.687Z"
+    },
+    "2026-10-29": {
+      prices: { gold18: 26153100, emami: 266500000, half: 141000000, dollar: 271200 },
+      updatedAt: "2026-10-29T16:39:24.677Z"
+    },
+    "2026-10-30": {
+      prices: { gold18: 26097700, emami: 266500000, half: 141000000, dollar: 271200 },
+      updatedAt: "2026-10-30T07:14:37.942Z"
+    },
+    "2026-10-31": {
+      prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
+      updatedAt: "2026-10-31T06:49:50.665Z"
+    }
+  },
+  latest: {
+    prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
+    updatedAt: "2026-10-31T06:49:50.665Z",
+    date: "2026-10-31"
+  }
+};
 
 function tehranParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -162,35 +188,35 @@ function validPrices(prices) {
   );
 }
 
-function githubHeaders(token) {
-  return {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "Content-Type": "application/json"
-  };
-}
 
-async function readState(token) {
-  const url =
-    `https://api.github.com/repos/${REPO}/contents/${STATE_PATH}?ref=${BRANCH}`;
+// =========================================================
+// ذخیره‌سازی قیمت‌ها در Vercel Blob
+// =========================================================
 
-  const response = await fetch(url, {
-    headers: githubHeaders(token),
+async function readState() {
+  const result = await list({
+    prefix: BLOB_PATH,
+    limit: 10
+  });
+
+  const blob = (result.blobs || []).find(
+    item => item.pathname === BLOB_PATH
+  );
+
+  if (!blob) {
+    return JSON.parse(JSON.stringify(INITIAL_STATE));
+  }
+
+  const response = await fetch(blob.url, {
+    cache: "no-store",
     signal: AbortSignal.timeout(10000)
   });
 
-  if (response.status === 404) {
-    return { state: { days: {} }, sha: null };
-  }
-
   if (!response.ok) {
-    throw new Error(`GitHub read failed: ${response.status}`);
+    throw new Error(`Blob read failed: ${response.status}`);
   }
 
-  const file = await response.json();
-  const decoded = Buffer.from(file.content, "base64").toString("utf8");
-  const state = JSON.parse(decoded);
+  const state = await response.json();
 
   if (
     !state ||
@@ -198,39 +224,30 @@ async function readState(token) {
     !state.days ||
     typeof state.days !== "object"
   ) {
-    throw new Error("Invalid daily market history structure");
+    throw new Error("Invalid market history structure in Blob");
   }
 
-  return { state, sha: file.sha };
+  return state;
 }
 
-async function writeState(token, state, sha) {
-  const url =
-    `https://api.github.com/repos/${REPO}/contents/${STATE_PATH}`;
-
-  const body = {
-    message: "Update ZarinMah market prices",
-    branch: BRANCH,
-    content: Buffer.from(
-      JSON.stringify(state, null, 2),
-      "utf8"
-    ).toString("base64")
-  };
-
-  if (sha) body.sha = sha;
-
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: githubHeaders(token),
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10000)
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`GitHub write failed: ${response.status} ${detail}`);
-  }
+async function writeState(state) {
+  await put(
+    BLOB_PATH,
+    Buffer.from(JSON.stringify(state, null, 2), "utf8"),
+    {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "application/json",
+      cacheControlMaxAge: 60
+    }
+  );
 }
+
+
+// =========================================================
+// آخرین قیمت ذخیره‌شده
+// =========================================================
 
 function getLatestSaved(state) {
   if (
@@ -241,7 +258,9 @@ function getLatestSaved(state) {
     const savedDate =
       state.latest.date ||
       (() => {
-        const parts = tehranParts(new Date(state.latest.updatedAt));
+        const parts = tehranParts(
+          new Date(state.latest.updatedAt)
+        );
         return `${parts.year}-${parts.month}-${parts.day}`;
       })();
 
@@ -268,6 +287,11 @@ function getLatestSaved(state) {
 
   return null;
 }
+
+
+// =========================================================
+// پاسخ قیمت ذخیره‌شده
+// =========================================================
 
 function buildCachedResponse(state, marketOpen, message) {
   const latest = getLatestSaved(state);
@@ -297,7 +321,10 @@ function buildCachedResponse(state, marketOpen, message) {
     prices: latest.prices,
     updatedAt: latest.updatedAt,
     previousDate,
-    dailyChanges: calculateChanges(latest.prices, previousPrices),
+    dailyChanges: calculateChanges(
+      latest.prices,
+      previousPrices
+    ),
     historySaved: true,
     cached: true,
     message: message ||
@@ -305,9 +332,15 @@ function buildCachedResponse(state, marketOpen, message) {
   };
 }
 
-async function saveTodayPrices(token, dateString, prices, updatedAt) {
+
+// =========================================================
+// ذخیره قیمت روزانه و آخرین قیمت
+// =========================================================
+
+async function saveTodayPrices(dateString, prices, updatedAt) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { state, sha } = await readState(token);
+    const state = await readState();
+
     const previousDate = getPreviousDate(dateString);
     const previous = state.days[previousDate] || null;
 
@@ -316,7 +349,6 @@ async function saveTodayPrices(token, dateString, prices, updatedAt) {
       updatedAt
     };
 
-    // آخرین قیمت معتبر را مستقل از تاریخ روز نگه می‌داریم.
     state.latest = {
       prices,
       updatedAt,
@@ -325,30 +357,41 @@ async function saveTodayPrices(token, dateString, prices, updatedAt) {
 
     const dates = Object.keys(state.days).sort();
 
-    for (const oldDate of dates.slice(0, Math.max(0, dates.length - 14))) {
+    for (
+      const oldDate of dates.slice(
+        0,
+        Math.max(0, dates.length - 14)
+      )
+    ) {
       delete state.days[oldDate];
     }
 
     try {
-      await writeState(token, state, sha);
+      await writeState(state);
 
       return {
         previousDate,
         previousPrices: previous?.prices || null,
         saved: true
       };
+
     } catch (error) {
       if (attempt === 2) throw error;
 
       console.error(
-        `History save attempt ${attempt + 1} failed:`,
+        `Blob save attempt ${attempt + 1} failed:`,
         error.message
       );
     }
   }
 
-  throw new Error("Could not save daily price history");
+  throw new Error("Could not save daily price history to Blob");
 }
+
+
+// =========================================================
+// دریافت قیمت از منبع
+// =========================================================
 
 async function fetchSourcePrices() {
   const response = await fetch(SOURCE_URL, {
@@ -379,11 +422,26 @@ async function fetchSourcePrices() {
   throw new Error("No valid prices found for all assets");
 }
 
+
+// =========================================================
+// API اصلی بازار
+// =========================================================
+
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, max-age=0, must-revalidate"
+  );
+
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -398,29 +456,24 @@ module.exports = async function handler(req, res) {
 
   const now = new Date();
   const tehran = tehranParts(now);
-  const dateString = `${tehran.year}-${tehran.month}-${tehran.day}`;
+
+  const dateString =
+    `${tehran.year}-${tehran.month}-${tehran.day}`;
+
   const hour = Number(tehran.hour);
   const marketOpen = hour >= 9 && hour < 22;
-  const token = process.env.GITHUB_TOKEN;
 
-  let state = { days: {} };
+  let state = JSON.parse(JSON.stringify(INITIAL_STATE));
   let stateAvailable = false;
 
-  // سابقه را ابتدا می‌خوانیم تا حتی هنگام بسته بودن بازار
-  // بتوانیم آخرین قیمت معتبر را نمایش دهیم.
-  if (token) {
-    try {
-      const result = await readState(token);
-      state = result.state;
-      stateAvailable = true;
-    } catch (error) {
-      console.error("Market history read error:", error.message);
-    }
-  } else {
-    console.error("GITHUB_TOKEN is not configured");
+  try {
+    state = await readState();
+    stateAvailable = true;
+  } catch (error) {
+    console.error("Market Blob read error:", error.message);
   }
 
-  // خارج از ساعت به‌روزرسانی، قیمت ذخیره‌شده نمایش داده می‌شود.
+  // خارج از ساعات بازار، آخرین قیمت ذخیره‌شده نمایش داده می‌شود.
   if (!marketOpen) {
     const payload = buildCachedResponse(
       state,
@@ -429,6 +482,28 @@ module.exports = async function handler(req, res) {
     );
 
     return res.status(payload.ok ? 200 : 503).json(payload);
+  }
+
+  // جلوگیری از دریافت تکراری قیمت در فاصله کمتر از ۵۰ ثانیه
+  const latestSaved = getLatestSaved(state);
+
+  if (latestSaved) {
+    const age =
+      Date.now() - new Date(latestSaved.updatedAt).getTime();
+
+    if (
+      Number.isFinite(age) &&
+      age >= 0 &&
+      age < 50000
+    ) {
+      const payload = buildCachedResponse(
+        state,
+        true,
+        "آخرین قیمت دریافت‌شده در کمتر از یک دقیقه اخیر نمایش داده می‌شود."
+      );
+
+      return res.status(200).json(payload);
+    }
   }
 
   try {
@@ -440,20 +515,21 @@ module.exports = async function handler(req, res) {
 
     let historySaved = false;
 
-    if (token) {
-      try {
-        const history = await saveTodayPrices(
-          token,
-          dateString,
-          prices,
-          updatedAt
-        );
+    try {
+      const history = await saveTodayPrices(
+        dateString,
+        prices,
+        updatedAt
+      );
 
-        previousPrices = history.previousPrices;
-        historySaved = history.saved;
-      } catch (error) {
-        console.error("Market history save error:", error.message);
-      }
+      previousPrices = history.previousPrices;
+      historySaved = history.saved;
+
+    } catch (error) {
+      console.error(
+        "Market Blob history save error:",
+        error.message
+      );
     }
 
     return res.status(200).json({
@@ -465,18 +541,20 @@ module.exports = async function handler(req, res) {
       timezone: TIMEZONE,
       prices,
       previousDate: getPreviousDate(dateString),
-      dailyChanges: calculateChanges(prices, previousPrices),
+      dailyChanges: calculateChanges(
+        prices,
+        previousPrices
+      ),
       historySaved,
       cached: false,
       message: historySaved
-        ? "قیمت‌ها با موفقیت دریافت و ذخیره شدند."
+        ? "قیمت‌ها با موفقیت دریافت و در فضای ذخیره‌سازی سایت ثبت شدند."
         : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
     });
+
   } catch (error) {
     console.error("Market API error:", error.message);
 
-    // اگر منبع قیمت خطا داشت، به‌جای خالی کردن کارت‌ها
-    // آخرین قیمت ذخیره‌شده را برمی‌گردانیم.
     const payload = buildCachedResponse(
       state,
       true,
