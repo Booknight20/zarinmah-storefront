@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>زرین ماه | طلای کم‌اجرت</title>
-<link rel="icon" type="image/png" href="/logo-zarinmah.png">
+<link rel="icon" type="image/webp" href="/logo-zarinmah.webp">
 
 <style>
 :root {
@@ -83,9 +83,8 @@ header {
 .hero {
   padding: 60px 0;
   background:
-    linear-gradient(90deg,rgba(3,10,14,.97),rgba(3,10,14,.76)),
-    url('https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=1800&q=85')
-    center/cover;
+    radial-gradient(ellipse at 78% 42%, rgba(199,162,75,.15), transparent 42%),
+    linear-gradient(110deg, #030a0e 0%, #0b171b 58%, #17130c 100%);
 }
 .hero-grid {
   display: grid;
@@ -100,7 +99,9 @@ h1 em { color: var(--gold); font-style: normal; }
 .hero-art {
   min-height: 310px;
   border-radius: 20px;
-  background: url('https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=85') center/cover;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(199,162,75,.22), transparent 48%),
+    linear-gradient(135deg, #15130f, #07141d 58%, #241b0c);
 }
 .hero-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 
@@ -306,7 +307,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
 <header>
   <div class="wrap nav">
     <a class="brand" href="#home">
-      <img class="brand-mark" src="/logo-zarinmah.png" alt="لوگوی زرین ماه">
+      <img class="brand-mark" src="/logo-zarinmah.webp" width="58" height="58" decoding="async" fetchpriority="high" alt="لوگوی زرین ماه">
       <span><span class="brand-name">زرین ماه</span><span class="brand-sub">طلای کم‌اجرت</span></span>
     </a>
     <nav class="navlinks">
@@ -315,7 +316,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
       <a href="#why">چرا زرین ماه؟</a>
       <a href="#sell">فروش طلا</a>
     </nav>
-    <a class="btn btn-outline" href="https://t.me/ZarinMahGoldBot?start=sell" target="_blank" rel="noopener noreferrer">ثبت آگهی</a>
+    <a class="btn btn-outline" href="#sell" onclick="openSeller(); return false;">ثبت آگهی</a>
   </div>
 </header>
 
@@ -404,7 +405,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <a class="brand" href="#home"><img class="brand-mark" src="/logo-zarinmah.png" alt="لوگوی زرین ماه"><span><span class="brand-name">زرین ماه</span><span class="brand-sub">طلای کم‌اجرت</span></span></a>
+        <a class="brand" href="#home"><img class="brand-mark" src="/logo-zarinmah.webp" width="58" height="58" decoding="async" fetchpriority="high" alt="لوگوی زرین ماه"><span><span class="brand-name">زرین ماه</span><span class="brand-sub">طلای کم‌اجرت</span></span></a>
         <p class="footer-about">زرین ماه؛ بستری برای معرفی محصولات طلا و ارتباط خریداران و فروشندگان. ثبت آگهی سایت به سامانه ربات فروشنده متصل است و آگهی‌ها پس از بررسی مدیر منتشر می‌شوند.</p>
       </div>
       <div>
@@ -693,7 +694,8 @@ function renderProducts(filter='all') {
         <img class="product-photo"
              src="${p.photo}"
              alt="تصویر نمونه ${p.name}"
-             loading="lazy">
+             loading="lazy"
+             decoding="async">
       </div>
       <div class="product-info">
         <h3>${p.name}</h3>
@@ -783,7 +785,7 @@ photoInput.addEventListener('change', () => {
   if (!file) return;
 
   const allowedTypes = ['image/jpeg','image/png','image/webp'];
-  const maxSize = 5 * 1024 * 1024;
+  const maxSize = 1500 * 1024;
 
   if (!allowedTypes.includes(file.type)) {
     photoInput.value = '';
@@ -793,7 +795,7 @@ photoInput.addEventListener('change', () => {
 
   if (file.size > maxSize) {
     photoInput.value = '';
-    showToast('حجم عکس باید حداکثر ۵ مگابایت باشد.');
+    showToast('حجم عکس باید حداکثر ۱٫۵ مگابایت باشد.');
     return;
   }
 
@@ -814,7 +816,7 @@ invoiceInput.addEventListener('change', () => {
     'image/webp',
     'application/pdf'
   ];
-  const maxSize = 5 * 1024 * 1024;
+  const maxSize = 1500 * 1024;
 
   if (!allowedTypes.includes(file.type)) {
     invoiceInput.value = '';
@@ -824,7 +826,7 @@ invoiceInput.addEventListener('change', () => {
 
   if (file.size > maxSize) {
     invoiceInput.value = '';
-    showToast('حجم فاکتور باید حداکثر ۵ مگابایت باشد.');
+    showToast('حجم فاکتور باید حداکثر ۱٫۵ مگابایت باشد.');
   }
 });
 
@@ -868,6 +870,12 @@ document.getElementById('sellerForm').addEventListener('submit', async event => 
   const maxFileSize = 1.5 * 1024 * 1024;
   if (photo.size > maxFileSize || invoice.size > maxFileSize) {
     showToast('برای ارسال مطمئن، حجم هر فایل باید حداکثر ۱٫۵ مگابایت باشد.');
+    return;
+  }
+
+  const estimatedRequestSize = photo.size + invoice.size + 64 * 1024;
+  if (estimatedRequestSize > 4 * 1024 * 1024) {
+    showToast('حجم مجموع فایل‌ها و اطلاعات فرم بیشتر از حد مجاز است.');
     return;
   }
 
