@@ -174,6 +174,19 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   color: #8b3030;
   background: #fde8e8;
 }
+
+.purchase-action {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid var(--gold);
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: var(--gold);
+  color: #17130a;
+  font-weight: bold;
+  font-size: 12px;
+}
+.purchase-action:disabled { opacity: .55; cursor: not-allowed; }
 .empty-products {
   grid-column: 1 / -1;
   text-align: center;
@@ -621,6 +634,37 @@ footer h3 { color: var(--gold); font-size: 14px; }
   </div>
 </div>
 
+<div class="modal-wrap" id="purchaseModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div>
+        <h2>ثبت درخواست خرید</h2>
+        <p id="purchaseProductTitle">درخواست شما ابتدا توسط پشتیبانی زرین ماه بررسی می‌شود.</p>
+      </div>
+      <button class="close" type="button" onclick="closeModal('purchaseModal')">✕</button>
+    </div>
+    <form id="purchaseForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="buyerName">نام و نام خانوادگی *</label>
+          <input id="buyerName" name="buyer_name" required maxlength="100" autocomplete="name" placeholder="نام و نام خانوادگی">
+        </div>
+        <div class="field full">
+          <label for="buyerPhone">شماره تماس *</label>
+          <input id="buyerPhone" name="buyer_phone" type="tel" required inputmode="tel" maxlength="30" pattern="[0-9۰-۹٠-٩+()\- ]{8,}" autocomplete="tel" placeholder="شماره‌ای که پاسخگو هستید">
+        </div>
+      </div>
+      <div class="form-note">اطلاعات تماس شما فقط به‌صورت خصوصی در اختیار پشتیبانی زرین ماه قرار می‌گیرد و در سایت یا آگهی عمومی نمایش داده نمی‌شود. ثبت درخواست به معنی قطعی‌شدن معامله نیست.</div>
+      <button class="btn" id="purchaseSubmit" type="submit" style="width:100%">ارسال درخواست خرید</button>
+    </form>
+    <div id="purchaseResult" style="display:none">
+      <h3>درخواست شما ثبت شد</h3>
+      <p style="font-size:12px;color:var(--muted)"></p>
+      <button class="btn btn-outline" type="button" onclick="closeModal('purchaseModal')">بستن</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-wrap" id="termsModal">
   <div class="modal">
     <div class="modal-head">
@@ -650,6 +694,7 @@ let liveListings = [];
 let currentFilter = 'all';
 let previewUrl = null;
 let listingsLoading = false;
+let selectedPurchaseListingId = null;
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -663,6 +708,20 @@ function showToast(message) {
 
 function openSeller() {
   document.getElementById('sellerModal').classList.add('show');
+}
+
+function openPurchase(item) {
+  if (!item || String(item.status || '').toLowerCase() !== 'published') {
+    showToast('این آگهی دیگر برای خرید در دسترس نیست.');
+    return;
+  }
+  selectedPurchaseListingId = item.id;
+  document.getElementById('purchaseProductTitle').textContent =
+    `${item.product_type || item.item_type || 'محصول طلا'} — ${item.price || 'قیمت اعلام نشده'}`;
+  document.getElementById('purchaseForm').style.display = 'block';
+  document.getElementById('purchaseResult').style.display = 'none';
+  document.getElementById('purchaseForm').reset();
+  document.getElementById('purchaseModal').classList.add('show');
 }
 
 function closeModal(id) {
@@ -798,6 +857,14 @@ function createListingCard(item) {
   );
 
   info.append(title, meta, description, price, status);
+
+  if (!isSold) {
+    const purchaseButton = makeElement('button', 'purchase-action', '🛒 ثبت درخواست خرید');
+    purchaseButton.type = 'button';
+    purchaseButton.addEventListener('click', () => openPurchase(item));
+    info.appendChild(purchaseButton);
+  }
+
   article.append(visual, info);
 
   return article;
@@ -977,6 +1044,49 @@ invoiceInput.addEventListener('change', () => {
   if (file.size > maxSize) {
     invoiceInput.value = '';
     showToast('حجم فاکتور باید حداکثر ۱٫۵ مگابایت باشد.');
+  }
+});
+
+document.getElementById('purchaseForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity() || !selectedPurchaseListingId) return;
+
+  const submitButton = document.getElementById('purchaseSubmit');
+  const originalText = submitButton.textContent;
+  submitButton.disabled = true;
+  submitButton.textContent = 'در حال ثبت درخواست…';
+
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        action: 'purchase',
+        listing_id: selectedPurchaseListingId,
+        buyer_name: document.getElementById('buyerName').value.trim(),
+        buyer_phone: document.getElementById('buyerPhone').value.trim()
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || 'ثبت درخواست خرید انجام نشد.');
+    }
+
+    form.style.display = 'none';
+    const resultBox = document.getElementById('purchaseResult');
+    resultBox.style.display = 'block';
+    resultBox.querySelector('p').textContent = result.admin_notification_sent
+      ? 'درخواست شما به پشتیبانی زرین ماه ارسال شد. پس از بررسی، برای هماهنگی با شما تماس گرفته می‌شود.'
+      : 'درخواست شما ثبت شده، اما اطلاع‌رسانی به پشتیبانی کامل نشده است. لطفاً با پشتیبانی زرین ماه تماس بگیرید و درخواست را دوباره ثبت نکنید.';
+    showToast('درخواست خرید ثبت شد.');
+  } catch (error) {
+    console.error('Purchase request error:', error);
+    showToast(error.message || 'ارتباط با سرور برقرار نشد.');
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
   }
 });
 
