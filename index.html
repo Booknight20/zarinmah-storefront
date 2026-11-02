@@ -502,6 +502,27 @@ footer h3 { color: var(--gold); font-size: 14px; }
           <input id="sellerPhone" name="sellerPhone" required inputmode="tel" pattern="[0-9۰-۹+()\- ]{8,}" placeholder="شماره تماس">
         </div>
 
+        <div class="field">
+          <label for="province">استان محل فروش *</label>
+          <select id="province" name="province" required>
+            <option value="">انتخاب استان</option>
+            <option>آذربایجان شرقی</option><option>آذربایجان غربی</option><option>اردبیل</option>
+            <option>اصفهان</option><option>البرز</option><option>ایلام</option><option>بوشهر</option>
+            <option>تهران</option><option>چهارمحال و بختیاری</option><option>خراسان جنوبی</option>
+            <option>خراسان رضوی</option><option>خراسان شمالی</option><option>خوزستان</option>
+            <option>زنجان</option><option>سمنان</option><option>سیستان و بلوچستان</option>
+            <option>فارس</option><option>قزوین</option><option>قم</option><option>کردستان</option>
+            <option>کرمان</option><option>کرمانشاه</option><option>کهگیلویه و بویراحمد</option>
+            <option>گلستان</option><option>گیلان</option><option>لرستان</option><option>مازندران</option>
+            <option>مرکزی</option><option>هرمزگان</option><option>همدان</option><option>یزد</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="city">شهر محل فروش *</label>
+          <input id="city" name="city" required maxlength="100" placeholder="نام شهر">
+        </div>
+
         <div class="field full">
           <label for="sellerItem">دسته‌بندی محصول *</label>
           <select id="sellerItem" name="sellerItem" required>
@@ -825,6 +846,10 @@ function createListingCard(item) {
   }
 
   if (item.karat) details.push(item.karat);
+
+  if (item.province && item.province !== 'ثبت نشده') {
+    details.push(item.province);
+  }
 
   if (item.city && item.city !== 'ثبت نشده') {
     details.push(item.city);
