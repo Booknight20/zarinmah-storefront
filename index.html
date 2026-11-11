@@ -927,6 +927,7 @@ function updateAuthUI(session) {
     document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
     loadCurrentProfile(session);
   } else {
+    profileRequestId += 1;
     closeModal('profileModal');
     document.getElementById('authPhoneGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
@@ -990,7 +991,7 @@ async function saveUserProfile(event) {
     showToast('ابتدا وارد حساب کاربری شوید.');
     return;
   }
-  const fullName = document.getElementById('profileFullName').value.trim().replace(/\\s+/g, ' ');
+  const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
   if (fullName.split(' ').length < 2 || fullName.length < 5) {
     document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
     return;
