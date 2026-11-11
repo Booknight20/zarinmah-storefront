@@ -1080,7 +1080,7 @@ async function editUserProfile() {
   document.getElementById('profileModal').classList.add('show');
 }
 
-function saveUserProfile(event) {
+async function saveUserProfile(event) {
   event.preventDefault();
   if (!currentAuthSession?.access_token) {
     showToast('ابتدا وارد حساب کاربری شوید.');
