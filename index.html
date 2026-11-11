@@ -85,6 +85,22 @@ header {
 .auth-help { color: var(--muted); font-size: 11px; margin-top: 8px; }
 .auth-message { min-height: 24px; color: var(--gold); font-size: 12px; margin: 10px 0; }
 .auth-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.account-panel { margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+.account-panel h3 { color:var(--gold); font-size:15px; margin:0 0 10px; }
+.account-tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
+.account-tab { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:8px; padding:7px 10px; font-size:11px; cursor:pointer; }
+.account-tab.active { background:var(--gold); color:#17130a; }
+.account-list { display:grid; gap:9px; max-height:360px; overflow:auto; }
+.account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
+.account-item strong { display:block; font-size:12px; color:var(--text); }
+.account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.account-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.account-action { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 8px; font-size:10px; cursor:pointer; }
+.account-action.danger { border-color:#b65c5c; color:#ff9b9b; }
+.account-empty { color:var(--muted); font-size:12px; padding:10px 0; }
+.account-refresh { margin:8px 0; }
+
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
 .hero {
@@ -766,6 +782,18 @@ footer h3 { color: var(--gold); font-size: 14px; }
     <div id="authLoggedIn" style="display:none">
       <p class="auth-status" id="authUserLabel"></p>
       <button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
+      <div class="account-panel">
+        <h3>پنل حساب کاربری</h3>
+        <div class="account-tabs">
+          <button class="account-tab active" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
+          <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌های خرید</button>
+          <button class="account-tab" type="button" data-account-tab="admin" id="adminAccountTab" style="display:none" onclick="showAccountTab('admin')">مدیریت سامانه</button>
+        </div>
+        <button class="account-action account-refresh" type="button" onclick="loadAccountPanel()">به‌روزرسانی اطلاعات</button>
+        <div class="account-list" id="accountListings"><p class="account-empty">برای دریافت اطلاعات، کمی صبر کنید…</p></div>
+        <div class="account-list" id="accountRequests" style="display:none"></div>
+        <div class="account-list" id="accountAdmin" style="display:none"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -966,6 +994,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
       document.getElementById('sellerName').value = currentUserProfile.full_name;
       document.getElementById('buyerName').value = currentUserProfile.full_name;
       closeModal('profileModal');
+      loadAccountPanel();
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
@@ -1034,6 +1063,137 @@ async function saveUserProfile(event) {
 }
 
 document.getElementById('profileForm').addEventListener('submit', saveUserProfile);
+
+let accountDataCache = null;
+let accountLoading = false;
+
+function showAccountTab(tab) {
+  ["listings", "requests", "admin"].forEach(name => {
+    const panel = document.getElementById(name === "listings" ? "accountListings" : name === "requests" ? "accountRequests" : "accountAdmin");
+    const button = document.querySelector(`[data-account-tab="${name}"]`);
+    if (panel) panel.style.display = name === tab ? "grid" : "none";
+    if (button) button.classList.toggle("active", name === tab);
+  });
+  if (tab === "admin" && currentUserRole !== "admin") showAccountTab("listings");
+}
+
+function accountActionButton(label, action, id, kind = "listing", danger = false) {
+  const button = makeElement("button", danger ? "account-action danger" : "account-action", label);
+  button.type = "button";
+  button.addEventListener("click", () => runAccountAction(kind, action, id));
+  return button;
+}
+
+function renderAccountPanel(data) {
+  const listingsBox = document.getElementById("accountListings");
+  const requestsBox = document.getElementById("accountRequests");
+  const adminBox = document.getElementById("accountAdmin");
+  [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
+  const admin = data.role === "admin";
+  document.getElementById("adminAccountTab").style.display = admin ? "inline-block" : "none";
+
+  const ownListings = admin ? data.listings : data.listings;
+  if (!ownListings.length) listingsBox.appendChild(makeElement("p", "account-empty", "هنوز آگهی‌ای برای این حساب ثبت نشده است."));
+  ownListings.forEach(item => {
+    const card = makeElement("div", "account-item");
+    card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : item.status} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
+    if (admin) {
+      const actions = makeElement("div", "account-actions");
+      if (item.deleted_at) {
+        actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
+      } else {
+        if (item.status !== "published") actions.appendChild(accountActionButton("انتشار", "publish", item.id));
+        if (item.status !== "rejected") actions.appendChild(accountActionButton("رد آگهی", "reject", item.id, "listing", true));
+        if (item.status !== "sold") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+        actions.appendChild(accountActionButton("حذف", "delete", item.id, "listing", true));
+      }
+      card.appendChild(actions);
+    } else if (!item.deleted_at) {
+      const actions = makeElement("div", "account-actions");
+      if (item.status !== "sold") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+      actions.appendChild(accountActionButton("حذف آگهی", "delete", item.id, "listing", true));
+      card.appendChild(actions);
+    }
+    listingsBox.appendChild(card);
+  });
+
+  if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی ثبت نشده است."));
+  data.purchase_requests.forEach(item => {
+    const card = makeElement("div", "account-item");
+    card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی"}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${item.status} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
+    if (admin) {
+      card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
+      if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی / انتقال", "forward", item.id, "request"));
+    }
+    requestsBox.appendChild(card);
+  });
+
+  if (admin) {
+    const pending = data.listings.filter(item => !item.deleted_at && item.status === "pending");
+    const deleted = data.listings.filter(item => item.deleted_at);
+    adminBox.appendChild(makeElement("p", "account-empty", `آگهی‌ها: ${data.listings.length} · در انتظار بررسی: ${pending.length} · حذف‌شده: ${deleted.length} · درخواست خرید: ${data.purchase_requests.length}`));
+    pending.forEach(item => {
+      const card = makeElement("div", "account-item");
+      card.appendChild(makeElement("strong", "", `نیازمند بررسی · #${item.id} · ${item.title || item.product_type}`));
+      card.appendChild(makeElement("p", "", `فروشنده: ${item.seller_name || "—"} · ${item.seller_mobile || "—"}`));
+      const actions = makeElement("div", "account-actions");
+      actions.appendChild(accountActionButton("انتشار", "publish", item.id));
+      actions.appendChild(accountActionButton("رد", "reject", item.id, "listing", true));
+      card.appendChild(actions);
+      adminBox.appendChild(card);
+    });
+  }
+}
+
+async function loadAccountPanel() {
+  if (!currentAuthSession?.access_token || !profileReady || accountLoading) return;
+  accountLoading = true;
+  const boxes = ["accountListings", "accountRequests", "accountAdmin"].map(id => document.getElementById(id));
+  boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
+  try {
+    const response = await fetch(LISTINGS_API + "?action=account", {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "دریافت اطلاعات حساب ناموفق بود.");
+    if (currentAuthSession?.user?.id !== result.profile?.id) return;
+    accountDataCache = result;
+    renderAccountPanel(result);
+  } catch (error) {
+    boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
+  } finally {
+    accountLoading = false;
+  }
+}
+
+async function runAccountAction(kind, action, id) {
+  if (!currentAuthSession?.access_token) return openAuthModal();
+  const descriptions = {
+    publish: "آگهی منتشر شود؟", reject: "آگهی رد شود؟", sold: "وضعیت آگهی به فروخته‌شده تغییر کند؟",
+    delete: "آگهی به‌صورت نرم‌افزاری حذف شود؟", restore: "آگهی بازیابی و برای بررسی مجدد به حالت انتظار برگردد؟",
+    forward: "درخواست خرید به‌عنوان بررسی‌شده علامت‌گذاری شود؟"
+  };
+  if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) return;
+  const payload = kind === "request"
+    ? { action: "admin_purchase_action", request_id: id, request_action: action }
+    : { action: currentUserRole === "admin" ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "عملیات انجام نشد.");
+    showToast(result.preview ? "حالت آزمایشی: تغییری ذخیره نشد." : (result.message || "عملیات انجام شد."));
+    if (!result.preview) await loadAccountPanel();
+  } catch (error) {
+    showToast(error.message || "عملیات ناموفق بود.");
+  }
+}
 
 async function initializeAuth() {
   const { data, error } = await supabaseClient.auth.getSession();
