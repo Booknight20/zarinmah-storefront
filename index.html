@@ -1125,7 +1125,7 @@ function renderAccountPanel(data) {
     card.appendChild(makeElement("p", "", `وضعیت: ${item.status} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
     if (admin) {
       card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
-      if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی / انتقال", "forward", item.id, "request"));
+      if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی درخواست", "forward", item.id, "request"));
     }
     requestsBox.appendChild(card);
   });
