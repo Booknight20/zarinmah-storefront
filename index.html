@@ -375,6 +375,22 @@ footer h3 { color: var(--gold); font-size: 14px; }
   .products { gap: 10px; }
   .product-visual { height: 140px; }
 }
+
+body.account-mode header,body.account-mode main,body.account-mode footer{display:none!important}
+body.account-mode #authModal{display:flex!important;position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at 80% 0%,rgba(199,162,75,.10),transparent 40%),#0c0b09;padding:24px;overflow:auto;align-items:flex-start}
+body.account-mode #authModal .modal{width:min(1120px,100%);max-width:none;margin:0 auto;padding:28px;border-radius:20px;background:linear-gradient(145deg,#17140f,#0b151b);box-shadow:0 24px 80px rgba(0,0,0,.35)}
+body.account-mode #authModal .modal-head h2{font-size:25px}
+body.account-mode #authModal .account-panel{margin-top:22px;padding-top:20px}
+body.account-mode #authModal .account-panel h3{font-size:19px;margin-bottom:16px}
+body.account-mode #authModal .account-tabs{gap:10px;margin:14px 0}
+body.account-mode #authModal .account-tab{padding:10px 16px;font-size:12px;border-radius:10px}
+body.account-mode #authModal .account-list{max-height:none;overflow:visible;gap:12px}
+body.account-mode #authModal .account-item{padding:15px;border-radius:12px}
+body.account-mode #authModal .account-item strong{font-size:14px}
+body.account-mode #authModal .account-item p{font-size:12px}
+body.account-mode #authModal .account-toolbar{margin:16px 0}
+body.account-mode #authModal .account-refresh{margin:12px 0}
+@media(max-width:650px){body.account-mode #authModal{padding:8px}body.account-mode #authModal .modal{padding:16px;border-radius:12px}body.account-mode #authModal .modal-head h2{font-size:20px}body.account-mode #authModal #authLoggedIn>a,body.account-mode #authModal #authLoggedIn>button{margin:4px 2px!important}}
 </style>
 </head>
 
@@ -394,7 +410,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
       <a href="#sell">فروش طلا</a>
     </nav>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <button class="btn btn-outline account-btn" id="accountButton" type="button" onclick="openAuthModal()">ورود / ثبت‌نام</button>
+      <button class="btn btn-outline account-btn" id="accountButton" type="button" onclick="openAccount()">ورود / ثبت‌نام</button>
       <a class="btn btn-outline" href="#sell" onclick="openSeller(); return false;">ثبت آگهی</a>
     </div>
   </div>
@@ -750,7 +766,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
       <div class="field">
         <label for="profileFullName">نام و نام خانوادگی *</label>
         <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
-        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
+        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small><div class="field" style="margin-top:12px"><label for="profilePhone">شماره موبایل تأییدشده</label><input id="profilePhone" type="tel" readonly><small>برای تغییر شماره موبایل، تأیید مجدد پیامکی لازم است.</small></div>
       </div>
       <p class="auth-message" id="profileMessage" role="status" aria-live="polite"></p>
       <button class="btn" id="profileSubmit" type="submit" style="width:100%">ذخیره و ادامه</button>
@@ -788,7 +804,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
     </div>
     <div id="authLoggedIn" style="display:none">
       <p class="auth-status" id="authUserLabel"></p>
-      <button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
+      <a class="btn btn-outline" href="/" style="margin-left:8px">بازگشت به فروشگاه</a><button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button><button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
       <div class="account-panel">
         <h3>پنل حساب کاربری</h3>
         <div class="account-tabs">
@@ -809,7 +825,7 @@ footer h3 { color: var(--gold); font-size: 14px; }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const LISTINGS_API = 'https://zarinmah-seller-bot-git-feature-supabas-bf2916-booknight20-7409.vercel.app/api/listings';
+const LISTINGS_API = 'https://zarinmah-seller-bot.vercel.app/api/listings';
 const MARKET_API = '/api/market';
 
 const SUPABASE_URL = 'https://eooxmhhfgrofbszxhqsh.supabase.co';
@@ -841,11 +857,19 @@ function normalizeIranPhone(value) {
   return /^\+989\d{9}$/.test(phone) ? phone : '';
 }
 
+function openAccount() {
+  if (currentAuthSession) { location.href = '/account'; return; }
+  openAuthModal();
+}
+
+const isAccountPage = location.pathname.replace(/\/+$/, '') === '/account';
+if (isAccountPage) document.body.classList.add('account-mode');
+
 function openAuthModal() {
   document.getElementById('authModal').classList.add('show');
   document.getElementById('authModal').setAttribute('aria-hidden', 'false');
   document.getElementById('authMessage').textContent = '';
-  document.getElementById('authPhone').focus();
+  if (!currentAuthSession) document.getElementById('authPhone').focus();
 }
 
 function setAuthMessage(message) {
@@ -970,9 +994,11 @@ function updateAuthUI(session) {
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
     document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
     loadCurrentProfile(session);
+    if (isAccountPage) document.getElementById('authModal').classList.add('show');
   } else {
     profileRequestId += 1;
     closeModal('profileModal');
+    if (isAccountPage) openAuthModal();
     document.getElementById('authPhoneGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
     document.getElementById('authSendButton').style.display = 'inline-block';
@@ -1011,6 +1037,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
     const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
     if (profileReady) {
       label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || ''}`;
+      document.getElementById('profileFullName').value = currentUserProfile.full_name;
+      document.getElementById('profilePhone').value = session.user.phone || '';
       document.getElementById('sellerName').value = currentUserProfile.full_name;
       document.getElementById('buyerName').value = currentUserProfile.full_name;
       closeModal('profileModal');
@@ -1018,12 +1046,16 @@ async function loadCurrentProfile(session = currentAuthSession) {
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
+      document.getElementById('profilePhone').value = session.user.phone || '';
       document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
         : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
       document.getElementById('profileSubmit').disabled = currentUserProfile?.is_active === false;
-      document.getElementById('profileModal').classList.add('show');
-      document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
+      if (!isAccountPage) location.href = '/account';
+      else {
+        document.getElementById('profileModal').classList.add('show');
+        document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
+      }
     }
   } catch (error) {
     console.error('Profile loading failed:', error);
@@ -1036,7 +1068,17 @@ async function loadCurrentProfile(session = currentAuthSession) {
   }
 }
 
-async function saveUserProfile(event) {
+async function editUserProfile() {
+  if (!currentAuthSession || !currentUserProfile) return openAuthModal();
+  document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
+  document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
+  document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
+  document.getElementById('profilePhone').value = currentAuthSession.user.phone || '';
+  document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی خود را ویرایش کنید. تغییر شماره موبایل نیازمند تأیید مجدد پیامکی است.';
+  document.getElementById('profileModal').classList.add('show');
+}
+
+function saveUserProfile(event) {
   event.preventDefault();
   if (!currentAuthSession?.access_token) {
     showToast('ابتدا وارد حساب کاربری شوید.');
@@ -1332,11 +1374,7 @@ function openSeller() {
     openAuthModal();
     return;
   }
-  if (!profileReady) {
-    document.getElementById('profileModal').classList.add('show');
-    showToast('ابتدا نام و نام خانوادگی خود را تکمیل کنید.');
-    return;
-  }
+  if (!profileReady) { location.href = '/account'; return; }
   document.getElementById("sellerPhone").value = currentAuthSession.user.phone || "";
   document.getElementById("sellerName").value = currentUserProfile.full_name;
   document.getElementById("sellerModal").classList.add("show");
@@ -1348,11 +1386,7 @@ function openPurchase(item) {
     openAuthModal();
     return;
   }
-  if (!profileReady) {
-    document.getElementById('profileModal').classList.add('show');
-    showToast('ابتدا نام و نام خانوادگی خود را تکمیل کنید.');
-    return;
-  }
+  if (!profileReady) { location.href = '/account'; return; }
   if (!item || String(item.status || "").toLowerCase() !== "published") {
     showToast('این آگهی دیگر برای خرید در دسترس نیست.');
     return;
