@@ -507,8 +507,9 @@ footer h3 { color: var(--gold); font-size: 14px; }
         </div>
 
         <div class="field">
-          <label for="sellerPhone">شماره تماس *</label>
-          <input id="sellerPhone" name="sellerPhone" required inputmode="tel" pattern="[0-9۰-۹+()\- ]{8,}" placeholder="شماره تماس">
+          <label for="sellerPhone">شماره تماس حساب کاربری</label>
+          <input id="sellerPhone" name="sellerPhone" type="tel" readonly required placeholder="پس از ورود نمایش داده می‌شود">
+          <small>شماره تأییدشده حساب شما برای ثبت آگهی استفاده می‌شود.</small>
         </div>
 
         <div class="field">
@@ -680,8 +681,8 @@ footer h3 { color: var(--gold); font-size: 14px; }
           <input id="buyerName" name="buyer_name" required maxlength="100" autocomplete="name" placeholder="نام و نام خانوادگی">
         </div>
         <div class="field full">
-          <label for="buyerPhone">شماره تماس *</label>
-          <input id="buyerPhone" name="buyer_phone" type="tel" required inputmode="tel" maxlength="30" pattern="[0-9۰-۹٠-٩+()\- ]{8,}" autocomplete="tel" placeholder="شماره‌ای که پاسخگو هستید">
+          <label>شماره تماس تأییدشده حساب</label>
+          <p id="buyerPhoneLabel" class="auth-status">پس از ورود نمایش داده می‌شود.</p>
         </div>
       </div>
       <div class="form-note">اطلاعات تماس شما فقط به‌صورت خصوصی در اختیار پشتیبانی زرین ماه قرار می‌گیرد و در سایت یا آگهی عمومی نمایش داده نمی‌شود. ثبت درخواست به معنی قطعی‌شدن معامله نیست.</div>
@@ -761,6 +762,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_aFf6TQrbMZxS2r_wELQ8CA_n0LJIyTh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let authPhoneE164 = '';
 let authResendTimer = null;
+let currentAuthSession = null;
 
 function toEnglishDigits(value) {
   return String(value || '').replace(/[۰-۹٠-٩]/g, char => {
@@ -883,7 +885,12 @@ async function signOutAuth() {
 }
 
 function updateAuthUI(session) {
-  const loggedIn = Boolean(session && session.user);
+  currentAuthSession = session && session.user ? session : null;
+  const loggedIn = Boolean(currentAuthSession);
+  const sellerPhone = document.getElementById("sellerPhone");
+  const buyerPhoneLabel = document.getElementById("buyerPhoneLabel");
+  if (sellerPhone) sellerPhone.value = loggedIn ? (session.user.phone || "") : "";
+  if (buyerPhoneLabel) buyerPhoneLabel.textContent = loggedIn ? (session.user.phone || "شماره تأییدشده ثبت نشده") : "پس از ورود نمایش داده می‌شود.";
   document.getElementById('authLoggedOut').style.display = loggedIn ? 'none' : 'block';
   document.getElementById('authLoggedIn').style.display = loggedIn ? 'block' : 'none';
   document.getElementById('accountButton').textContent = loggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام';
@@ -929,11 +936,22 @@ function showToast(message) {
 }
 
 function openSeller() {
-  document.getElementById('sellerModal').classList.add('show');
+  if (!currentAuthSession) {
+    showToast("برای ثبت آگهی ابتدا وارد حساب کاربری شوید.");
+    openAuthModal();
+    return;
+  }
+  document.getElementById("sellerPhone").value = currentAuthSession.user.phone || "";
+  document.getElementById("sellerModal").classList.add("show");
 }
 
 function openPurchase(item) {
-  if (!item || String(item.status || '').toLowerCase() !== 'published') {
+  if (!currentAuthSession) {
+    showToast("برای ثبت درخواست خرید ابتدا وارد حساب کاربری شوید.");
+    openAuthModal();
+    return;
+  }
+  if (!item || String(item.status || "").toLowerCase() !== "published") {
     showToast('این آگهی دیگر برای خرید در دسترس نیست.');
     return;
   }
@@ -1284,15 +1302,17 @@ document.getElementById('purchaseForm').addEventListener('submit', async event =
   submitButton.textContent = 'در حال ثبت درخواست…';
 
   try {
+    const { data: authData } = await supabaseClient.auth.getSession();
+    const accessToken = authData?.session?.access_token;
+    if (!accessToken) throw new Error("نشست ورود شما معتبر نیست؛ دوباره وارد شوید.");
     const response = await fetch(LISTINGS_API, {
-      method: 'POST',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${accessToken}` },
       body: JSON.stringify({
-        action: 'purchase',
+        action: "purchase",
         listing_id: selectedPurchaseListingId,
-        buyer_name: document.getElementById('buyerName').value.trim(),
-        buyer_phone: document.getElementById('buyerPhone').value.trim()
+        buyer_name: document.getElementById("buyerName").value.trim()
       })
     });
     const result = await response.json().catch(() => ({}));
@@ -1359,11 +1379,15 @@ document.getElementById('sellerForm').addEventListener(
 
     try {
       const formData = new FormData(form);
+      const { data: authData } = await supabaseClient.auth.getSession();
+      const accessToken = authData?.session?.access_token;
+      if (!accessToken) throw new Error("نشست ورود شما معتبر نیست؛ دوباره وارد شوید.");
 
       const response = await fetch(LISTINGS_API, {
-        method: 'POST',
+        method: "POST",
+        headers: { "Authorization": `Bearer ${accessToken}` },
         body: formData,
-        cache: 'no-store'
+        cache: "no-store"
       });
 
       const result = await response.json().catch(() => ({}));
