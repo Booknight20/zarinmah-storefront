@@ -949,6 +949,7 @@ async function verifyAuthOtp() {
     if (!data.session) throw new Error('Session was not returned');
     setAuthMessage('ورود با موفقیت انجام شد.');
     updateAuthUI(data.session);
+    if (!isAccountPage) { location.href = '/account'; return; }
     setTimeout(() => closeModal('authModal'), 700);
   } catch (error) {
     console.error('SMS OTP verification failed:', error);
