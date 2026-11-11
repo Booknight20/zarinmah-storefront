@@ -80,6 +80,35 @@ header {
 }
 .btn-outline { background: transparent; color: var(--gold); }
 .btn:hover { filter: brightness(1.1); }
+.account-btn { white-space: nowrap; }
+.auth-status { color: var(--muted); font-size: 11px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.auth-help { color: var(--muted); font-size: 11px; margin-top: 8px; }
+.auth-message { min-height: 24px; color: var(--gold); font-size: 12px; margin: 10px 0; }
+.auth-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.account-panel { margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+.account-panel h3 { color:var(--gold); font-size:15px; margin:0 0 10px; }
+.account-tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
+.account-tab { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:8px; padding:7px 10px; font-size:11px; cursor:pointer; }
+.account-tab.active { background:var(--gold); color:#17130a; }
+.account-list { display:grid; gap:9px; max-height:360px; overflow:auto; }
+.account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
+.account-item strong { display:block; font-size:12px; color:var(--text); }
+.account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.account-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.account-action { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 8px; font-size:10px; cursor:pointer; }
+.account-action.danger { border-color:#b65c5c; color:#ff9b9b; }
+.account-empty { color:var(--muted); font-size:12px; padding:10px 0; }
+.account-refresh { margin:8px 0; }
+.account-toolbar { display:grid; grid-template-columns:minmax(0,1fr) minmax(125px,.45fr) auto; gap:7px; margin:8px 0; }
+.account-toolbar input,.account-toolbar select { min-width:0; width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:#0d0c0a; color:var(--text); font-size:11px; }
+.account-pagination { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; padding:10px 0; color:var(--muted); font-size:11px; }
+.account-pagination button { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 10px; font-size:11px; cursor:pointer; }
+.account-pagination button:disabled { opacity:.35; cursor:not-allowed; }
+.account-summary { color:var(--muted); font-size:11px; margin:4px 0 10px; }
+@media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
+
+@media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
 .hero {
   padding: 60px 0;
@@ -346,6 +375,23 @@ footer h3 { color: var(--gold); font-size: 14px; }
   .products { gap: 10px; }
   .product-visual { height: 140px; }
 }
+
+body.account-mode header,body.account-mode main,body.account-mode footer{display:none!important}
+body.account-mode #authModal{display:flex!important;position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at 80% 0%,rgba(199,162,75,.10),transparent 40%),#0c0b09;padding:24px;overflow:auto;align-items:flex-start}
+body.account-mode #authModal .modal{width:min(1120px,100%);max-width:none;margin:0 auto;padding:28px;border-radius:20px;background:linear-gradient(145deg,#17140f,#0b151b);box-shadow:0 24px 80px rgba(0,0,0,.35)}
+body.account-mode #authModal .modal-head h2{font-size:25px}
+body.account-mode #authModal .account-panel{margin-top:22px;padding-top:20px}
+body.account-mode #authModal .account-panel h3{font-size:19px;margin-bottom:16px}
+body.account-mode #authModal .account-tabs{gap:10px;margin:14px 0}
+body.account-mode #authModal .account-tab{padding:10px 16px;font-size:12px;border-radius:10px}
+body.account-mode #authModal .account-list{max-height:none;overflow:visible;gap:12px}
+body.account-mode #authModal .account-item{padding:15px;border-radius:12px}
+body.account-mode #authModal .account-item strong{font-size:14px}
+body.account-mode #authModal .account-item p{font-size:12px}
+body.account-mode #authModal .account-toolbar{margin:16px 0}
+body.account-mode #authModal .account-refresh{margin:12px 0}
+@media(max-width:650px){body.account-mode #authModal{padding:8px}body.account-mode #authModal .modal{padding:16px;border-radius:12px}body.account-mode #authModal .modal-head h2{font-size:20px}body.account-mode #authModal #authLoggedIn>a,body.account-mode #authModal #authLoggedIn>button{margin:4px 2px!important}}
+body.account-mode #profileModal{z-index:110}body.account-mode #profileModal .modal{width:min(520px,100%);margin:auto}
 </style>
 </head>
 
@@ -364,7 +410,10 @@ footer h3 { color: var(--gold); font-size: 14px; }
       <a href="#why">چرا زرین ماه؟</a>
       <a href="#sell">فروش طلا</a>
     </nav>
-    <a class="btn btn-outline" href="#sell" onclick="openSeller(); return false;">ثبت آگهی</a>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-outline account-btn" id="accountButton" type="button" onclick="openAccount()">ورود / ثبت‌نام</button>
+      <a class="btn btn-outline" href="#sell" onclick="openSeller(); return false;">ثبت آگهی</a>
+    </div>
   </div>
 </header>
 
@@ -498,8 +547,9 @@ footer h3 { color: var(--gold); font-size: 14px; }
         </div>
 
         <div class="field">
-          <label for="sellerPhone">شماره تماس *</label>
-          <input id="sellerPhone" name="sellerPhone" required inputmode="tel" pattern="[0-9۰-۹+()\- ]{8,}" placeholder="شماره تماس">
+          <label for="sellerPhone">شماره تماس حساب کاربری</label>
+          <input id="sellerPhone" name="sellerPhone" type="tel" readonly required placeholder="پس از ورود نمایش داده می‌شود">
+          <small>شماره تأییدشده حساب شما برای ثبت آگهی استفاده می‌شود.</small>
         </div>
 
         <div class="field">
@@ -671,8 +721,8 @@ footer h3 { color: var(--gold); font-size: 14px; }
           <input id="buyerName" name="buyer_name" required maxlength="100" autocomplete="name" placeholder="نام و نام خانوادگی">
         </div>
         <div class="field full">
-          <label for="buyerPhone">شماره تماس *</label>
-          <input id="buyerPhone" name="buyer_phone" type="tel" required inputmode="tel" maxlength="30" pattern="[0-9۰-۹٠-٩+()\- ]{8,}" autocomplete="tel" placeholder="شماره‌ای که پاسخگو هستید">
+          <label>شماره تماس تأییدشده حساب</label>
+          <p id="buyerPhoneLabel" class="auth-status">پس از ورود نمایش داده می‌شود.</p>
         </div>
       </div>
       <div class="form-note">اطلاعات تماس شما فقط به‌صورت خصوصی در اختیار پشتیبانی زرین ماه قرار می‌گیرد و در سایت یا آگهی عمومی نمایش داده نمی‌شود. ثبت درخواست به معنی قطعی‌شدن معامله نیست.</div>
@@ -705,11 +755,603 @@ footer h3 { color: var(--gold); font-size: 14px; }
   </div>
 </div>
 
+<div class="modal-wrap" id="profileModal" aria-hidden="true">
+  <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="profileTitle">تکمیل حساب کاربری</h2>
+        <p>برای استفاده از امکانات خرید و فروش، نام و نام خانوادگی خود را ثبت کنید.</p>
+      </div>
+    </div>
+    <form id="profileForm">
+      <div class="field">
+        <label for="profileFullName">نام و نام خانوادگی *</label>
+        <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
+        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small><div class="field" style="margin-top:12px"><label for="profilePhone">شماره موبایل تأییدشده</label><input id="profilePhone" type="tel" readonly><small>برای تغییر شماره موبایل، تأیید مجدد پیامکی لازم است.</small></div>
+      </div>
+      <p class="auth-message" id="profileMessage" role="status" aria-live="polite"></p>
+      <button class="btn" id="profileSubmit" type="submit" style="width:100%">ذخیره و ادامه</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-wrap" id="authModal" aria-hidden="true">
+  <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="authTitle">ورود به حساب زرین ماه</h2>
+        <p>با شماره موبایل خود کد یک‌بارمصرف دریافت کنید.</p>
+      </div>
+      <button class="close" type="button" onclick="closeModal('authModal')" aria-label="بستن">✕</button>
+    </div>
+    <div id="authLoggedOut">
+      <div class="field" id="authPhoneGroup">
+        <label for="authPhone">شماره موبایل</label>
+        <input id="authPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="مثلاً 09123456789">
+        <small>شماره موبایل ایران را وارد کنید.</small>
+      </div>
+      <div class="field" id="authOtpGroup" style="display:none;margin-top:14px">
+        <label for="authOtp">کد شش‌رقمی پیامک‌شده</label>
+        <input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد پیامک‌شده">
+        <small>کد را فقط در همین صفحه وارد کنید و در اختیار دیگران نگذارید.</small>
+      </div>
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+      <div class="auth-actions">
+        <button class="btn" id="authSendButton" type="button" onclick="requestAuthOtp()">دریافت کد پیامکی</button>
+        <button class="btn" id="authVerifyButton" type="button" style="display:none" onclick="verifyAuthOtp()">تأیید و ورود</button>
+        <button class="btn btn-outline" id="authResendButton" type="button" style="display:none" onclick="requestAuthOtp(true)">ارسال مجدد کد</button>
+      </div>
+      <p class="auth-help">با ورود، حساب کاربری شما در زرین ماه ایجاد یا بازیابی می‌شود.</p>
+    </div>
+    <div id="authLoggedIn" style="display:none">
+      <p class="auth-status" id="authUserLabel"></p>
+      <a class="btn btn-outline" href="/" style="margin-left:8px">بازگشت به فروشگاه</a><button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button><button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
+      <div class="account-panel">
+        <h3>پنل حساب کاربری</h3>
+        <div class="account-tabs">
+          <button class="account-tab active" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
+          <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌های خرید</button>
+          <button class="account-tab" type="button" data-account-tab="admin" id="adminAccountTab" style="display:none" onclick="showAccountTab('admin')">مدیریت سامانه</button>
+        </div>
+        <button class="account-action account-refresh" type="button" onclick="loadAccountPanel()">به‌روزرسانی اطلاعات</button>
+        <div class="account-list" id="accountListings"><p class="account-empty">برای دریافت اطلاعات، کمی صبر کنید…</p></div>
+        <div class="account-list" id="accountRequests" style="display:none"></div>
+        <div class="account-list" id="accountAdmin" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const LISTINGS_API = 'https://zarinmah-seller-bot.vercel.app/api/listings';
 const MARKET_API = '/api/market';
+
+const SUPABASE_URL = 'https://eooxmhhfgrofbszxhqsh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_aFf6TQrbMZxS2r_wELQ8CA_n0LJIyTh';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let authPhoneE164 = '';
+let authResendTimer = null;
+let currentAuthSession = null;
+let currentUserProfile = null;
+let currentUserRole = 'user';
+let profileReady = false;
+let profileRequestId = 0;
+let profileLoadingUserId = null;
+
+function toEnglishDigits(value) {
+  return String(value || '').replace(/[۰-۹٠-٩]/g, char => {
+    const code = char.charCodeAt(0);
+    return String(code >= 0x06F0 && code <= 0x06F9 ? code - 0x06F0 : code - 0x0660);
+  });
+}
+
+function normalizeIranPhone(value) {
+  let phone = toEnglishDigits(value).replace(/[\s()\-]/g, '');
+  if (phone.startsWith('0098')) phone = '+98' + phone.slice(4);
+  else if (phone.startsWith('098')) phone = '+98' + phone.slice(3);
+  else if (phone.startsWith('98')) phone = '+' + phone;
+  else if (phone.startsWith('09')) phone = '+98' + phone.slice(1);
+  else if (phone.startsWith('9')) phone = '+98' + phone;
+  return /^\+989\d{9}$/.test(phone) ? phone : '';
+}
+
+function openAccount() {
+  if (currentAuthSession) { location.href = '/account'; return; }
+  openAuthModal();
+}
+
+const isAccountPage = location.pathname.replace(/\/+$/, '') === '/account';
+if (isAccountPage) document.body.classList.add('account-mode');
+
+function openAuthModal() {
+  document.getElementById('authModal').classList.add('show');
+  document.getElementById('authModal').setAttribute('aria-hidden', 'false');
+  document.getElementById('authMessage').textContent = '';
+  if (!currentAuthSession) document.getElementById('authPhone').focus();
+}
+
+function setAuthMessage(message) {
+  document.getElementById('authMessage').textContent = message || '';
+}
+
+function startAuthResendCooldown(seconds = 30) {
+  const button = document.getElementById('authResendButton');
+  const original = 'ارسال مجدد کد';
+  let remaining = seconds;
+  button.disabled = true;
+  button.textContent = `ارسال مجدد (${remaining})`;
+  clearInterval(authResendTimer);
+  authResendTimer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(authResendTimer);
+      button.disabled = false;
+      button.textContent = original;
+    } else {
+      button.textContent = `ارسال مجدد (${remaining})`;
+    }
+  }, 1000);
+}
+
+async function requestAuthOtp(isResend = false) {
+  const phone = normalizeIranPhone(document.getElementById('authPhone').value);
+  if (!phone) {
+    setAuthMessage('شماره موبایل معتبر وارد کنید؛ مانند 09123456789.');
+    return;
+  }
+  const sendButton = document.getElementById('authSendButton');
+  const resendButton = document.getElementById('authResendButton');
+  sendButton.disabled = true;
+  resendButton.disabled = true;
+  setAuthMessage('در حال ارسال کد پیامکی…');
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      phone,
+      options: { shouldCreateUser: true }
+    });
+    if (error) throw error;
+    authPhoneE164 = phone;
+    document.getElementById('authPhoneGroup').style.display = 'none';
+    document.getElementById('authOtpGroup').style.display = 'grid';
+    document.getElementById('authSendButton').style.display = 'none';
+    document.getElementById('authVerifyButton').style.display = 'inline-block';
+    resendButton.style.display = 'inline-block';
+    setAuthMessage('کد پیامکی ارسال شد. آن را در کادر زیر وارد کنید.');
+    startAuthResendCooldown();
+    document.getElementById('authOtp').focus();
+  } catch (error) {
+    console.error('SMS sign-in request failed:', error);
+    setAuthMessage('ارسال کد انجام نشد. شماره را بررسی کنید و کمی بعد دوباره تلاش کنید.');
+    sendButton.disabled = false;
+    resendButton.disabled = false;
+  }
+}
+
+async function verifyAuthOtp() {
+  const token = toEnglishDigits(document.getElementById('authOtp').value).replace(/\D/g, '');
+  if (!authPhoneE164 || !/^\d{6}$/.test(token)) {
+    setAuthMessage('کد شش‌رقمی پیامک‌شده را وارد کنید.');
+    return;
+  }
+  const button = document.getElementById('authVerifyButton');
+  button.disabled = true;
+  setAuthMessage('در حال بررسی کد…');
+  try {
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      phone: authPhoneE164,
+      token,
+      type: 'sms'
+    });
+    if (error) throw error;
+    if (!data.session) throw new Error('Session was not returned');
+    setAuthMessage('ورود با موفقیت انجام شد.');
+    updateAuthUI(data.session);
+    setTimeout(() => closeModal('authModal'), 700);
+  } catch (error) {
+    console.error('SMS OTP verification failed:', error);
+    setAuthMessage('کد واردشده معتبر نیست یا منقضی شده است. دوباره بررسی کنید.');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function signOutAuth() {
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    showToast('خروج از حساب انجام نشد. دوباره تلاش کنید.');
+    return;
+  }
+  updateAuthUI(null);
+  closeModal('authModal');
+  showToast('از حساب کاربری خارج شدید.');
+}
+
+function updateAuthUI(session) {
+  const nextSession = session && session.user ? session : null;
+  const previousUserId = currentAuthSession?.user?.id || null;
+  const nextUserId = nextSession?.user?.id || null;
+  const sameUser = Boolean(previousUserId && nextUserId && previousUserId === nextUserId);
+  currentAuthSession = nextSession;
+  if (!sameUser) {
+    currentUserProfile = null;
+    currentUserRole = 'user';
+    profileReady = false;
+    profileRequestId += 1;
+    profileLoadingUserId = null;
+  }
+  const loggedIn = Boolean(currentAuthSession);
+  const sellerPhone = document.getElementById("sellerPhone");
+  const buyerPhoneLabel = document.getElementById("buyerPhoneLabel");
+  if (sellerPhone) sellerPhone.value = loggedIn ? (session.user.phone || "") : "";
+  if (buyerPhoneLabel) buyerPhoneLabel.textContent = loggedIn ? (session.user.phone || "شماره تأییدشده ثبت نشده") : "پس از ورود نمایش داده می‌شود.";
+  document.getElementById('authLoggedOut').style.display = loggedIn ? 'none' : 'block';
+  document.getElementById('authLoggedIn').style.display = loggedIn ? 'block' : 'none';
+  document.getElementById('accountButton').textContent = loggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام';
+  if (loggedIn) {
+    const phone = session.user.phone || '';
+    const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
+    document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
+    loadCurrentProfile(session);
+    if (isAccountPage) document.getElementById('authModal').classList.add('show');
+  } else {
+    profileRequestId += 1;
+    closeModal('profileModal');
+    if (isAccountPage) openAuthModal();
+    document.getElementById('authPhoneGroup').style.display = 'grid';
+    document.getElementById('authOtpGroup').style.display = 'none';
+    document.getElementById('authSendButton').style.display = 'inline-block';
+    document.getElementById('authSendButton').disabled = false;
+    document.getElementById('authVerifyButton').style.display = 'none';
+    document.getElementById('authResendButton').style.display = 'none';
+    document.getElementById('authOtp').value = '';
+    authPhoneE164 = '';
+    clearInterval(authResendTimer);
+  }
+}
+
+async function loadCurrentProfile(session = currentAuthSession) {
+  if (!session?.access_token) return;
+  const userId = session.user?.id;
+  if (!userId || profileLoadingUserId === userId) return;
+  if (profileReady && currentAuthSession?.user?.id === userId && currentUserProfile) return;
+  const requestId = ++profileRequestId;
+  profileLoadingUserId = userId;
+  try {
+    const response = await fetch(LISTINGS_API + '?action=profile', {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'دریافت پروفایل انجام نشد.');
+    if (requestId !== profileRequestId || currentAuthSession?.user?.id !== session.user.id) return;
+    currentUserProfile = result.profile || null;
+    currentUserRole = result.role || 'user';
+    profileReady = Boolean(currentUserProfile && currentUserProfile.is_active === true && String(currentUserProfile.full_name || '').trim());
+    const label = document.getElementById('authUserLabel');
+    const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
+    if (profileReady) {
+      label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || ''}`;
+      document.getElementById('profileFullName').value = currentUserProfile.full_name;
+      document.getElementById('profilePhone').value = session.user.phone || '';
+      document.getElementById('sellerName').value = currentUserProfile.full_name;
+      document.getElementById('buyerName').value = currentUserProfile.full_name;
+      closeModal('profileModal');
+      loadAccountPanel();
+    } else {
+      label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || ''}`;
+      document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
+      document.getElementById('profilePhone').value = session.user.phone || '';
+      document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
+        ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
+        : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
+      document.getElementById('profileSubmit').disabled = currentUserProfile?.is_active === false;
+      if (!isAccountPage) location.href = '/account';
+      else {
+        document.getElementById('profileModal').classList.add('show');
+        document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
+      }
+    }
+  } catch (error) {
+    console.error('Profile loading failed:', error);
+    if (requestId === profileRequestId) {
+      profileReady = false;
+      showToast('دریافت اطلاعات حساب ناموفق بود؛ دوباره صفحه را تازه‌سازی کنید.');
+    }
+  } finally {
+    if (profileLoadingUserId === userId) profileLoadingUserId = null;
+  }
+}
+
+async function editUserProfile() {
+  if (!currentAuthSession || !currentUserProfile) return openAuthModal();
+  document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
+  document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
+  document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
+  document.getElementById('profilePhone').value = currentAuthSession.user.phone || '';
+  document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی خود را ویرایش کنید. تغییر شماره موبایل نیازمند تأیید مجدد پیامکی است.';
+  document.getElementById('profileModal').classList.add('show');
+}
+
+function saveUserProfile(event) {
+  event.preventDefault();
+  if (!currentAuthSession?.access_token) {
+    showToast('ابتدا وارد حساب کاربری شوید.');
+    return;
+  }
+  const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
+  if (fullName.split(' ').length < 2 || fullName.length < 5) {
+    document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
+    return;
+  }
+  const button = document.getElementById('profileSubmit');
+  button.disabled = true;
+  button.textContent = 'در حال ذخیره…';
+  document.getElementById('profileMessage').textContent = 'در حال ثبت اطلاعات…';
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${currentAuthSession.access_token}`
+      },
+      body: JSON.stringify({ action: 'complete_profile', full_name: fullName })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
+    if (result.preview) {
+      document.getElementById('profileMessage').textContent = 'اعتبارسنجی موفق بود؛ در محیط Preview ذخیره واقعی غیرفعال است.';
+      showToast('آزمایش فرم موفق بود؛ اطلاعات ذخیره نشد.');
+      return;
+    }
+    currentUserProfile = result.profile;
+    profileReady = true;
+    document.getElementById('sellerName').value = fullName;
+    document.getElementById('buyerName').value = fullName;
+    document.getElementById('authUserLabel').textContent = `${fullName} · ${currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر'} · ${currentAuthSession.user.phone || ''}`;
+    closeModal('profileModal');
+    showToast('اطلاعات حساب با موفقیت ذخیره شد.');
+  } catch (error) {
+    document.getElementById('profileMessage').textContent = error.message || 'ذخیره اطلاعات انجام نشد.';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'ذخیره و ادامه';
+  }
+}
+
+document.getElementById('profileForm').addEventListener('submit', saveUserProfile);
+
+let accountDataCache = null;
+let accountLoading = false;
+const accountQueryState = {
+  listings_page: 1,
+  requests_page: 1,
+  listings_status: "all",
+  requests_status: "all",
+  listings_search: "",
+  requests_search: ""
+};
+
+function showAccountTab(tab) {
+  ["listings", "requests", "admin"].forEach(name => {
+    const panel = document.getElementById(name === "listings" ? "accountListings" : name === "requests" ? "accountRequests" : "accountAdmin");
+    const button = document.querySelector(`[data-account-tab="${name}"]`);
+    if (panel) panel.style.display = name === tab ? "grid" : "none";
+    if (button) button.classList.toggle("active", name === tab);
+  });
+  if (tab === "admin" && currentUserRole !== "admin") showAccountTab("listings");
+}
+
+function accountActionButton(label, action, id, kind = "listing", danger = false) {
+  const button = makeElement("button", danger ? "account-action danger" : "account-action", label);
+  button.type = "button";
+  button.addEventListener("click", () => runAccountAction(kind, action, id));
+  return button;
+}
+
+function accountStatusLabel(status) {
+  return ({ all: "همه وضعیت‌ها", pending: "در انتظار بررسی", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده", forwarded: "بررسی‌شده" })[status] || status;
+}
+
+function appendAccountToolbar(box, kind, pagination) {
+  const isListings = kind === "listings";
+  const searchKey = isListings ? "listings_search" : "requests_search";
+  const statusKey = isListings ? "listings_status" : "requests_status";
+  const pageKey = isListings ? "listings_page" : "requests_page";
+  const toolbar = makeElement("div", "account-toolbar");
+  const search = document.createElement("input");
+  search.type = "search";
+  search.maxLength = 80;
+  search.placeholder = isListings ? "جست‌وجوی عنوان، فروشنده یا موبایل" : "جست‌وجوی خریدار، موبایل یا توضیحات";
+  search.value = accountQueryState[searchKey];
+  search.setAttribute("aria-label", search.placeholder);
+  const status = document.createElement("select");
+  status.setAttribute("aria-label", "فیلتر وضعیت");
+  const options = isListings
+    ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["deleted","حذف‌شده"]]
+    : [["all","همه درخواست‌ها"],["pending","در انتظار بررسی"],["forwarded","بررسی‌شده"]];
+  options.forEach(([value,label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    status.appendChild(option);
+  });
+  status.value = pagination.status || "all";
+  const apply = makeElement("button", "account-action", "جست‌وجو");
+  apply.type = "button";
+  const runSearch = () => {
+    accountQueryState[searchKey] = search.value.trim();
+    accountQueryState[statusKey] = status.value;
+    accountQueryState[pageKey] = 1;
+    loadAccountPanel();
+  };
+  apply.addEventListener("click", runSearch);
+  search.addEventListener("keydown", event => { if (event.key === "Enter") runSearch(); });
+  status.addEventListener("change", () => {
+    accountQueryState[statusKey] = status.value;
+    accountQueryState[pageKey] = 1;
+    loadAccountPanel();
+  });
+  toolbar.append(search, status, apply);
+  box.appendChild(toolbar);
+}
+
+function appendAccountPagination(box, kind, pagination) {
+  const nav = makeElement("div", "account-pagination");
+  const pageKey = kind === "listings" ? "listings_page" : "requests_page";
+  const totalPages = Math.max(1, Number(pagination.total_pages) || 1);
+  const page = Math.min(totalPages, Math.max(1, Number(pagination.page) || 1));
+  const previous = makeElement("button", "", "قبلی");
+  previous.type = "button";
+  previous.disabled = page <= 1;
+  previous.addEventListener("click", () => {
+    accountQueryState[pageKey] = page - 1;
+    loadAccountPanel();
+  });
+  const next = makeElement("button", "", "بعدی");
+  next.type = "button";
+  next.disabled = page >= totalPages;
+  next.addEventListener("click", () => {
+    accountQueryState[pageKey] = page + 1;
+    loadAccountPanel();
+  });
+  nav.append(previous, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")} · ${(Number(pagination.total) || 0).toLocaleString("fa-IR")} مورد`), next);
+  box.appendChild(nav);
+}
+
+function renderListingCards(box, items, admin) {
+  if (!items.length) {
+    box.appendChild(makeElement("p", "account-empty", "موردی با این شرایط پیدا نشد."));
+    return;
+  }
+  items.forEach(item => {
+    const card = makeElement("div", "account-item");
+    card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
+    const actions = makeElement("div", "account-actions");
+    if (admin) {
+      if (item.deleted_at) {
+        actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
+      } else {
+        if (item.status === "pending") {
+          actions.appendChild(accountActionButton("انتشار", "publish", item.id));
+          actions.appendChild(accountActionButton("رد آگهی", "reject", item.id, "listing", true));
+        }
+        if (item.status === "published") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+        if (item.status !== "deleted") actions.appendChild(accountActionButton("حذف", "delete", item.id, "listing", true));
+      }
+    } else if (!item.deleted_at) {
+      if (item.status === "published") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+      actions.appendChild(accountActionButton("حذف آگهی", "delete", item.id, "listing", true));
+    }
+    if (actions.childElementCount) card.appendChild(actions);
+    box.appendChild(card);
+  });
+}
+
+function renderAccountPanel(data) {
+  const listingsBox = document.getElementById("accountListings");
+  const requestsBox = document.getElementById("accountRequests");
+  const adminBox = document.getElementById("accountAdmin");
+  [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
+  const admin = data.role === "admin";
+  document.getElementById("adminAccountTab").style.display = admin ? "inline-block" : "none";
+  const pagination = data.pagination || {};
+  const listingsPage = pagination.listings || { page: 1, total: data.listings.length, total_pages: 1, status: "all" };
+  const requestsPage = pagination.requests || { page: 1, total: data.purchase_requests.length, total_pages: 1, status: "all" };
+
+  appendAccountToolbar(listingsBox, "listings", listingsPage);
+  listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
+  renderListingCards(listingsBox, data.listings, admin);
+  appendAccountPagination(listingsBox, "listings", listingsPage);
+
+  appendAccountToolbar(requestsBox, "requests", requestsPage);
+  requestsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.purchase_requests.length.toLocaleString("fa-IR")} از ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} درخواست خرید`));
+  if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
+  data.purchase_requests.forEach(item => {
+    const card = makeElement("div", "account-item");
+    card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
+    if (admin) {
+      card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
+      if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی درخواست", "forward", item.id, "request"));
+    }
+    requestsBox.appendChild(card);
+  });
+  appendAccountPagination(requestsBox, "requests", requestsPage);
+
+  if (admin) {
+    adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
+    appendAccountToolbar(adminBox, "listings", listingsPage);
+    renderListingCards(adminBox, data.listings, true);
+    appendAccountPagination(adminBox, "listings", listingsPage);
+  }
+}
+
+async function loadAccountPanel() {
+  if (!currentAuthSession?.access_token || !profileReady || accountLoading) return;
+  accountLoading = true;
+  const boxes = ["accountListings", "accountRequests", "accountAdmin"].map(id => document.getElementById(id));
+  boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
+  try {
+    const params = new URLSearchParams({ action: "account", ...accountQueryState });
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "دریافت اطلاعات حساب ناموفق بود.");
+    if (currentAuthSession?.user?.id !== result.profile?.id) return;
+    accountDataCache = result;
+    renderAccountPanel(result);
+  } catch (error) {
+    boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
+  } finally {
+    accountLoading = false;
+  }
+}
+
+async function runAccountAction(kind, action, id) {
+  if (!currentAuthSession?.access_token) return openAuthModal();
+  const descriptions = {
+    publish: "آگهی منتشر شود؟", reject: "آگهی رد شود؟", sold: "وضعیت آگهی به فروخته‌شده تغییر کند؟",
+    delete: "آگهی به‌صورت نرم‌افزاری حذف شود؟", restore: "آگهی بازیابی و برای بررسی مجدد به حالت انتظار برگردد؟",
+    forward: "درخواست خرید به‌عنوان بررسی‌شده علامت‌گذاری شود؟"
+  };
+  if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) return;
+  const payload = kind === "request"
+    ? { action: "admin_purchase_action", request_id: id, request_action: action }
+    : { action: currentUserRole === "admin" ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "عملیات انجام نشد.");
+    showToast(result.preview ? "حالت آزمایشی: تغییری ذخیره نشد." : (result.message || "عملیات انجام شد."));
+    if (!result.preview) await loadAccountPanel();
+  } catch (error) {
+    showToast(error.message || "عملیات ناموفق بود.");
+  }
+}
+
+async function initializeAuth() {
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) console.error('Could not restore auth session:', error);
+  updateAuthUI(data?.session || null);
+  supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+}
+
 
 let liveListings = [];
 let currentFilter = 'all';
@@ -728,15 +1370,30 @@ function showToast(message) {
 }
 
 function openSeller() {
-  document.getElementById('sellerModal').classList.add('show');
+  if (!currentAuthSession) {
+    showToast("برای ثبت آگهی ابتدا وارد حساب کاربری شوید.");
+    openAuthModal();
+    return;
+  }
+  if (!profileReady) { location.href = '/account'; return; }
+  document.getElementById("sellerPhone").value = currentAuthSession.user.phone || "";
+  document.getElementById("sellerName").value = currentUserProfile.full_name;
+  document.getElementById("sellerModal").classList.add("show");
 }
 
 function openPurchase(item) {
-  if (!item || String(item.status || '').toLowerCase() !== 'published') {
+  if (!currentAuthSession) {
+    showToast("برای ثبت درخواست خرید ابتدا وارد حساب کاربری شوید.");
+    openAuthModal();
+    return;
+  }
+  if (!profileReady) { location.href = '/account'; return; }
+  if (!item || String(item.status || "").toLowerCase() !== "published") {
     showToast('این آگهی دیگر برای خرید در دسترس نیست.');
     return;
   }
   selectedPurchaseListingId = item.id;
+  document.getElementById('buyerName').value = currentUserProfile.full_name;
   document.getElementById('purchaseProductTitle').textContent =
     `${item.product_type || item.item_type || 'محصول طلا'} — ${item.price || 'قیمت اعلام نشده'}`;
   document.getElementById('purchaseForm').style.display = 'block';
@@ -1083,15 +1740,17 @@ document.getElementById('purchaseForm').addEventListener('submit', async event =
   submitButton.textContent = 'در حال ثبت درخواست…';
 
   try {
+    const { data: authData } = await supabaseClient.auth.getSession();
+    const accessToken = authData?.session?.access_token;
+    if (!accessToken) throw new Error("نشست ورود شما معتبر نیست؛ دوباره وارد شوید.");
     const response = await fetch(LISTINGS_API, {
-      method: 'POST',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${accessToken}` },
       body: JSON.stringify({
-        action: 'purchase',
+        action: "purchase",
         listing_id: selectedPurchaseListingId,
-        buyer_name: document.getElementById('buyerName').value.trim(),
-        buyer_phone: document.getElementById('buyerPhone').value.trim()
+        buyer_name: currentUserProfile?.full_name || document.getElementById("buyerName").value.trim()
       })
     });
     const result = await response.json().catch(() => ({}));
@@ -1158,11 +1817,15 @@ document.getElementById('sellerForm').addEventListener(
 
     try {
       const formData = new FormData(form);
+      const { data: authData } = await supabaseClient.auth.getSession();
+      const accessToken = authData?.session?.access_token;
+      if (!accessToken) throw new Error("نشست ورود شما معتبر نیست؛ دوباره وارد شوید.");
 
       const response = await fetch(LISTINGS_API, {
-        method: 'POST',
+        method: "POST",
+        headers: { "Authorization": `Bearer ${accessToken}` },
         body: formData,
-        cache: 'no-store'
+        cache: "no-store"
       });
 
       const result = await response.json().catch(() => ({}));
@@ -1323,6 +1986,7 @@ async function loadMarketPrices() {
   }
 }
 
+initializeAuth();
 loadListings();
 loadMarketPrices();
 
