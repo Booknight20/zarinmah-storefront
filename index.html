@@ -715,6 +715,26 @@ footer h3 { color: var(--gold); font-size: 14px; }
   </div>
 </div>
 
+<div class="modal-wrap" id="profileModal" aria-hidden="true">
+  <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="profileTitle">تکمیل حساب کاربری</h2>
+        <p>برای استفاده از امکانات خرید و فروش، نام و نام خانوادگی خود را ثبت کنید.</p>
+      </div>
+    </div>
+    <form id="profileForm">
+      <div class="field">
+        <label for="profileFullName">نام و نام خانوادگی *</label>
+        <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
+        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
+      </div>
+      <p class="auth-message" id="profileMessage" role="status" aria-live="polite"></p>
+      <button class="btn" id="profileSubmit" type="submit" style="width:100%">ذخیره و ادامه</button>
+    </form>
+  </div>
+</div>
+
 <div class="modal-wrap" id="authModal" aria-hidden="true">
   <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="modal-head">
@@ -763,6 +783,10 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLI
 let authPhoneE164 = '';
 let authResendTimer = null;
 let currentAuthSession = null;
+let currentUserProfile = null;
+let currentUserRole = 'user';
+let profileReady = false;
+let profileRequestId = 0;
 
 function toEnglishDigits(value) {
   return String(value || '').replace(/[۰-۹٠-٩]/g, char => {
@@ -886,6 +910,9 @@ async function signOutAuth() {
 
 function updateAuthUI(session) {
   currentAuthSession = session && session.user ? session : null;
+  currentUserProfile = null;
+  currentUserRole = 'user';
+  profileReady = false;
   const loggedIn = Boolean(currentAuthSession);
   const sellerPhone = document.getElementById("sellerPhone");
   const buyerPhoneLabel = document.getElementById("buyerPhoneLabel");
@@ -898,7 +925,9 @@ function updateAuthUI(session) {
     const phone = session.user.phone || '';
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
     document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
+    loadCurrentProfile(session);
   } else {
+    closeModal('profileModal');
     document.getElementById('authPhoneGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
     document.getElementById('authSendButton').style.display = 'inline-block';
@@ -910,6 +939,100 @@ function updateAuthUI(session) {
     clearInterval(authResendTimer);
   }
 }
+
+async function loadCurrentProfile(session = currentAuthSession) {
+  const requestId = ++profileRequestId;
+  if (!session?.access_token) return;
+  try {
+    const response = await fetch(LISTINGS_API + '?action=profile', {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'دریافت پروفایل انجام نشد.');
+    if (requestId !== profileRequestId || currentAuthSession?.user?.id !== session.user.id) return;
+    currentUserProfile = result.profile || null;
+    currentUserRole = result.role || 'user';
+    profileReady = Boolean(currentUserProfile && currentUserProfile.is_active === true && String(currentUserProfile.full_name || '').trim());
+    const label = document.getElementById('authUserLabel');
+    const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
+    if (profileReady) {
+      label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || ''}`;
+      document.getElementById('sellerName').value = currentUserProfile.full_name;
+      document.getElementById('buyerName').value = currentUserProfile.full_name;
+      closeModal('profileModal');
+    } else {
+      label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || ''}`;
+      document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
+      document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
+        ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
+        : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
+      document.getElementById('profileSubmit').disabled = currentUserProfile?.is_active === false;
+      document.getElementById('profileModal').classList.add('show');
+      document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
+    }
+  } catch (error) {
+    console.error('Profile loading failed:', error);
+    if (requestId === profileRequestId) {
+      profileReady = false;
+      showToast('دریافت اطلاعات حساب ناموفق بود؛ دوباره صفحه را تازه‌سازی کنید.');
+    }
+  }
+}
+
+async function saveUserProfile(event) {
+  event.preventDefault();
+  if (!currentAuthSession?.access_token) {
+    showToast('ابتدا وارد حساب کاربری شوید.');
+    return;
+  }
+  const fullName = document.getElementById('profileFullName').value.trim().replace(/\\s+/g, ' ');
+  if (fullName.split(' ').length < 2 || fullName.length < 5) {
+    document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
+    return;
+  }
+  const button = document.getElementById('profileSubmit');
+  button.disabled = true;
+  button.textContent = 'در حال ذخیره…';
+  document.getElementById('profileMessage').textContent = 'در حال ثبت اطلاعات…';
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${currentAuthSession.access_token}`
+      },
+      body: JSON.stringify({ action: 'complete_profile', full_name: fullName })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
+    if (result.preview) {
+      document.getElementById('profileMessage').textContent = 'اعتبارسنجی موفق بود؛ در محیط Preview ذخیره واقعی غیرفعال است.';
+      showToast('آزمایش فرم موفق بود؛ اطلاعات ذخیره نشد.');
+      return;
+    }
+    currentUserProfile = result.profile;
+    profileReady = true;
+    document.getElementById('sellerName').value = fullName;
+    document.getElementById('buyerName').value = fullName;
+    document.getElementById('authUserLabel').textContent = `${fullName} · ${currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر'} · ${currentAuthSession.user.phone || ''}`;
+    closeModal('profileModal');
+    showToast('اطلاعات حساب با موفقیت ذخیره شد.');
+  } catch (error) {
+    document.getElementById('profileMessage').textContent = error.message || 'ذخیره اطلاعات انجام نشد.';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'ذخیره و ادامه';
+  }
+}
+
+document.getElementById('profileForm').addEventListener('submit', saveUserProfile);
 
 async function initializeAuth() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -941,7 +1064,13 @@ function openSeller() {
     openAuthModal();
     return;
   }
+  if (!profileReady) {
+    document.getElementById('profileModal').classList.add('show');
+    showToast('ابتدا نام و نام خانوادگی خود را تکمیل کنید.');
+    return;
+  }
   document.getElementById("sellerPhone").value = currentAuthSession.user.phone || "";
+  document.getElementById("sellerName").value = currentUserProfile.full_name;
   document.getElementById("sellerModal").classList.add("show");
 }
 
@@ -951,11 +1080,17 @@ function openPurchase(item) {
     openAuthModal();
     return;
   }
+  if (!profileReady) {
+    document.getElementById('profileModal').classList.add('show');
+    showToast('ابتدا نام و نام خانوادگی خود را تکمیل کنید.');
+    return;
+  }
   if (!item || String(item.status || "").toLowerCase() !== "published") {
     showToast('این آگهی دیگر برای خرید در دسترس نیست.');
     return;
   }
   selectedPurchaseListingId = item.id;
+  document.getElementById('buyerName').value = currentUserProfile.full_name;
   document.getElementById('purchaseProductTitle').textContent =
     `${item.product_type || item.item_type || 'محصول طلا'} — ${item.price || 'قیمت اعلام نشده'}`;
   document.getElementById('purchaseForm').style.display = 'block';
@@ -1312,7 +1447,7 @@ document.getElementById('purchaseForm').addEventListener('submit', async event =
       body: JSON.stringify({
         action: "purchase",
         listing_id: selectedPurchaseListingId,
-        buyer_name: document.getElementById("buyerName").value.trim()
+        buyer_name: currentUserProfile?.full_name || document.getElementById("buyerName").value.trim()
       })
     });
     const result = await response.json().catch(() => ({}));
