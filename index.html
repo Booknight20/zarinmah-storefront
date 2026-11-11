@@ -1022,7 +1022,7 @@ function updateAuthUI(session) {
   }
 }
 
-async function loadCurrentProfile(session = currentAuthSession) {
+async async function loadCurrentProfile(session = currentAuthSession) {
   if (!session?.access_token) return;
   const userId = session.user?.id;
   if (!userId || profileLoadingUserId === userId) return;
