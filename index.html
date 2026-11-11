@@ -100,6 +100,13 @@ header {
 .account-action.danger { border-color:#b65c5c; color:#ff9b9b; }
 .account-empty { color:var(--muted); font-size:12px; padding:10px 0; }
 .account-refresh { margin:8px 0; }
+.account-toolbar { display:grid; grid-template-columns:minmax(0,1fr) minmax(125px,.45fr) auto; gap:7px; margin:8px 0; }
+.account-toolbar input,.account-toolbar select { min-width:0; width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:#0d0c0a; color:var(--text); font-size:11px; }
+.account-pagination { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; padding:10px 0; color:var(--muted); font-size:11px; }
+.account-pagination button { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 10px; font-size:11px; cursor:pointer; }
+.account-pagination button:disabled { opacity:.35; cursor:not-allowed; }
+.account-summary { color:var(--muted); font-size:11px; margin:4px 0 10px; }
+@media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
 
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
@@ -1066,6 +1073,14 @@ document.getElementById('profileForm').addEventListener('submit', saveUserProfil
 
 let accountDataCache = null;
 let accountLoading = false;
+const accountQueryState = {
+  listings_page: 1,
+  requests_page: 1,
+  listings_status: "all",
+  requests_status: "all",
+  listings_search: "",
+  requests_search: ""
+};
 
 function showAccountTab(tab) {
   ["listings", "requests", "admin"].forEach(name => {
@@ -1084,6 +1099,106 @@ function accountActionButton(label, action, id, kind = "listing", danger = false
   return button;
 }
 
+function accountStatusLabel(status) {
+  return ({ all: "همه وضعیت‌ها", pending: "در انتظار بررسی", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده", forwarded: "بررسی‌شده" })[status] || status;
+}
+
+function appendAccountToolbar(box, kind, pagination) {
+  const isListings = kind === "listings";
+  const searchKey = isListings ? "listings_search" : "requests_search";
+  const statusKey = isListings ? "listings_status" : "requests_status";
+  const pageKey = isListings ? "listings_page" : "requests_page";
+  const toolbar = makeElement("div", "account-toolbar");
+  const search = document.createElement("input");
+  search.type = "search";
+  search.maxLength = 80;
+  search.placeholder = isListings ? "جست‌وجوی عنوان، فروشنده یا موبایل" : "جست‌وجوی خریدار، موبایل یا توضیحات";
+  search.value = accountQueryState[searchKey];
+  search.setAttribute("aria-label", search.placeholder);
+  const status = document.createElement("select");
+  status.setAttribute("aria-label", "فیلتر وضعیت");
+  const options = isListings
+    ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["deleted","حذف‌شده"]]
+    : [["all","همه درخواست‌ها"],["pending","در انتظار بررسی"],["forwarded","بررسی‌شده"]];
+  options.forEach(([value,label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    status.appendChild(option);
+  });
+  status.value = pagination.status || "all";
+  const apply = makeElement("button", "account-action", "جست‌وجو");
+  apply.type = "button";
+  const runSearch = () => {
+    accountQueryState[searchKey] = search.value.trim();
+    accountQueryState[statusKey] = status.value;
+    accountQueryState[pageKey] = 1;
+    loadAccountPanel();
+  };
+  apply.addEventListener("click", runSearch);
+  search.addEventListener("keydown", event => { if (event.key === "Enter") runSearch(); });
+  status.addEventListener("change", () => {
+    accountQueryState[statusKey] = status.value;
+    accountQueryState[pageKey] = 1;
+    loadAccountPanel();
+  });
+  toolbar.append(search, status, apply);
+  box.appendChild(toolbar);
+}
+
+function appendAccountPagination(box, kind, pagination) {
+  const nav = makeElement("div", "account-pagination");
+  const pageKey = kind === "listings" ? "listings_page" : "requests_page";
+  const totalPages = Math.max(1, Number(pagination.total_pages) || 1);
+  const page = Math.min(totalPages, Math.max(1, Number(pagination.page) || 1));
+  const previous = makeElement("button", "", "قبلی");
+  previous.type = "button";
+  previous.disabled = page <= 1;
+  previous.addEventListener("click", () => {
+    accountQueryState[pageKey] = page - 1;
+    loadAccountPanel();
+  });
+  const next = makeElement("button", "", "بعدی");
+  next.type = "button";
+  next.disabled = page >= totalPages;
+  next.addEventListener("click", () => {
+    accountQueryState[pageKey] = page + 1;
+    loadAccountPanel();
+  });
+  nav.append(previous, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")} · ${(Number(pagination.total) || 0).toLocaleString("fa-IR")} مورد`), next);
+  box.appendChild(nav);
+}
+
+function renderListingCards(box, items, admin) {
+  if (!items.length) {
+    box.appendChild(makeElement("p", "account-empty", "موردی با این شرایط پیدا نشد."));
+    return;
+  }
+  items.forEach(item => {
+    const card = makeElement("div", "account-item");
+    card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
+    const actions = makeElement("div", "account-actions");
+    if (admin) {
+      if (item.deleted_at) {
+        actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
+      } else {
+        if (item.status === "pending") {
+          actions.appendChild(accountActionButton("انتشار", "publish", item.id));
+          actions.appendChild(accountActionButton("رد آگهی", "reject", item.id, "listing", true));
+        }
+        if (item.status === "published") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+        if (item.status !== "deleted") actions.appendChild(accountActionButton("حذف", "delete", item.id, "listing", true));
+      }
+    } else if (!item.deleted_at) {
+      if (item.status === "published") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
+      actions.appendChild(accountActionButton("حذف آگهی", "delete", item.id, "listing", true));
+    }
+    if (actions.childElementCount) card.appendChild(actions);
+    box.appendChild(card);
+  });
+}
+
 function renderAccountPanel(data) {
   const listingsBox = document.getElementById("accountListings");
   const requestsBox = document.getElementById("accountRequests");
@@ -1091,59 +1206,35 @@ function renderAccountPanel(data) {
   [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
   const admin = data.role === "admin";
   document.getElementById("adminAccountTab").style.display = admin ? "inline-block" : "none";
+  const pagination = data.pagination || {};
+  const listingsPage = pagination.listings || { page: 1, total: data.listings.length, total_pages: 1, status: "all" };
+  const requestsPage = pagination.requests || { page: 1, total: data.purchase_requests.length, total_pages: 1, status: "all" };
 
-  const ownListings = admin ? data.listings : data.listings;
-  if (!ownListings.length) listingsBox.appendChild(makeElement("p", "account-empty", "هنوز آگهی‌ای برای این حساب ثبت نشده است."));
-  ownListings.forEach(item => {
-    const card = makeElement("div", "account-item");
-    card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
-    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : item.status} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
-    if (admin) {
-      const actions = makeElement("div", "account-actions");
-      if (item.deleted_at) {
-        actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
-      } else {
-        if (item.status !== "published") actions.appendChild(accountActionButton("انتشار", "publish", item.id));
-        if (item.status !== "rejected") actions.appendChild(accountActionButton("رد آگهی", "reject", item.id, "listing", true));
-        if (item.status !== "sold") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
-        actions.appendChild(accountActionButton("حذف", "delete", item.id, "listing", true));
-      }
-      card.appendChild(actions);
-    } else if (!item.deleted_at) {
-      const actions = makeElement("div", "account-actions");
-      if (item.status !== "sold") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
-      actions.appendChild(accountActionButton("حذف آگهی", "delete", item.id, "listing", true));
-      card.appendChild(actions);
-    }
-    listingsBox.appendChild(card);
-  });
+  appendAccountToolbar(listingsBox, "listings", listingsPage);
+  listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
+  renderListingCards(listingsBox, data.listings, admin);
+  appendAccountPagination(listingsBox, "listings", listingsPage);
 
-  if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی ثبت نشده است."));
+  appendAccountToolbar(requestsBox, "requests", requestsPage);
+  requestsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.purchase_requests.length.toLocaleString("fa-IR")} از ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} درخواست خرید`));
+  if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
   data.purchase_requests.forEach(item => {
     const card = makeElement("div", "account-item");
-    card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی"}`));
-    card.appendChild(makeElement("p", "", `وضعیت: ${item.status} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
+    card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
     if (admin) {
       card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
       if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی درخواست", "forward", item.id, "request"));
     }
     requestsBox.appendChild(card);
   });
+  appendAccountPagination(requestsBox, "requests", requestsPage);
 
   if (admin) {
-    const pending = data.listings.filter(item => !item.deleted_at && item.status === "pending");
-    const deleted = data.listings.filter(item => item.deleted_at);
-    adminBox.appendChild(makeElement("p", "account-empty", `آگهی‌ها: ${data.listings.length} · در انتظار بررسی: ${pending.length} · حذف‌شده: ${deleted.length} · درخواست خرید: ${data.purchase_requests.length}`));
-    pending.forEach(item => {
-      const card = makeElement("div", "account-item");
-      card.appendChild(makeElement("strong", "", `نیازمند بررسی · #${item.id} · ${item.title || item.product_type}`));
-      card.appendChild(makeElement("p", "", `فروشنده: ${item.seller_name || "—"} · ${item.seller_mobile || "—"}`));
-      const actions = makeElement("div", "account-actions");
-      actions.appendChild(accountActionButton("انتشار", "publish", item.id));
-      actions.appendChild(accountActionButton("رد", "reject", item.id, "listing", true));
-      card.appendChild(actions);
-      adminBox.appendChild(card);
-    });
+    adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
+    appendAccountToolbar(adminBox, "listings", listingsPage);
+    renderListingCards(adminBox, data.listings, true);
+    appendAccountPagination(adminBox, "listings", listingsPage);
   }
 }
 
@@ -1153,7 +1244,8 @@ async function loadAccountPanel() {
   const boxes = ["accountListings", "accountRequests", "accountAdmin"].map(id => document.getElementById(id));
   boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
   try {
-    const response = await fetch(LISTINGS_API + "?action=account", {
+    const params = new URLSearchParams({ action: "account", ...accountQueryState });
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
       cache: "no-store",
       headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
     });
