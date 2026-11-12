@@ -119,6 +119,7 @@ header {
 .admin-member-list { display:grid; gap:8px; max-height:300px; overflow:auto; }
 .admin-member-listings { margin-top:9px; padding:9px; border:1px solid #66552b; border-radius:8px; background:#0c1116; display:grid; gap:8px; }
 .admin-member-listing { padding:8px; border-bottom:1px solid var(--line); }
+.admin-member-listing-photo { display:block; width:min(220px,100%); max-height:180px; object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#090908; margin:7px 0; }
 .admin-member-listing:last-child { border-bottom:0; }
 .admin-member-listing strong { color:var(--gold); }
 .admin-member-listing p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
@@ -1457,6 +1458,20 @@ function renderAdminMemberListings(memberId, panel, data) {
   const statusLabels = { pending: "در انتظار تأیید", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده" };
   items.forEach(item => {
     const card = makeElement("div", "admin-member-listing");
+    const imageUrl = String(item.image_url || item.photo_url || "").trim();
+    if (imageUrl && /^https:\/\//i.test(imageUrl)) {
+      const photo = document.createElement("img");
+      photo.className = "admin-member-listing-photo";
+      photo.alt = "تصویر آگهی";
+      photo.loading = "lazy";
+      photo.src = imageUrl;
+      photo.onerror = () => {
+        photo.replaceWith(makeElement("p", "account-empty", "تصویر این آگهی در دسترس نیست."));
+      };
+      card.appendChild(photo);
+    } else {
+      card.appendChild(makeElement("p", "account-empty", "تصویری برای این آگهی ثبت نشده است."));
+    }
     card.appendChild(makeElement("strong", "", item.title || item.product_type || "آگهی بدون عنوان"));
     const status = item.deleted_at ? "deleted" : item.status;
     card.appendChild(makeElement("p", "", `شناسه: ${item.id} · وضعیت: ${statusLabels[status] || status || "نامشخص"}`));
