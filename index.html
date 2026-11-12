@@ -109,6 +109,15 @@ header {
 .account-pagination button { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 10px; font-size:11px; cursor:pointer; }
 .account-pagination button:disabled { opacity:.35; cursor:not-allowed; }
 .account-summary { color:var(--muted); font-size:11px; margin:4px 0 10px; }
+.admin-members-section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
+.admin-members-title { color:var(--gold); font-size:13px; margin:0 0 8px; }
+.admin-member-card { border:1px solid var(--line); border-radius:10px; padding:10px; background:#101820; }
+.admin-member-card strong { display:block; font-size:12px; }
+.admin-member-card p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.admin-member-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; margin:8px 0; }
+.admin-member-toolbar input { min-width:0; width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:#0d0c0a; color:var(--text); font-size:11px; }
+.admin-member-list { display:grid; gap:8px; max-height:300px; overflow:auto; }
+
 @media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
 
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
@@ -833,7 +842,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const LISTINGS_API = 'https://zarinmah-seller-bot.vercel.app/api/listings';
+const LISTINGS_API = 'https://zarinmah-seller-kb5sq0tz5-booknight20-7409.vercel.app/api/listings';
 const MARKET_API = '/api/market';
 
 const SUPABASE_URL = 'https://eooxmhhfgrofbszxhqsh.supabase.co';
@@ -1259,6 +1268,7 @@ function renderListingCards(box, items, admin) {
     card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
     const actions = makeElement("div", "account-actions");
     if (admin) {
+      actions.appendChild(invoiceActionButton(item.id));
       if (item.deleted_at) {
         actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
       } else {
@@ -1276,6 +1286,148 @@ function renderListingCards(box, items, admin) {
     if (actions.childElementCount) card.appendChild(actions);
     box.appendChild(card);
   });
+}
+
+
+let adminMembersPage = 1;
+let adminMembersSearch = "";
+
+function invoiceActionButton(listingId) {
+  const button = makeElement("button", "account-action", "مشاهده فاکتور");
+  button.type = "button";
+  button.addEventListener("click", () => openAdminInvoice(listingId));
+  return button;
+}
+
+async function openAdminInvoice(listingId) {
+  if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  const invoiceWindow = window.open("about:blank", "_blank");
+  try {
+    const params = new URLSearchParams({ action: "admin_invoice", listing_id: String(listingId) });
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": \`Bearer \${currentAuthSession.access_token}\` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok || !result.url) throw new Error(result.error || "دریافت لینک امن فاکتور ناموفق بود.");
+    if (invoiceWindow) invoiceWindow.location.href = result.url;
+    else window.location.href = result.url;
+  } catch (error) {
+    if (invoiceWindow) invoiceWindow.close();
+    showToast(error.message || "فاکتور باز نشد.");
+  }
+}
+
+async function loadAdminMembers() {
+  if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  const box = document.getElementById("accountAdmin");
+  const params = new URLSearchParams({
+    action: "admin_members",
+    members_page: String(adminMembersPage),
+    members_search: adminMembersSearch
+  });
+  try {
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": \`Bearer \${currentAuthSession.access_token}\` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "دریافت فهرست اعضا ناموفق بود.");
+    renderAdminMembers(box, result);
+  } catch (error) {
+    const section = box.querySelector(".admin-members-section") || box;
+    section.appendChild(makeElement("p", "account-empty", error.message || "فهرست اعضا دریافت نشد."));
+  }
+}
+
+function renderAdminMembers(box, data) {
+  let section = box.querySelector(".admin-members-section");
+  if (!section) {
+    section = makeElement("div", "admin-members-section");
+    box.appendChild(section);
+  }
+  section.replaceChildren();
+  section.appendChild(makeElement("h4", "admin-members-title", \`مدیریت اعضا · \${Number(data.pagination?.total || 0).toLocaleString("fa-IR")} عضو\`));
+  const toolbar = makeElement("div", "admin-member-toolbar");
+  const search = document.createElement("input");
+  search.type = "search";
+  search.maxLength = 80;
+  search.placeholder = "جست‌وجوی نام یا شماره موبایل";
+  search.value = adminMembersSearch;
+  const apply = makeElement("button", "account-action", "جست‌وجو");
+  apply.type = "button";
+  const runSearch = () => {
+    adminMembersSearch = search.value.trim();
+    adminMembersPage = 1;
+    loadAdminMembers();
+  };
+  apply.addEventListener("click", runSearch);
+  search.addEventListener("keydown", event => { if (event.key === "Enter") runSearch(); });
+  toolbar.append(search, apply);
+  section.appendChild(toolbar);
+  const list = makeElement("div", "admin-member-list");
+  if (!data.members?.length) list.appendChild(makeElement("p", "account-empty", "عضوی با این مشخصات پیدا نشد."));
+  (data.members || []).forEach(member => {
+    const card = makeElement("div", "admin-member-card");
+    card.appendChild(makeElement("strong", "", member.full_name || "بدون نام"));
+    const counts = member.listing_counts || {};
+    card.appendChild(makeElement("p", "", \`موبایل: \${member.mobile || "—"} · وضعیت: \${member.is_active ? "فعال" : "غیرفعال"}\`));
+    card.appendChild(makeElement("p", "", \`آگهی‌ها: \${Number(counts.total || 0).toLocaleString("fa-IR")} · منتشرشده: \${Number(counts.published || 0).toLocaleString("fa-IR")} · در انتظار: \${Number(counts.pending || 0).toLocaleString("fa-IR")} · فروخته‌شده: \${Number(counts.sold || 0).toLocaleString("fa-IR")}\`));
+    if (counts.deleted) card.appendChild(makeElement("p", "", \`حذف‌شده: \${Number(counts.deleted).toLocaleString("fa-IR")}\`));
+    const actions = makeElement("div", "account-actions");
+    const edit = makeElement("button", "account-action", "ویرایش نام");
+    edit.type = "button";
+    edit.addEventListener("click", () => editAdminMember(member));
+    actions.appendChild(edit);
+    const active = makeElement("button", member.is_active ? "account-action danger" : "account-action", member.is_active ? "غیرفعال‌کردن" : "فعال‌کردن");
+    active.type = "button";
+    active.addEventListener("click", () => updateAdminMember(member, { full_name: member.full_name, is_active: !member.is_active }));
+    actions.appendChild(active);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+  section.appendChild(list);
+  const pagination = data.pagination || {};
+  const totalPages = Math.max(1, Number(pagination.total_pages) || 1);
+  const page = Math.min(totalPages, Math.max(1, Number(pagination.page) || 1));
+  const nav = makeElement("div", "account-pagination");
+  const prev = makeElement("button", "", "قبلی");
+  prev.type = "button"; prev.disabled = page <= 1;
+  prev.addEventListener("click", () => { adminMembersPage = page - 1; loadAdminMembers(); });
+  const next = makeElement("button", "", "بعدی");
+  next.type = "button"; next.disabled = page >= totalPages;
+  next.addEventListener("click", () => { adminMembersPage = page + 1; loadAdminMembers(); });
+  nav.append(prev, makeElement("span", "", \`صفحه \${page.toLocaleString("fa-IR")} از \${totalPages.toLocaleString("fa-IR")}\`), next);
+  section.appendChild(nav);
+}
+
+async function editAdminMember(member) {
+  const fullName = window.prompt("نام و نام خانوادگی عضو:", member.full_name || "");
+  if (fullName === null) return;
+  const cleaned = fullName.trim();
+  if (!cleaned) return showToast("نام و نام خانوادگی را وارد کنید.");
+  await updateAdminMember(member, { full_name: cleaned, is_active: Boolean(member.is_active) });
+}
+
+async function updateAdminMember(member, changes) {
+  const isStatusChange = changes.is_active !== Boolean(member.is_active);
+  const question = isStatusChange
+    ? (changes.is_active ? "حساب این عضو فعال شود؟" : "حساب این عضو غیرفعال شود؟")
+    : "نام عضو به‌روزرسانی شود؟";
+  if (!window.confirm(question)) return;
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": \`Bearer \${currentAuthSession.access_token}\` },
+      body: JSON.stringify({ action: "admin_member_update", member_id: member.id, ...changes })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "تغییر حساب انجام نشد.");
+    showToast(result.preview ? "حالت آزمایشی: تغییری در حساب ذخیره نشد." : (result.message || "حساب عضو به‌روزرسانی شد."));
+    if (!result.preview) await loadAdminMembers();
+  } catch (error) {
+    showToast(error.message || "عملیات ناموفق بود.");
+  }
 }
 
 function renderAccountPanel(data) {
@@ -1333,6 +1485,7 @@ async function loadAccountPanel() {
     if (currentAuthSession?.user?.id !== result.profile?.id) return;
     accountDataCache = result;
     renderAccountPanel(result);
+    if (result.role === "admin") await loadAdminMembers();
   } catch (error) {
     boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
   } finally {
