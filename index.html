@@ -1371,7 +1371,7 @@ function renderAdminMembers(box, data) {
     const card = makeElement("div", "admin-member-card");
     card.appendChild(makeElement("strong", "", member.full_name || "بدون نام"));
     const counts = member.listing_counts || {};
-    card.appendChild(makeElement("p", "", `موبایل: ${member.mobile || "—"} · وضعیت: ${member.is_active ? "فعال" : "غیرفعال"}`));
+    card.appendChild(makeElement("p", "", `موبایل: ${member.mobile || "—"} · نقش: ${member.role === "admin" ? "مدیر" : "کاربر"} · وضعیت: ${member.is_active ? "فعال" : "غیرفعال"}`));
     card.appendChild(makeElement("p", "", `آگهی‌ها: ${Number(counts.total || 0).toLocaleString("fa-IR")} · منتشرشده: ${Number(counts.published || 0).toLocaleString("fa-IR")} · در انتظار: ${Number(counts.pending || 0).toLocaleString("fa-IR")} · فروخته‌شده: ${Number(counts.sold || 0).toLocaleString("fa-IR")}`));
     if (counts.deleted) card.appendChild(makeElement("p", "", `حذف‌شده: ${Number(counts.deleted).toLocaleString("fa-IR")}`));
     const actions = makeElement("div", "account-actions");
