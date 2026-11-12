@@ -81,7 +81,10 @@ header {
 .btn-outline { background: transparent; color: var(--gold); }
 .btn:hover { filter: brightness(1.1); }
 .account-btn { white-space: nowrap; }
-.auth-status { color: var(--muted); font-size: 11px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.auth-status { color: var(--muted); font-size: 11px; margin: 0 0 8px; overflow-wrap: anywhere; }
+.account-role-badge { display:inline-flex; align-items:center; gap:6px; margin:0 0 14px; padding:5px 11px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); background:rgba(199,162,75,.09); font-size:12px; font-weight:bold; }
+.account-role-badge[data-role="admin"] { background:rgba(199,162,75,.16); }
+.account-role-badge[data-role="user"] { border-color:rgba(185,177,162,.45); color:#ded5c3; background:rgba(185,177,162,.07); }
 .auth-help { color: var(--muted); font-size: 11px; margin-top: 8px; }
 .auth-message { min-height: 24px; color: var(--gold); font-size: 12px; margin: 10px 0; }
 .auth-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -808,6 +811,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
     </div>
     <div id="authLoggedIn" style="display:none">
       <p class="auth-status" id="authUserLabel"></p>
+      <p class="account-role-badge" id="authRoleLabel" style="display:none" aria-live="polite">در حال بررسی نقش حساب…</p>
       <a class="btn btn-outline" href="/" style="margin-left:8px">بازگشت به فروشگاه</a><button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button><button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
       <div class="account-panel">
         <h3>پنل حساب کاربری</h3>
@@ -1004,6 +1008,10 @@ function updateAuthUI(session) {
     const phone = session.user.phone || '';
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
     document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
+    const roleBadge = document.getElementById('authRoleLabel');
+    roleBadge.textContent = 'در حال بررسی نقش حساب…';
+    roleBadge.dataset.role = '';
+    roleBadge.style.display = 'inline-flex';
     loadCurrentProfile(session);
     if (isAccountPage) openAccountDrawer();
   } else {
@@ -1017,6 +1025,7 @@ function updateAuthUI(session) {
     document.getElementById('authVerifyButton').style.display = 'none';
     document.getElementById('authResendButton').style.display = 'none';
     document.getElementById('authOtp').value = '';
+    document.getElementById('authRoleLabel').style.display = 'none';
     authPhoneE164 = '';
     clearInterval(authResendTimer);
   }
@@ -1043,6 +1052,10 @@ async function loadCurrentProfile(session = currentAuthSession) {
     if (requestId !== profileRequestId || currentAuthSession?.user?.id !== session.user.id) return;
     currentUserProfile = result.profile || null;
     currentUserRole = result.role || 'user';
+    const roleBadge = document.getElementById('authRoleLabel');
+    roleBadge.textContent = currentUserRole === 'admin' ? 'نقش حساب: مدیر سامانه' : 'نقش حساب: کاربر عادی';
+    roleBadge.dataset.role = currentUserRole === 'admin' ? 'admin' : 'user';
+    roleBadge.style.display = 'inline-flex';
     profileReady = Boolean(currentUserProfile && currentUserProfile.is_active === true && String(currentUserProfile.full_name || '').trim());
     const label = document.getElementById('authUserLabel');
     const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
