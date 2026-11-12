@@ -592,8 +592,11 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         </div>
 
         <div class="field">
-          <label for="city">شهر محل فروش *</label>
-          <input id="city" name="city" required maxlength="100" placeholder="نام شهر">
+          <label for="city">شهرستان / شهر محل فروش *</label>
+          <select id="city" name="city" required disabled>
+            <option value="">ابتدا استان را انتخاب کنید</option>
+          </select>
+          <small>فقط شهرهای اصلی هر استان نمایش داده می‌شوند.</small>
         </div>
 
         <div class="field full">
@@ -1990,6 +1993,65 @@ document.querySelectorAll('.filter').forEach(button => {
 
 const itemSelect = document.getElementById('sellerItem');
 const pricingSelect = document.getElementById('pricingMethod');
+
+// فهرست کوتاه شهرهای اصلی برای جلوگیری از شلوغ‌شدن فرم
+const majorCitiesByProvince = {
+  'آذربایجان شرقی': ['تبریز', 'مراغه', 'مرند', 'میانه', 'اهر'],
+  'آذربایجان غربی': ['ارومیه', 'خوی', 'مهاباد', 'بوکان', 'میاندوآب'],
+  'اردبیل': ['اردبیل', 'پارس‌آباد', 'مشگین‌شهر', 'خلخال'],
+  'اصفهان': ['اصفهان', 'کاشان', 'خمینی‌شهر', 'نجف‌آباد', 'شاهین‌شهر'],
+  'البرز': ['کرج', 'فردیس', 'نظرآباد', 'محمدشهر'],
+  'ایلام': ['ایلام', 'دهلران', 'آبدانان', 'ایوان'],
+  'بوشهر': ['بوشهر', 'برازجان', 'گناوه', 'کنگان'],
+  'تهران': ['تهران', 'اسلام‌شهر', 'شهریار', 'قدس', 'ورامین'],
+  'چهارمحال و بختیاری': ['شهرکرد', 'بروجن', 'فارسان', 'لردگان'],
+  'خراسان جنوبی': ['بیرجند', 'قائن', 'طبس', 'فردوس'],
+  'خراسان رضوی': ['مشهد', 'نیشابور', 'سبزوار', 'تربت حیدریه', 'کاشمر'],
+  'خراسان شمالی': ['بجنورد', 'شیروان', 'اسفراین', 'جاجرم'],
+  'خوزستان': ['اهواز', 'دزفول', 'آبادان', 'ماهشهر', 'خرمشهر'],
+  'زنجان': ['زنجان', 'ابهر', 'خرمدره', 'قیدار'],
+  'سمنان': ['سمنان', 'شاهرود', 'دامغان', 'گرمسار'],
+  'سیستان و بلوچستان': ['زاهدان', 'چابهار', 'ایرانشهر', 'زابل', 'خاش'],
+  'فارس': ['شیراز', 'مرودشت', 'جهرم', 'فسا', 'کازرون'],
+  'قزوین': ['قزوین', 'تاکستان', 'الوند', 'آبیک'],
+  'قم': ['قم', 'جعفریه', 'کهک'],
+  'کردستان': ['سنندج', 'سقز', 'مریوان', 'بانه', 'قروه'],
+  'کرمان': ['کرمان', 'سیرجان', 'رفسنجان', 'جیرفت', 'بم'],
+  'کرمانشاه': ['کرمانشاه', 'اسلام‌آباد غرب', 'کنگاور', 'هرسین', 'پاوه'],
+  'کهگیلویه و بویراحمد': ['یاسوج', 'دوگنبدان', 'دهدشت', 'لیکک'],
+  'گلستان': ['گرگان', 'گنبدکاووس', 'علی‌آباد کتول', 'آق‌قلا'],
+  'گیلان': ['رشت', 'بندر انزلی', 'لاهیجان', 'لنگرود', 'آستارا'],
+  'لرستان': ['خرم‌آباد', 'بروجرد', 'دورود', 'الیگودرز', 'کوهدشت'],
+  'مازندران': ['ساری', 'بابل', 'آمل', 'قائم‌شهر', 'نوشهر'],
+  'مرکزی': ['اراک', 'ساوه', 'خمین', 'محلات', 'دلیجان'],
+  'هرمزگان': ['بندرعباس', 'میناب', 'قشم', 'بندر لنگه', 'جاسک'],
+  'همدان': ['همدان', 'ملایر', 'نهاوند', 'تویسرکان', 'اسدآباد'],
+  'یزد': ['یزد', 'میبد', 'اردکان', 'بافق', 'مهریز']
+};
+
+const provinceSelect = document.getElementById('province');
+const citySelect = document.getElementById('city');
+
+provinceSelect.addEventListener('change', () => {
+  const cities = majorCitiesByProvince[provinceSelect.value] || [];
+  citySelect.replaceChildren();
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = cities.length
+    ? 'انتخاب شهر'
+    : 'برای این استان شهری تعریف نشده است';
+  citySelect.appendChild(placeholder);
+
+  cities.forEach(city => {
+    const option = document.createElement('option');
+    option.value = city;
+    option.textContent = city;
+    citySelect.appendChild(option);
+  });
+
+  citySelect.disabled = cities.length === 0;
+});
 
 function setSubfield(id, show) {
   const field = document.getElementById(id);
