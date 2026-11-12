@@ -1384,6 +1384,20 @@ async function loadAdminStorageUsage(box) {
       const title = item.bucket === "listing-images" ? "عکس آگهی‌ها" : "فاکتورهای فروش";
       row.appendChild(makeElement("strong", "", title));
       row.appendChild(makeElement("p", "", `${formatBytes(item.bytes)} · ${Number(item.files || 0).toLocaleString("fa-IR")} فایل`));
+      if (Array.isArray(item.diagnostics) && item.diagnostics.length) {
+        const diagnosticText = item.diagnostics.map((entry, index) => {
+          const fields = Array.isArray(entry.item_fields) ? entry.item_fields.join("، ") : "—";
+          const metadataFields = Array.isArray(entry.metadata_fields) ? entry.metadata_fields.join("، ") : "—";
+          const sizes = entry.size_candidates && Object.keys(entry.size_candidates).length
+            ? Object.entries(entry.size_candidates).map(([key, value]) => key + ": " + value).join("، ")
+            : "مقدار حجمی پیدا نشد";
+          return (index + 1) + ") فیلدهای فایل: " + fields + " | فیلدهای metadata: " + metadataFields + " | مقادیر حجم: " + sizes;
+        }).join("\n");
+        const diagnostic = makeElement("pre", "account-empty", "گزارش تشخیصی (حداکثر ۳ فایل، بدون نام فایل):\n" + diagnosticText);
+        diagnostic.style.whiteSpace = "pre-wrap";
+        diagnostic.style.overflowWrap = "anywhere";
+        row.appendChild(diagnostic);
+      }
       const percent = Math.max(0, Math.min(100, Number(item.used_percent) || 0));
       const bar = document.createElement("div");
       bar.style.cssText = "height:9px;background:#263039;border-radius:99px;overflow:hidden;margin:8px 0";
