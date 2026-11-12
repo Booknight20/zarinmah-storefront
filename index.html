@@ -1384,6 +1384,9 @@ async function loadAdminStorageUsage(box) {
       const title = item.bucket === "listing-images" ? "عکس آگهی‌ها" : "فاکتورهای فروش";
       row.appendChild(makeElement("strong", "", title));
       row.appendChild(makeElement("p", "", `${formatBytes(item.bytes)} · ${Number(item.files || 0).toLocaleString("fa-IR")} فایل`));
+      if (Number(item.unknown_size_files || 0) > 0) {
+        row.appendChild(makeElement("p", "account-empty", "اندازه " + Number(item.unknown_size_files).toLocaleString("fa-IR") + " فایل از Storage قابل خواندن نبود؛ حجم نمایش‌داده‌شده فقط مجموع فایل‌های اندازه‌گیری‌شده است."));
+      }
       if (Array.isArray(item.diagnostics) && item.diagnostics.length) {
         const diagnosticText = item.diagnostics.map((entry, index) => {
           const fields = Array.isArray(entry.item_fields) ? entry.item_fields.join("، ") : "—";
