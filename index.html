@@ -842,7 +842,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const LISTINGS_API = 'https://zarinmah-seller-6qv6fud10-booknight20-7409.vercel.app/api/listings?_vercel_share=9PRUqrNQA3bPtUzxDDhQYLioXhRQJnjI';
+const LISTINGS_API = '/api/listings';
 const MARKET_API = '/api/market';
 
 const SUPABASE_URL = 'https://eooxmhhfgrofbszxhqsh.supabase.co';
@@ -1048,7 +1048,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
   const requestId = ++profileRequestId;
   profileLoadingUserId = userId;
   try {
-    const response = await fetch(LISTINGS_API + '&action=profile', {
+    const response = await fetch(LISTINGS_API + '?action=profile', {
       method: 'GET',
       cache: 'no-store',
       headers: {
@@ -1304,7 +1304,7 @@ async function openAdminInvoice(listingId) {
   const invoiceWindow = window.open("about:blank", "_blank");
   try {
     const params = new URLSearchParams({ action: "admin_invoice", listing_id: String(listingId) });
-    const response = await fetch(LISTINGS_API + "&" + params.toString(), {
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
       cache: "no-store",
       headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
     });
@@ -1327,7 +1327,7 @@ async function loadAdminMembers() {
     members_search: adminMembersSearch
   });
   try {
-    const response = await fetch(LISTINGS_API + "&" + params.toString(), {
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
       cache: "no-store",
       headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
     });
@@ -1476,7 +1476,7 @@ async function loadAccountPanel() {
   boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
   try {
     const params = new URLSearchParams({ action: "account", ...accountQueryState });
-    const response = await fetch(LISTINGS_API + "&" + params.toString(), {
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
       cache: "no-store",
       headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
     });
