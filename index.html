@@ -2217,6 +2217,16 @@ document.getElementById('sellerForm').addEventListener(
         );
       }
 
+      // Preview dry-run responses validate the form but do not create a listing.
+      // Keep the form visible and never display a fake listing number/success state.
+      if (result.preview) {
+        showToast(
+          result.message ||
+          'حالت آزمایشی: اطلاعات بررسی شد، اما هیچ آگهی یا فایلی ذخیره نشد.'
+        );
+        return;
+      }
+
       form.style.display = 'none';
 
       const resultBox = document.getElementById('sellerResult');
