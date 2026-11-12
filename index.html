@@ -117,6 +117,13 @@ header {
 .admin-member-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; margin:8px 0; }
 .admin-member-toolbar input { min-width:0; width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:#0d0c0a; color:var(--text); font-size:11px; }
 .admin-member-list { display:grid; gap:8px; max-height:300px; overflow:auto; }
+.admin-member-listings { margin-top:9px; padding:9px; border:1px solid #66552b; border-radius:8px; background:#0c1116; display:grid; gap:8px; }
+.admin-member-listing { padding:8px; border-bottom:1px solid var(--line); }
+.admin-member-listing:last-child { border-bottom:0; }
+.admin-member-listing strong { color:var(--gold); }
+.admin-member-listing p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.admin-member-listing .account-actions { margin-top:7px; }
+
 
 @media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
 
@@ -1291,6 +1298,7 @@ function renderListingCards(box, items, admin) {
 
 let adminMembersPage = 1;
 let adminMembersSearch = "";
+let adminMemberListingsPages = {};
 
 function invoiceActionButton(listingId) {
   const button = makeElement("button", "account-action", "مشاهده فاکتور");
@@ -1375,6 +1383,10 @@ function renderAdminMembers(box, data) {
     card.appendChild(makeElement("p", "", `آگهی‌ها: ${Number(counts.total || 0).toLocaleString("fa-IR")} · منتشرشده: ${Number(counts.published || 0).toLocaleString("fa-IR")} · در انتظار: ${Number(counts.pending || 0).toLocaleString("fa-IR")} · فروخته‌شده: ${Number(counts.sold || 0).toLocaleString("fa-IR")}`));
     if (counts.deleted) card.appendChild(makeElement("p", "", `حذف‌شده: ${Number(counts.deleted).toLocaleString("fa-IR")}`));
     const actions = makeElement("div", "account-actions");
+    const details = makeElement("button", "account-action", "مشاهده آگهی‌ها");
+    details.type = "button";
+    details.addEventListener("click", () => toggleAdminMemberListings(member, card, details));
+    actions.appendChild(details);
     const edit = makeElement("button", "account-action", "ویرایش نام");
     edit.type = "button";
     edit.addEventListener("click", () => editAdminMember(member));
@@ -1399,6 +1411,89 @@ function renderAdminMembers(box, data) {
   next.addEventListener("click", () => { adminMembersPage = page + 1; loadAdminMembers(); });
   nav.append(prev, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")}`), next);
   section.appendChild(nav);
+}
+
+async function toggleAdminMemberListings(member, card, button) {
+  const existing = card.querySelector(".admin-member-listings");
+  if (existing) {
+    existing.remove();
+    button.textContent = "مشاهده آگهی‌ها";
+    return;
+  }
+  button.textContent = "بستن آگهی‌ها";
+  const panel = makeElement("div", "admin-member-listings");
+  panel.appendChild(makeElement("p", "account-empty", "در حال دریافت آگهی‌های عضو..."));
+  card.appendChild(panel);
+  await loadAdminMemberListings(member.id, panel);
+}
+
+async function loadAdminMemberListings(memberId, panel) {
+  if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  const page = adminMemberListingsPages[memberId] || 1;
+  const params = new URLSearchParams({
+    action: "admin_member_listings",
+    member_id: String(memberId),
+    member_listings_page: String(page)
+  });
+  try {
+    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "دریافت آگهی‌های عضو ناموفق بود.");
+    renderAdminMemberListings(memberId, panel, result);
+  } catch (error) {
+    panel.replaceChildren(makeElement("p", "account-empty", error.message || "آگهی‌های عضو دریافت نشد."));
+  }
+}
+
+function renderAdminMemberListings(memberId, panel, data) {
+  panel.replaceChildren();
+  const items = data.listings || [];
+  const pagination = data.pagination || {};
+  panel.appendChild(makeElement("strong", "", `آگهی‌های این عضو · ${Number(pagination.total || 0).toLocaleString("fa-IR")}`));
+  if (!items.length) panel.appendChild(makeElement("p", "account-empty", "برای این عضو آگهی‌ای ثبت نشده است."));
+  const statusLabels = { pending: "در انتظار تأیید", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده" };
+  items.forEach(item => {
+    const card = makeElement("div", "admin-member-listing");
+    card.appendChild(makeElement("strong", "", item.title || item.product_type || "آگهی بدون عنوان"));
+    const status = item.deleted_at ? "deleted" : item.status;
+    card.appendChild(makeElement("p", "", `شناسه: ${item.id} · وضعیت: ${statusLabels[status] || status || "نامشخص"}`));
+    const weight = item.weight == null ? "—" : `${item.weight} ${item.weight_unit === "سوت" ? "سوت" : "گرم"}`;
+    const place = [item.city, item.province].filter(Boolean).join("، ") || "—";
+    card.appendChild(makeElement("p", "", `نوع: ${item.product_type || "—"} · وزن: ${weight} · عیار: ${item.purity || "—"}`));
+    card.appendChild(makeElement("p", "", `موقعیت: ${place} · قیمت: ${item.price || "اعلام نشده"}`));
+    if (item.description) card.appendChild(makeElement("p", "", item.description));
+    if (item.created_at) card.appendChild(makeElement("p", "", `ثبت: ${new Date(item.created_at).toLocaleString("fa-IR")}`));
+    if (item.invoice_available && currentUserRole === "admin") {
+      const actions = makeElement("div", "account-actions");
+      actions.appendChild(invoiceActionButton(item.id));
+      card.appendChild(actions);
+    }
+    panel.appendChild(card);
+  });
+  const totalPages = Math.max(1, Number(pagination.total_pages) || 1);
+  const page = Math.min(totalPages, Math.max(1, Number(pagination.page) || 1));
+  if (totalPages > 1) {
+    const nav = makeElement("div", "account-pagination");
+    const prev = makeElement("button", "", "قبلی");
+    prev.type = "button";
+    prev.disabled = page <= 1;
+    prev.addEventListener("click", () => {
+      adminMemberListingsPages[memberId] = page - 1;
+      loadAdminMemberListings(memberId, panel);
+    });
+    const next = makeElement("button", "", "بعدی");
+    next.type = "button";
+    next.disabled = page >= totalPages;
+    next.addEventListener("click", () => {
+      adminMemberListingsPages[memberId] = page + 1;
+      loadAdminMemberListings(memberId, panel);
+    });
+    nav.append(prev, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")}`), next);
+    panel.appendChild(nav);
+  }
 }
 
 async function editAdminMember(member) {
