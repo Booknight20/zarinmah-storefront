@@ -940,7 +940,7 @@ async function requestAuthOtp(isResend = false) {
   }
 }
 
-async async function verifyAuthOtp() {
+async function verifyAuthOtp() {
   const token = toEnglishDigits(document.getElementById('authOtp').value).replace(/\D/g, '');
   if (!authPhoneE164 || !/^\d{6}$/.test(token)) {
     setAuthMessage('کد شش‌رقمی پیامک‌شده را وارد کنید.');
