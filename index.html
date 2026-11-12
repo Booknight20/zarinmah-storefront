@@ -707,6 +707,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
           <input id="sellerPhoto" name="sellerPhoto" type="file" accept="image/jpeg,image/png,image/webp" required>
           <small>یک عکس؛ پس از انتخاب می‌توانید کادر، بزرگ‌نمایی و زاویه را تنظیم کنید. تصویر نهایی تا حداکثر ۵۰۰ کیلوبایت فشرده می‌شود.</small>
           <img id="photoPreview" class="preview-image" alt="پیش‌نمایش عکس محصول">
+          <button id="removePhoto" class="account-action danger" type="button" style="display:none;margin-top:8px">حذف عکس انتخاب‌شده</button>
           <div id="photoEditor" class="photo-editor" aria-label="ویرایش عکس محصول">
             <canvas id="photoCropCanvas" width="1200" height="900" aria-label="پیش‌نمایش کادر برش عکس"></canvas>
             <div class="photo-editor-controls">
@@ -2109,6 +2110,7 @@ pricingSelect.addEventListener('change', updatePricingFields);
 
 const photoInput = document.getElementById('sellerPhoto');
 const photoPreview = document.getElementById('photoPreview');
+const removePhotoButton = document.getElementById('removePhoto');
 const invoiceInput = document.getElementById('sellerInvoice');
 
 let sourcePhotoBitmap = null;
@@ -2123,6 +2125,28 @@ const zoomValue = document.getElementById('photoZoomValue');
 const rotatePhotoButton = document.getElementById('rotatePhoto');
 const replacePhotoButton = document.getElementById('replacePhoto');
 const savePhotoEditButton = document.getElementById('savePhotoEdit');
+
+function clearSelectedPhoto() {
+  if (sourcePhotoBitmap) sourcePhotoBitmap.close?.();
+  sourcePhotoBitmap = null;
+  photoInput.value = '';
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
+  photoPreview.removeAttribute('src');
+  photoPreview.classList.remove('show');
+  photoEditor.classList.remove('show');
+  removePhotoButton.style.display = 'none';
+  photoRotation = 0;
+  zoomControl.value = '1';
+  horizontalControl.value = '0';
+  verticalControl.value = '0';
+  cropContext.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+  showToast('عکس انتخاب‌شده حذف شد؛ می‌توانید عکس دیگری انتخاب کنید.');
+}
+
+removePhotoButton.addEventListener('click', clearSelectedPhoto);
 
 function renderPhotoCrop() {
   if (!sourcePhotoBitmap || !cropContext) return;
@@ -2199,6 +2223,7 @@ photoInput.addEventListener('change', async () => {
     sourcePhotoBitmap = await createImageBitmap(file);
     resetPhotoCrop();
     photoEditor.classList.add('show');
+    removePhotoButton.style.display = 'inline-block';
     showToast('عکس انتخاب شد؛ کادر و زاویه را تنظیم کنید.');
   } catch (error) {
     photoInput.value = '';
@@ -2233,6 +2258,7 @@ savePhotoEditButton.addEventListener('click', async () => {
     previewUrl = URL.createObjectURL(editedFile);
     photoPreview.src = previewUrl;
     photoPreview.classList.add('show');
+    removePhotoButton.style.display = 'inline-block';
     photoEditor.classList.remove('show');
     sourcePhotoBitmap.close?.();
     sourcePhotoBitmap = null;
