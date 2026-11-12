@@ -56,6 +56,10 @@ module.exports = async function handler(req, res) {
     const headers = new Headers({
       Accept: req.headers.accept || "application/json"
     });
+    const protectionBypass = process.env.ZARINMAH_BACKEND_PROTECTION_BYPASS;
+    if (protectionBypass) {
+      headers.set("x-vercel-protection-bypass", protectionBypass);
+    }
     if (req.headers.authorization) {
       headers.set("Authorization", req.headers.authorization);
     }
