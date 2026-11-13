@@ -703,30 +703,38 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         </div>
 
         <div class="field full">
-          <label for="sellerPhoto">عکس محصول *</label>
+          <label for="sellerPhoto">عکس اول محصول *</label>
           <input id="sellerPhoto" name="sellerPhoto" type="file" accept="image/jpeg,image/png,image/webp" required>
-          <small>یک عکس؛ پس از انتخاب می‌توانید کادر، بزرگ‌نمایی و زاویه را تنظیم کنید. تصویر نهایی تا حداکثر ۵۰۰ کیلوبایت فشرده می‌شود.</small>
-          <img id="photoPreview" class="preview-image" alt="پیش‌نمایش عکس محصول">
-          <button id="removePhoto" class="account-action danger" type="button" style="display:none;margin-top:8px">حذف عکس انتخاب‌شده</button>
-          <div id="photoEditor" class="photo-editor" aria-label="ویرایش عکس محصول">
-            <canvas id="photoCropCanvas" width="1200" height="900" aria-label="پیش‌نمایش کادر برش عکس"></canvas>
-            <div class="photo-editor-controls">
-              <label for="photoZoom">بزرگ‌نمایی <span id="photoZoomValue">۱٫۰×</span></label>
-              <input id="photoZoom" type="range" min="1" max="3" step="0.05" value="1">
-              <label for="photoHorizontal">جابجایی افقی</label>
-              <input id="photoHorizontal" type="range" min="-100" max="100" step="1" value="0">
-              <label for="photoVertical">جابجایی عمودی</label>
-              <input id="photoVertical" type="range" min="-100" max="100" step="1" value="0">
-            </div>
-            <div class="photo-editor-actions">
-              <button id="rotatePhoto" type="button">چرخش ۹۰ درجه</button>
-              <button id="replacePhoto" type="button">تعویض عکس</button>
-              <button id="savePhotoEdit" class="primary" type="button">تأیید و ذخیره کادر</button>
-            </div>
-            <small>با بزرگ‌نمایی و جابه‌جایی، بخش دلخواه عکس را داخل کادر ۴:۳ تنظیم کنید.</small>
-          </div>
+          <div id="photoStatus1" class="photo-status" style="margin-top:6px;color:var(--muted);font-size:13px">هنوز عکسی انتخاب نشده است.</div>
+          <img id="photoPreview1" class="preview-image" alt="پیش‌نمایش عکس اول محصول">
+          <button id="removePhoto1" class="account-action danger" type="button" style="display:none;margin-top:8px">حذف عکس اول</button>
         </div>
-
+        <div class="field full">
+          <label for="sellerPhoto2">عکس دوم محصول (اختیاری)</label>
+          <input id="sellerPhoto2" name="sellerPhoto2" type="file" accept="image/jpeg,image/png,image/webp">
+          <small>می‌توانید عکس دوم را هم اضافه کنید. هر عکس جداگانه ویرایش و تا حداکثر ۵۰۰ کیلوبایت فشرده می‌شود.</small>
+          <div id="photoStatus2" class="photo-status" style="margin-top:6px;color:var(--muted);font-size:13px">هنوز عکسی انتخاب نشده است.</div>
+          <img id="photoPreview2" class="preview-image" alt="پیش‌نمایش عکس دوم محصول">
+          <button id="removePhoto2" class="account-action danger" type="button" style="display:none;margin-top:8px">حذف عکس دوم</button>
+        </div>
+        <div id="photoEditor" class="photo-editor" aria-label="ویرایش عکس محصول">
+          <p id="photoEditorTitle">ویرایش عکس</p>
+          <canvas id="photoCropCanvas" width="1200" height="900" aria-label="پیش‌نمایش کادر برش عکس"></canvas>
+          <div class="photo-editor-controls">
+            <label for="photoZoom">بزرگ‌نمایی <span id="photoZoomValue">۱٫۰×</span></label>
+            <input id="photoZoom" type="range" min="1" max="3" step="0.05" value="1">
+            <label for="photoHorizontal">جابجایی افقی</label>
+            <input id="photoHorizontal" type="range" min="-100" max="100" step="1" value="0">
+            <label for="photoVertical">جابجایی عمودی</label>
+            <input id="photoVertical" type="range" min="-100" max="100" step="1" value="0">
+          </div>
+          <div class="photo-editor-actions">
+            <button id="rotatePhoto" type="button">چرخش ۹۰ درجه</button>
+            <button id="replacePhoto" type="button">تعویض عکس</button>
+            <button id="savePhotoEdit" class="primary" type="button">تأیید و ذخیره کادر</button>
+          </div>
+          <small>با بزرگ‌نمایی و جابه‌جایی، بخش دلخواه عکس را داخل کادر ۴:۳ تنظیم کنید.</small>
+        </div>
         <div class="field full">
           <label for="sellerInvoice">فاکتور فروش معتبر *</label>
           <input id="sellerInvoice" name="sellerInvoice" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
@@ -2108,13 +2116,28 @@ function updatePricingFields() {
 itemSelect.addEventListener('change', updateItemFields);
 pricingSelect.addEventListener('change', updatePricingFields);
 
-const photoInput = document.getElementById('sellerPhoto');
-const photoPreview = document.getElementById('photoPreview');
-const removePhotoButton = document.getElementById('removePhoto');
+const photoInputs = [
+  document.getElementById('sellerPhoto'),
+  document.getElementById('sellerPhoto2')
+];
+const photoPreviews = [
+  document.getElementById('photoPreview1'),
+  document.getElementById('photoPreview2')
+];
+const photoRemoveButtons = [
+  document.getElementById('removePhoto1'),
+  document.getElementById('removePhoto2')
+];
+const photoStatuses = [
+  document.getElementById('photoStatus1'),
+  document.getElementById('photoStatus2')
+];
 const invoiceInput = document.getElementById('sellerInvoice');
-
+let activePhotoIndex = 0;
 let sourcePhotoBitmap = null;
 let photoRotation = 0;
+let originalPhotoSize = 0;
+const photoPreviewUrls = [null, null];
 const cropCanvas = document.getElementById('photoCropCanvas');
 const cropContext = cropCanvas.getContext('2d');
 const photoEditor = document.getElementById('photoEditor');
@@ -2125,28 +2148,48 @@ const zoomValue = document.getElementById('photoZoomValue');
 const rotatePhotoButton = document.getElementById('rotatePhoto');
 const replacePhotoButton = document.getElementById('replacePhoto');
 const savePhotoEditButton = document.getElementById('savePhotoEdit');
+const photoEditorTitle = document.getElementById('photoEditorTitle');
 
-function clearSelectedPhoto() {
-  if (sourcePhotoBitmap) sourcePhotoBitmap.close?.();
-  sourcePhotoBitmap = null;
-  photoInput.value = '';
-  if (previewUrl) {
-    URL.revokeObjectURL(previewUrl);
-    previewUrl = null;
-  }
-  photoPreview.removeAttribute('src');
-  photoPreview.classList.remove('show');
-  photoEditor.classList.remove('show');
-  removePhotoButton.style.display = 'none';
-  photoRotation = 0;
-  zoomControl.value = '1';
-  horizontalControl.value = '0';
-  verticalControl.value = '0';
-  cropContext.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
-  showToast('عکس انتخاب‌شده حذف شد؛ می‌توانید عکس دیگری انتخاب کنید.');
+function formatPhotoBytes(bytes) {
+  return bytes >= 1024 * 1024
+    ? (bytes / (1024 * 1024)).toLocaleString('fa-IR', {maximumFractionDigits:2}) + ' مگابایت'
+    : Math.max(1, Math.round(bytes / 1024)).toLocaleString('fa-IR') + ' کیلوبایت';
 }
 
-removePhotoButton.addEventListener('click', clearSelectedPhoto);
+function updatePhotoStatus(index, originalSize, finalSize) {
+  if (!finalSize) {
+    photoStatuses[index].textContent = 'عکس هنوز ویرایش و فشرده نشده است.';
+    return;
+  }
+  const saved = Math.max(0, originalSize - finalSize);
+  const percent = originalSize ? Math.max(0, Math.round(saved / originalSize * 100)) : 0;
+  photoStatuses[index].textContent =
+    'حجم اولیه: ' + formatPhotoBytes(originalSize) +
+    ' ← حجم نهایی: ' + formatPhotoBytes(finalSize) +
+    ' · کاهش حجم: ' + percent.toLocaleString('fa-IR') + '٪';
+}
+
+function clearSelectedPhoto(index, notify = true) {
+  if (index === activePhotoIndex && sourcePhotoBitmap) sourcePhotoBitmap.close?.();
+  if (index === activePhotoIndex) {
+    sourcePhotoBitmap = null;
+    photoEditor.classList.remove('show');
+  }
+  photoInputs[index].value = '';
+  if (photoPreviewUrls[index]) {
+    URL.revokeObjectURL(photoPreviewUrls[index]);
+    photoPreviewUrls[index] = null;
+  }
+  photoPreviews[index].removeAttribute('src');
+  photoPreviews[index].classList.remove('show');
+  photoRemoveButtons[index].style.display = 'none';
+  photoStatuses[index].textContent = 'هنوز عکسی انتخاب نشده است.';
+  if (notify) showToast('عکس انتخاب‌شده حذف شد.');
+}
+
+photoRemoveButtons.forEach((button, index) => {
+  button.addEventListener('click', () => clearSelectedPhoto(index));
+});
 
 function renderPhotoCrop() {
   if (!sourcePhotoBitmap || !cropContext) return;
@@ -2190,45 +2233,45 @@ async function compressCropCanvas(canvas) {
       const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, quality));
       if (blob && blob.size <= 500 * 1024) {
         const extension = blob.type === 'image/webp' ? 'webp' : 'jpg';
-        return new File([blob], `listing-photo.${extension}`, {type:blob.type,lastModified:Date.now()});
+        return new File([blob], 'listing-photo-' + (activePhotoIndex + 1) + '.' + extension, {type:blob.type,lastModified:Date.now()});
       }
     }
   }
   throw new Error('حجم عکس پس از تنظیم و فشرده‌سازی هنوز بیشتر از ۵۰۰ کیلوبایت است؛ کادر را کمی کوچک‌تر یا عکس دیگری انتخاب کنید.');
 }
 
-photoInput.addEventListener('change', async () => {
-  const file = photoInput.files[0];
-  if (!file) return;
-  if (previewUrl) {
-    URL.revokeObjectURL(previewUrl);
-    previewUrl = null;
-  }
-  photoPreview.removeAttribute('src');
-  photoPreview.classList.remove('show');
-  if (sourcePhotoBitmap) sourcePhotoBitmap.close?.();
-  sourcePhotoBitmap = null;
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    photoInput.value = '';
-    showToast('فرمت عکس باید JPG، PNG یا WEBP باشد.');
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    photoInput.value = '';
-    showToast('حجم عکس اولیه نباید بیشتر از ۱۰ مگابایت باشد.');
-    return;
-  }
-  try {
-    if (typeof createImageBitmap !== 'function') throw new Error('مرورگر شما ویرایش عکس را پشتیبانی نمی‌کند؛ لطفاً مرورگر را به‌روز کنید.');
-    sourcePhotoBitmap = await createImageBitmap(file);
-    resetPhotoCrop();
-    photoEditor.classList.add('show');
-    removePhotoButton.style.display = 'inline-block';
-    showToast('عکس انتخاب شد؛ کادر و زاویه را تنظیم کنید.');
-  } catch (error) {
-    photoInput.value = '';
-    showToast(error.message || 'باز کردن عکس ناموفق بود.');
-  }
+photoInputs.forEach((input, index) => {
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      input.value = '';
+      showToast('فرمت عکس باید JPG، PNG یا WEBP باشد.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      input.value = '';
+      showToast('حجم عکس اولیه نباید بیشتر از ۱۰ مگابایت باشد.');
+      return;
+    }
+    if (sourcePhotoBitmap) sourcePhotoBitmap.close?.();
+    sourcePhotoBitmap = null;
+    activePhotoIndex = index;
+    originalPhotoSize = file.size;
+    photoEditorTitle.textContent = 'ویرایش عکس ' + (index + 1).toLocaleString('fa-IR');
+    try {
+      if (typeof createImageBitmap !== 'function') throw new Error('مرورگر شما ویرایش عکس را پشتیبانی نمی‌کند؛ لطفاً مرورگر را به‌روز کنید.');
+      sourcePhotoBitmap = await createImageBitmap(file);
+      resetPhotoCrop();
+      photoEditor.classList.add('show');
+      photoRemoveButtons[index].style.display = 'inline-block';
+      photoStatuses[index].textContent = 'عکس انتخاب شد؛ پس از ذخیره، میزان کاهش حجم نمایش داده می‌شود.';
+      showToast('عکس ' + (index + 1).toLocaleString('fa-IR') + ' انتخاب شد؛ کادر را تنظیم کنید.');
+    } catch (error) {
+      input.value = '';
+      showToast(error.message || 'باز کردن عکس ناموفق بود.');
+    }
+  });
 });
 
 [zoomControl, horizontalControl, verticalControl].forEach(control => {
@@ -2240,29 +2283,30 @@ rotatePhotoButton.addEventListener('click', () => {
   verticalControl.value = '0';
   renderPhotoCrop();
 });
-replacePhotoButton.addEventListener('click', () => photoInput.click());
+replacePhotoButton.addEventListener('click', () => photoInputs[activePhotoIndex].click());
 savePhotoEditButton.addEventListener('click', async () => {
   if (!sourcePhotoBitmap) {
     showToast('ابتدا یک عکس انتخاب کنید.');
     return;
   }
   savePhotoEditButton.disabled = true;
-  showToast('در حال آماده‌سازی عکس و ذخیره کادر…');
+  showToast('در حال آماده‌سازی و فشرده‌سازی عکس…');
   try {
     renderPhotoCrop();
     const editedFile = await compressCropCanvas(cropCanvas);
     const transfer = new DataTransfer();
     transfer.items.add(editedFile);
-    photoInput.files = transfer.files;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = URL.createObjectURL(editedFile);
-    photoPreview.src = previewUrl;
-    photoPreview.classList.add('show');
-    removePhotoButton.style.display = 'inline-block';
+    photoInputs[activePhotoIndex].files = transfer.files;
+    if (photoPreviewUrls[activePhotoIndex]) URL.revokeObjectURL(photoPreviewUrls[activePhotoIndex]);
+    photoPreviewUrls[activePhotoIndex] = URL.createObjectURL(editedFile);
+    photoPreviews[activePhotoIndex].src = photoPreviewUrls[activePhotoIndex];
+    photoPreviews[activePhotoIndex].classList.add('show');
+    photoRemoveButtons[activePhotoIndex].style.display = 'inline-block';
+    updatePhotoStatus(activePhotoIndex, originalPhotoSize, editedFile.size);
     photoEditor.classList.remove('show');
     sourcePhotoBitmap.close?.();
     sourcePhotoBitmap = null;
-    showToast('عکس ویرایش و آماده شد. برای تغییر، دوباره «تعویض عکس» را بزنید.');
+    showToast('عکس ویرایش و فشرده شد؛ حجم نهایی حداکثر ۵۰۰ کیلوبایت است.');
   } catch (error) {
     showToast(error.message || 'ذخیره ویرایش عکس ناموفق بود.');
   } finally {
@@ -2348,11 +2392,11 @@ document.getElementById('sellerForm').addEventListener(
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
 
-    const photo = photoInput.files[0];
+    const photos = photoInputs.map(input => input.files[0]).filter(Boolean);
     const invoice = invoiceInput.files[0];
 
-    if (!photo || !invoice) {
-      showToast('عکس محصول و فاکتور فروش الزامی هستند.');
+    if (!photos.length || !photoInputs[0].files[0] || !invoice) {
+      showToast('عکس اول محصول و فاکتور فروش الزامی هستند؛ عکس دوم اختیاری است.');
       return;
     }
 
@@ -2364,8 +2408,8 @@ document.getElementById('sellerForm').addEventListener(
     const maxPhotoSize = 500 * 1024;
     const maxInvoiceSize = 1.5 * 1024 * 1024;
 
-    if (photo.size > maxPhotoSize) {
-      showToast('حجم عکس پس از فشرده‌سازی نباید بیشتر از ۵۰۰ کیلوبایت باشد.');
+    if (photos.some(photo => photo.size > maxPhotoSize)) {
+      showToast('حجم هر عکس پس از فشرده‌سازی نباید بیشتر از ۵۰۰ کیلوبایت باشد.');
       return;
     }
     if (invoice.size > maxInvoiceSize) {
@@ -2373,7 +2417,7 @@ document.getElementById('sellerForm').addEventListener(
       return;
     }
 
-    const estimatedSize = photo.size + invoice.size + 64 * 1024;
+    const estimatedSize = photos.reduce((total, photo) => total + photo.size, 0) + invoice.size + 64 * 1024;
 
     if (estimatedSize > 4 * 1024 * 1024) {
       showToast('حجم مجموع فایل‌ها بیشتر از حد مجاز است.');
