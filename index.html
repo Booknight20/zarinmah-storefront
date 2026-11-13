@@ -98,6 +98,8 @@ header {
 .account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
 .account-item strong { display:block; font-size:12px; color:var(--text); }
 .account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.account-listing-photos { display:flex; flex-wrap:wrap; gap:8px; margin:9px 0; }
+.account-listing-photo { width:min(150px, calc(50% - 4px)); max-height:130px; object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#090908; }
 .account-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .account-action { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 8px; font-size:10px; cursor:pointer; }
 .account-action.danger { border-color:#b65c5c; color:#ff9b9b; }
@@ -1324,6 +1326,22 @@ function renderListingCards(box, items, admin) {
     const card = makeElement("div", "account-item");
     card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
     card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
+    const photoUrls = [item.image_url || item.photo_url, item.image_url_2 || item.photo_url_2]
+      .map(value => String(value || "").trim())
+      .filter(value => /^https:\/\//i.test(value));
+    if (photoUrls.length) {
+      const photos = makeElement("div", "account-listing-photos");
+      photoUrls.forEach((url, index) => {
+        const photo = document.createElement("img");
+        photo.className = "account-listing-photo";
+        photo.alt = `تصویر ${index + 1} آگهی`;
+        photo.loading = "lazy";
+        photo.src = url;
+        photo.onerror = () => photo.remove();
+        photos.appendChild(photo);
+      });
+      card.appendChild(photos);
+    }
     const actions = makeElement("div", "account-actions");
     if (admin) {
       actions.appendChild(invoiceActionButton(item.id));
