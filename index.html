@@ -196,6 +196,17 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   background: #eee9df;
   overflow: hidden;
 }
+.product-visual.has-second-photo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.product-visual.has-second-photo .product-photo {
+  min-width: 0;
+}
+.admin-member-listing-photo + .admin-member-listing-photo {
+  margin-top: 4px;
+}
 .product-photo {
   width: 100%;
   height: 100%;
@@ -1563,18 +1574,28 @@ function renderAdminMemberListings(memberId, panel, data) {
   items.forEach(item => {
     const card = makeElement("div", "admin-member-listing");
     const imageUrl = String(item.image_url || item.photo_url || "").trim();
+    const secondImageUrl = String(item.image_url_2 || item.photo_url_2 || "").trim();
     if (imageUrl && /^https:\/\//i.test(imageUrl)) {
       const photo = document.createElement("img");
       photo.className = "admin-member-listing-photo";
-      photo.alt = "تصویر آگهی";
+      photo.alt = "تصویر اول آگهی";
       photo.loading = "lazy";
       photo.src = imageUrl;
       photo.onerror = () => {
-        photo.replaceWith(makeElement("p", "account-empty", "تصویر این آگهی در دسترس نیست."));
+        photo.replaceWith(makeElement("p", "account-empty", "تصویر اول این آگهی در دسترس نیست."));
       };
       card.appendChild(photo);
     } else {
-      card.appendChild(makeElement("p", "account-empty", "تصویری برای این آگهی ثبت نشده است."));
+      card.appendChild(makeElement("p", "account-empty", "تصویر اول این آگهی ثبت نشده است."));
+    }
+    if (secondImageUrl && /^https:\/\//i.test(secondImageUrl)) {
+      const secondPhoto = document.createElement("img");
+      secondPhoto.className = "admin-member-listing-photo";
+      secondPhoto.alt = "تصویر دوم آگهی";
+      secondPhoto.loading = "lazy";
+      secondPhoto.src = secondImageUrl;
+      secondPhoto.onerror = () => secondPhoto.remove();
+      card.appendChild(secondPhoto);
     }
     card.appendChild(makeElement("strong", "", item.title || item.product_type || "آگهی بدون عنوان"));
     const status = item.deleted_at ? "deleted" : item.status;
@@ -1862,7 +1883,8 @@ function createListingCard(item) {
   const fallbackImage =
     'https://placehold.co/600x400/15130f/c7a24b?text=ZarinMah+Gold';
 
-  const imageUrl = String(item.photo_url || '').trim();
+  const imageUrl = String(item.photo_url || item.image_url || '').trim();
+  const secondImageUrl = String(item.photo_url_2 || item.image_url_2 || '').trim();
 
   if (imageUrl && /^https:\/\//i.test(imageUrl)) {
     photo.src = imageUrl;
@@ -1877,6 +1899,18 @@ function createListingCard(item) {
   };
 
   visual.appendChild(photo);
+
+  if (secondImageUrl && /^https:\/\//i.test(secondImageUrl)) {
+    visual.classList.add('has-second-photo');
+    const secondPhoto = document.createElement('img');
+    secondPhoto.className = 'product-photo';
+    secondPhoto.alt = 'تصویر دوم محصول طلا';
+    secondPhoto.loading = 'lazy';
+    secondPhoto.decoding = 'async';
+    secondPhoto.src = secondImageUrl;
+    secondPhoto.onerror = () => secondPhoto.remove();
+    visual.appendChild(secondPhoto);
+  }
 
   const info = makeElement('div', 'product-info');
 
