@@ -2366,11 +2366,11 @@ async function compressInvoiceImage(file) {
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
-    for (const mime of ['image/webp', 'image/jpeg']) {
+    for (const mime of ['image/jpeg']) {
       for (const quality of [0.88, 0.82, 0.76, 0.70, 0.64, 0.58, 0.52, 0.46]) {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, quality));
-        if (blob && blob.size <= MAX_INVOICE_SIZE) {
-          const extension = blob.type === 'image/webp' ? 'webp' : 'jpg';
+        if (blob && blob.type === 'image/jpeg' && blob.size <= MAX_INVOICE_SIZE) {
+          const extension = 'jpg';
           const baseName = (file.name.includes('.') ? file.name.slice(0, file.name.lastIndexOf('.')) : file.name) || 'invoice';
           return new File([blob], baseName + '-compressed.' + extension, {
             type: blob.type,
@@ -2533,11 +2533,11 @@ function resetPhotoCrop() {
 }
 
 async function compressCropCanvas(canvas) {
-  for (const mime of ['image/webp', 'image/jpeg']) {
+  for (const mime of ['image/jpeg']) {
     for (const quality of [0.86, 0.78, 0.70, 0.62, 0.54, 0.46]) {
       const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, quality));
-      if (blob && blob.size <= 500 * 1024) {
-        const extension = blob.type === 'image/webp' ? 'webp' : 'jpg';
+      if (blob && blob.type === 'image/jpeg' && blob.size <= 500 * 1024) {
+        const extension = 'jpg';
         return new File([blob], 'listing-photo-' + (activePhotoIndex + 1) + '.' + extension, {type:blob.type,lastModified:Date.now()});
       }
     }
