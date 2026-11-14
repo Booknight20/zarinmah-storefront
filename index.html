@@ -1566,6 +1566,7 @@ function renderListingCards(box, items, admin) {
       const sellerMobile = account?.mobile || item.seller_mobile || "ثبت نشده";
       sellerDetails.appendChild(makeElement("p", "", `نام فروشنده: ${sellerName}`));
       sellerDetails.appendChild(makeElement("p", "", `شماره تماس: ${sellerMobile}`));
+      sellerDetails.appendChild(makeElement("p", "", `استان و شهر سکونت: ${[account?.province, account?.city].filter(Boolean).join("، ") || "ثبت نشده"}`));
       sellerDetails.appendChild(makeElement("p", "", `آدرس: ${account?.address || "ثبت نشده"}`));
       sellerDetails.appendChild(makeElement("p", "", `کد ملی: ${account?.national_id || "ثبت نشده"}`));
       sellerDetails.appendChild(makeElement("p", "", `وضعیت حساب: ${account ? (account.is_active ? "فعال" : "غیرفعال") : (item.owner_user_id ? "اطلاعات حساب در دسترس نیست" : "آگهی بدون مالک حساب کاربری")}`));
