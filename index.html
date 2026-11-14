@@ -1417,7 +1417,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
       /^\d{10}$/.test(String(currentUserProfile.national_id || ''))
     );
     const label = document.getElementById('authUserLabel');
-    const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
+    const roleLabel = ROLE_LABELS[currentUserRole] || ROLE_LABELS.user;
     if (profileReady) {
       label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile.full_name;
@@ -1682,7 +1682,7 @@ function showAccountTab(tab) {
     if (panel) panel.style.display = name === tab ? "grid" : "none";
     if (button) button.classList.toggle("active", name === tab);
   });
-  if (tab === "admin" && currentUserRole !== "admin") {
+  if (tab === "admin" && !canManageMembers()) {
     showAccountTab("listings");
     return;
   }
@@ -2090,7 +2090,7 @@ function renderAdminMembers(box, data) {
       details.textContent = open ? "بستن اطلاعات عضو" : "مشاهده اطلاعات کامل عضو";
     });
     actions.appendChild(details);
-    if (isSuperAdmin()) {
+    if (isSuperAdmin() && member.role !== "admin" && member.id !== currentAuthSession?.user?.id) {
       const roleWrap = makeElement("label", "admin-member-role-control");
       roleWrap.appendChild(makeElement("small", "", "تغییر نقش عضو"));
       const roleSelect = document.createElement("select");
@@ -2494,7 +2494,7 @@ async function runAccountAction(kind, action, id) {
   if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) return;
   const payload = kind === "request"
     ? { action: "admin_purchase_action", request_id: id, request_action: action }
-    : { action: currentUserRole === "admin" ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
+    : { action: canManageListings() ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
   try {
     const response = await fetch(LISTINGS_API, {
       method: "POST", cache: "no-store",
