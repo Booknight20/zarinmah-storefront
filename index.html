@@ -1089,6 +1089,12 @@ let currentAuthSession = null;
 let currentUserProfile = null;
 let currentUserRole = 'user';
 let profileReady = false;
+
+const ROLE_LABELS = { admin: 'مدیر کل', listing_manager: 'مدیر آگهی‌ها', member_manager: 'مدیر اعضا', user: 'کاربر عادی' };
+const isSuperAdmin = () => currentUserRole === 'admin';
+const canManageListings = () => ['admin', 'listing_manager'].includes(currentUserRole);
+const canManageMembers = () => ['admin', 'member_manager'].includes(currentUserRole);
+const canOpenAdminWorkspace = () => isSuperAdmin() || canManageListings() || canManageMembers();
 let profileRequestId = 0;
 let profileLoadingUserId = null;
 
@@ -1344,11 +1350,11 @@ function updateAuthUI(session) {
 
     // A token refresh for the same user must not overwrite an already loaded profile.
     if (sameUser && currentUserProfile) {
-      const isAdmin = currentUserRole === 'admin';
-      roleBadge.textContent = isAdmin ? 'نقش حساب: مدیر سامانه' : 'نقش حساب: کاربر عادی';
-      roleBadge.dataset.role = isAdmin ? 'admin' : 'user';
+      const roleLabel = ROLE_LABELS[currentUserRole] || ROLE_LABELS.user;
+      roleBadge.textContent = 'نقش حساب: ' + roleLabel;
+      roleBadge.dataset.role = currentUserRole;
       userLabel.textContent = profileReady
-        ? `${currentUserProfile.full_name} · ${isAdmin ? 'مدیر اصلی' : 'کاربر'} · ${phone}`
+        ? `${currentUserProfile.full_name} · ${roleLabel} · ${phone}`
         : `تکمیل اطلاعات حساب · ${phone}`;
     } else {
       userLabel.textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
@@ -1399,8 +1405,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
     currentUserProfile = result.profile || null;
     currentUserRole = result.role || 'user';
     const roleBadge = document.getElementById('authRoleLabel');
-    roleBadge.textContent = currentUserRole === 'admin' ? 'نقش حساب: مدیر سامانه' : 'نقش حساب: کاربر عادی';
-    roleBadge.dataset.role = currentUserRole === 'admin' ? 'admin' : 'user';
+    roleBadge.textContent = 'نقش حساب: ' + (ROLE_LABELS[currentUserRole] || ROLE_LABELS.user);
+    roleBadge.dataset.role = currentUserRole;
     roleBadge.style.display = 'inline-flex';
     profileReady = Boolean(
       currentUserProfile &&
@@ -1584,8 +1590,8 @@ let adminMembersLoaded = false;
 let adminWorkspaceHome = null;
 
 async function openAdminWorkspace() {
-  if (!currentAuthSession?.access_token || currentUserRole !== "admin") {
-    showToast("این بخش فقط برای مدیر سامانه قابل دسترسی است.");
+  if (!currentAuthSession?.access_token || !canOpenAdminWorkspace()) {
+    showToast("این بخش برای نقش کاربری شما فعال نیست.");
     return;
   }
   if (!document.querySelector("#authLoggedIn .account-panel")) return;
@@ -1594,24 +1600,38 @@ async function openAdminWorkspace() {
   workspace.classList.add("show");
   workspace.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
-  if (!accountDataCache) await loadAccountPanel();
-  const panels = [["accountAdmin","adminWorkspaceListings"],["accountRequests","adminWorkspaceRequests"]];
-  panels.forEach(([panelId,targetId]) => {
-    const panel=document.getElementById(panelId), target=document.getElementById(targetId);
-    if(panel && target) {
-      target.appendChild(panel);
-      panel.style.display = "block";
-    }
+  if (canManageListings()) {
+    if (!accountDataCache) await loadAccountPanel();
+    const panels = [["accountAdmin","adminWorkspaceListings"],["accountRequests","adminWorkspaceRequests"]];
+    panels.forEach(([panelId,targetId]) => {
+      const panel=document.getElementById(panelId), target=document.getElementById(targetId);
+      if(panel && target) {
+        target.appendChild(panel);
+        panel.style.display = "block";
+      }
+    });
+    accountQueryState.listings_status = "all";
+    accountQueryState.listings_page = 1;
+    await loadAccountPanel();
+  }
+  document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
+    const tab = button.dataset.adminWorkspaceTab;
+    const allowed = isSuperAdmin()
+      || (canManageListings() && tab !== "members" && tab !== "storage")
+      || (canManageMembers() && tab === "members");
+    button.hidden = !allowed;
   });
-  accountQueryState.listings_status = "all";
-  accountQueryState.listings_page = 1;
-  await loadAccountPanel();
-  showAdminWorkspaceTab("all");
-  loadAdminMembers();
+  showAdminWorkspaceTab(isSuperAdmin() || canManageListings() ? "all" : "members");
+  if (canManageMembers()) loadAdminMembers();
 }
 
 async function showAdminWorkspaceTab(tab) {
-  if (currentUserRole !== "admin") return;
+  if (!canOpenAdminWorkspace()) return;
+  const listingTab = ["all","pending","published","sold","rejected","deleted"].includes(tab);
+  if (listingTab && !canManageListings()) return;
+  if (tab === "requests" && !canManageListings()) return;
+  if (tab === "members" && !canManageMembers()) return;
+  if (tab === "storage" && !isSuperAdmin()) return;
   const listingTabs = ["all","pending","published","sold","rejected","deleted"];
   const panels = ["listings","requests","members","storage"];
   panels.forEach(name => {
@@ -1927,7 +1947,7 @@ async function openAdminInvoice(listingId) {
 }
 
 async function loadAdminMembers() {
-  if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  if (!currentAuthSession?.access_token || !canManageMembers()) return;
   const box = document.getElementById("adminWorkspaceMembers") || document.getElementById("accountAdmin");
   const params = new URLSearchParams({
     action: "admin_members",
@@ -1949,7 +1969,7 @@ async function loadAdminMembers() {
 }
 
 async function loadAdminStorageUsage(box) {
-  if (!box || !currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  if (!box || !currentAuthSession?.access_token || !isSuperAdmin()) return;
   let section = box.querySelector(".admin-storage-section");
   if (!section) {
     section = makeElement("div", "admin-members-section admin-storage-section");
@@ -2047,7 +2067,7 @@ function renderAdminMembers(box, data) {
     identity.appendChild(makeElement("span", "", member.mobile || "شماره تماس ثبت نشده"));
     heading.appendChild(identity);
     const counts = member.listing_counts || {};
-    const roleLabel = member.role === "admin" ? "مدیر" : "عضو";
+    const roleLabel = ROLE_LABELS[member.role] || ROLE_LABELS.user;
     const statusLabel = member.is_active ? "فعال" : "غیرفعال";
     heading.appendChild(makeElement("span", member.is_active ? "admin-member-state active" : "admin-member-state inactive", roleLabel + " · " + statusLabel));
     card.appendChild(heading);
@@ -2069,6 +2089,21 @@ function renderAdminMembers(box, data) {
       details.textContent = open ? "بستن اطلاعات عضو" : "مشاهده اطلاعات کامل عضو";
     });
     actions.appendChild(details);
+    if (isSuperAdmin()) {
+      const roleWrap = makeElement("label", "admin-member-role-control");
+      roleWrap.appendChild(makeElement("small", "", "تغییر نقش عضو"));
+      const roleSelect = document.createElement("select");
+      [["user","کاربر عادی"],["listing_manager","مدیر آگهی‌ها"],["member_manager","مدیر اعضا"]].forEach(([value,label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        roleSelect.appendChild(option);
+      });
+      roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
+      roleSelect.addEventListener("change", () => updateAdminMemberRole(member, roleSelect.value));
+      roleWrap.appendChild(roleSelect);
+      actions.appendChild(roleWrap);
+    }
     const listings = makeElement("button", "account-action", "آگهی‌های این عضو");
     listings.type = "button";
     listings.addEventListener("click", () => toggleAdminMemberListings(member, card, listings));
@@ -2091,7 +2126,7 @@ function renderAdminMembers(box, data) {
       ["استان",member.province],
       ["شهر",member.city],
       ["نشانی کامل",member.address],
-      ["کد ملی",member.national_id],
+      ...(isSuperAdmin() ? [["کد ملی",member.national_id]] : []),
       ["شناسه حساب",member.id],
       ["تاریخ عضویت",member.created_at ? new Date(member.created_at).toLocaleString("fa-IR") : null],
       ["آخرین به‌روزرسانی",member.updated_at ? new Date(member.updated_at).toLocaleString("fa-IR") : null],
@@ -2139,7 +2174,7 @@ async function toggleAdminMemberListings(member, card, button) {
 }
 
 async function loadAdminMemberListings(memberId, panel) {
-  if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
+  if (!currentAuthSession?.access_token || !canOpenAdminWorkspace()) return;
   const page = adminMemberListingsPages[memberId] || 1;
   const params = new URLSearchParams({
     action: "admin_member_listings",
@@ -2224,7 +2259,7 @@ function renderAdminMemberListings(memberId, panel, data) {
       image.src = url;
       detail.appendChild(image);
     });
-    if (item.invoice_available && currentUserRole === "admin") {
+    if (item.invoice_available && isSuperAdmin()) {
       const actions = makeElement("div", "account-actions");
       actions.appendChild(invoiceActionButton(item.id));
       detail.appendChild(actions);
@@ -2244,6 +2279,37 @@ function renderAdminMemberListings(memberId, panel, data) {
     next.addEventListener("click", () => { adminMemberListingsPages[memberId] = page + 1; loadAdminMemberListings(memberId, panel); });
     nav.append(prev, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")}`), next);
     panel.appendChild(nav);
+  }
+}
+
+async function updateAdminMemberRole(member, nextRole) {
+  const previousRole = member.role || "user";
+  if (!isSuperAdmin() || !["user","listing_manager","member_manager"].includes(nextRole)) return;
+  if (nextRole === previousRole) return;
+  const labels = ROLE_LABELS;
+  const confirmed = window.confirm(
+    "تغییر نقش این عضو تأیید شود؟\n\nعضو: " + (member.full_name || "بدون نام") +
+    "\nنقش فعلی: " + (labels[previousRole] || previousRole) +
+    "\nنقش جدید: " + labels[nextRole] +
+    "\n\nاین تغییر دسترسی‌های مدیریتی عضو را فوراً تغییر می‌دهد."
+  );
+  if (!confirmed) {
+    await loadAdminMembers();
+    return;
+  }
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` },
+      body: JSON.stringify({ action: "admin_member_role_update", member_id: member.id, role: nextRole })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "تغییر نقش انجام نشد.");
+    showToast(result.preview ? "حالت آزمایشی: نقش ذخیره نشد." : (result.message || "نقش عضو تغییر کرد."));
+    await loadAdminMembers();
+  } catch (error) {
+    showToast(error.message || "تغییر نقش ناموفق بود.");
+    await loadAdminMembers();
   }
 }
 
@@ -2356,8 +2422,9 @@ function renderAccountPanel(data) {
   const adminBox = document.getElementById("accountAdmin");
   [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
   const admin = data.role === "admin";
+  const hasManagementAccess = ["admin","listing_manager","member_manager"].includes(data.role);
   const adminButton = document.getElementById("adminWorkspaceButton");
-  if (adminButton) adminButton.style.display = admin ? "inline-block" : "none";
+  if (adminButton) adminButton.style.display = hasManagementAccess ? "inline-block" : "none";
   const pagination = data.pagination || {};
   const listingsPage = pagination.listings || { page: 1, total: data.listings.length, total_pages: 1, status: "all" };
   const requestsPage = pagination.requests || { page: 1, total: data.purchase_requests.length, total_pages: 1, status: "all" };
