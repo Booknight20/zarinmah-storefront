@@ -1253,7 +1253,13 @@ async function loadCurrentProfile(session = currentAuthSession) {
     roleBadge.textContent = currentUserRole === 'admin' ? 'نقش حساب: مدیر سامانه' : 'نقش حساب: کاربر عادی';
     roleBadge.dataset.role = currentUserRole === 'admin' ? 'admin' : 'user';
     roleBadge.style.display = 'inline-flex';
-    profileReady = Boolean(currentUserProfile && currentUserProfile.is_active === true && String(currentUserProfile.full_name || '').trim());
+    profileReady = Boolean(
+      currentUserProfile &&
+      currentUserProfile.is_active === true &&
+      String(currentUserProfile.full_name || '').trim() &&
+      String(currentUserProfile.address || '').trim().length >= 10 &&
+      /^\\d{10}$/.test(String(currentUserProfile.national_id || ''))
+    );
     const label = document.getElementById('authUserLabel');
     const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
     if (profileReady) {
@@ -1285,7 +1291,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
         : 'شماره موبایل تأییدشده حساب شماست؛ تغییر آن فقط با تأیید مجدد پیامکی ممکن است.';
       document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
-        : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
+        : 'برای فعال‌شدن امکانات حساب، نام، آدرس محل سکونت و کد ملی معتبر خود را تکمیل کنید.';
       document.getElementById('profileSubmit').disabled = currentUserProfile?.is_active === false;
       if (!isAccountPage) openAccountDrawer();
       document.getElementById('profileModal').classList.add('show');
