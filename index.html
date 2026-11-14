@@ -2154,6 +2154,8 @@ function openListingEditor(item) {
     ? "فاکتور فعلی به‌صورت خصوصی حفظ می‌شود؛ در صورت نیاز می‌توانید فاکتور جدید بارگذاری کنید."
     : "برای این آگهی فاکتور ثبت‌شده‌ای پیدا نشد؛ بارگذاری فاکتور جدید الزامی است.";
   document.getElementById("invoiceConfirm").checked = true;
+  // Close the account drawer first so its higher stacking layer cannot cover the editor.
+  closeModal("authModal");
   document.getElementById("sellerModal").classList.add("show");
 }
 
