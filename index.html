@@ -2324,7 +2324,7 @@ async function compressInvoiceImage(file) {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, quality));
         if (blob && blob.size <= MAX_INVOICE_SIZE) {
           const extension = blob.type === 'image/webp' ? 'webp' : 'jpg';
-          const baseName = file.name.replace(/\\.[^.]+$/, '') || 'invoice';
+          const baseName = (file.name.includes('.') ? file.name.slice(0, file.name.lastIndexOf('.')) : file.name) || 'invoice';
           return new File([blob], baseName + '-compressed.' + extension, {
             type: blob.type,
             lastModified: Date.now()
