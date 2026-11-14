@@ -178,18 +178,28 @@ header {
 
 .admin-workspace { display:none; position:fixed; inset:0; z-index:90; overflow:auto; background:#0c0b09; padding:22px; }
 .admin-workspace.show { display:block; }
-.admin-workspace-inner { width:min(1200px,100%); margin:0 auto; }
+.admin-workspace-inner { width:min(1320px,100%); margin:0 auto; }
 .admin-workspace-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:8px 0 18px; border-bottom:1px solid var(--line); }
+.admin-workspace-brand { display:flex; align-items:center; gap:12px; }
+.admin-workspace-brand img { width:62px; height:62px; object-fit:contain; flex:0 0 62px; }
 .admin-workspace-head h2 { color:var(--gold); margin:0; font-size:22px; }
-.admin-workspace-nav { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
-.admin-workspace-nav button { border:1px solid var(--line); border-radius:9px; padding:9px 14px; color:var(--text); background:#15130f; cursor:pointer; }
+.admin-workspace-layout { display:grid; grid-template-columns:230px minmax(0,1fr); gap:16px; align-items:start; margin-top:18px; }
+.admin-workspace-nav { display:flex; flex-direction:column; gap:7px; padding:12px; border:1px solid var(--line); border-radius:14px; background:#11100d; position:sticky; top:14px; }
+.admin-workspace-nav button { width:100%; text-align:right; border:1px solid var(--line); border-radius:9px; padding:9px 12px; color:var(--text); background:#15130f; cursor:pointer; }
 .admin-workspace-nav button.active { color:#17130a; background:var(--gold); border-color:var(--gold); font-weight:bold; }
-.admin-workspace-content { border:1px solid var(--line); border-radius:14px; padding:16px; background:#11100d; min-height:55vh; }
+.admin-workspace-content { min-width:0; border:1px solid var(--line); border-radius:14px; padding:16px; background:#11100d; min-height:55vh; }
 .admin-workspace-content > .account-list { max-height:none; overflow:visible; }
 #adminWorkspaceListings,#adminWorkspaceRequests,#adminWorkspaceMembers,#adminWorkspaceStorage { display:none; }
 #adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active,#adminWorkspaceStorage.active { display:block; }
 #adminWorkspaceMembers .account-list { max-height:none; overflow:visible; }
-@media(max-width:650px) { .admin-workspace { padding:14px; } .admin-workspace-content { padding:10px; } .admin-workspace-head h2 { font-size:18px; } }
+@media(max-width:760px) {
+  .admin-workspace { padding:14px; }
+  .admin-workspace-layout { grid-template-columns: minmax(0,1fr); }
+  .admin-workspace-nav { position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .admin-workspace-content { padding:10px; }
+  .admin-workspace-head h2 { font-size:18px; }
+  .admin-workspace-brand img { width:50px; height:50px; flex-basis:50px; }
+}
 
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
@@ -1000,28 +1010,33 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
 <div class="admin-workspace" id="adminWorkspace" aria-hidden="true">
   <div class="admin-workspace-inner">
     <div class="admin-workspace-head">
-      <div>
-        <h2>مدیریت سامانه زرین ماه</h2>
-        <p class="auth-status">محیط اختصاصی مدیریت؛ دسترسی فقط برای مدیر سامانه</p>
+      <div class="admin-workspace-brand">
+        <img src="/logo-zarinmah.webp" alt="لوگوی زرین ماه">
+        <div>
+          <h2>مدیریت سامانه زرین ماه</h2>
+          <p class="auth-status">محیط اختصاصی مدیریت؛ دسترسی فقط برای مدیر سامانه</p>
+        </div>
       </div>
       <button class="btn btn-outline" type="button" onclick="closeAdminWorkspace()">بازگشت به حساب کاربری</button>
     </div>
-    <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
-      <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
-      <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">مدیریت آگهی‌ها</button>
-      <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
-      <button type="button" data-admin-workspace-tab="published" onclick="showAdminWorkspaceTab('published')">منتشرشده</button>
-      <button type="button" data-admin-workspace-tab="sold" onclick="showAdminWorkspaceTab('sold')">فروخته‌شده</button>
-      <button type="button" data-admin-workspace-tab="rejected" onclick="showAdminWorkspaceTab('rejected')">ردشده</button>
-      <button type="button" data-admin-workspace-tab="deleted" onclick="showAdminWorkspaceTab('deleted')">حذف‌شده</button>
-      <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
-      <button type="button" data-admin-workspace-tab="storage" onclick="showAdminWorkspaceTab('storage')">مدیریت فضا</button>
-    </div>
-    <div class="admin-workspace-content">
-      <div id="adminWorkspaceListings"></div>
-      <div id="adminWorkspaceRequests"></div>
-      <div id="adminWorkspaceMembers"></div>
-      <div id="adminWorkspaceStorage"></div>
+    <div class="admin-workspace-layout">
+      <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
+        <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
+        <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">مدیریت آگهی‌ها</button>
+        <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
+        <button type="button" data-admin-workspace-tab="published" onclick="showAdminWorkspaceTab('published')">منتشرشده</button>
+        <button type="button" data-admin-workspace-tab="sold" onclick="showAdminWorkspaceTab('sold')">فروخته‌شده</button>
+        <button type="button" data-admin-workspace-tab="rejected" onclick="showAdminWorkspaceTab('rejected')">ردشده</button>
+        <button type="button" data-admin-workspace-tab="deleted" onclick="showAdminWorkspaceTab('deleted')">حذف‌شده</button>
+        <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
+        <button type="button" data-admin-workspace-tab="storage" onclick="showAdminWorkspaceTab('storage')">مدیریت فضا</button>
+      </div>
+      <div class="admin-workspace-content">
+        <div id="adminWorkspaceListings"></div>
+        <div id="adminWorkspaceRequests"></div>
+        <div id="adminWorkspaceMembers"></div>
+        <div id="adminWorkspaceStorage"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1552,7 +1567,10 @@ async function openAdminWorkspace() {
   const panels = [["accountAdmin","adminWorkspaceListings"],["accountRequests","adminWorkspaceRequests"]];
   panels.forEach(([panelId,targetId]) => {
     const panel=document.getElementById(panelId), target=document.getElementById(targetId);
-    if(panel && target) target.appendChild(panel);
+    if(panel && target) {
+      target.appendChild(panel);
+      panel.style.display = "block";
+    }
   });
   accountQueryState.listings_status = "all";
   accountQueryState.listings_page = 1;
@@ -1569,6 +1587,10 @@ async function showAdminWorkspaceTab(tab) {
     const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
     if(panel) panel.style.display = (name === "listings" && listingTabs.includes(tab)) || name === tab ? "block" : "none";
   });
+  const listingsBox = document.getElementById("accountAdmin");
+  const requestsBox = document.getElementById("accountRequests");
+  if (listingsBox) listingsBox.style.display = listingTabs.includes(tab) ? "block" : "none";
+  if (requestsBox) requestsBox.style.display = tab === "requests" ? "block" : "none";
   document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
     button.classList.toggle("active", button.dataset.adminWorkspaceTab === tab);
   });
