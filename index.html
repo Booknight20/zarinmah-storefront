@@ -2146,11 +2146,12 @@ function renderAdminMembers(box, data) {
         roleSelect.appendChild(option);
       });
       roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
-      const roleInfo = renderRoleDescription(roleSelect.value, "admin-role-description admin-role-preview");
+      let roleInfo = renderRoleDescription(roleSelect.value, "admin-role-description admin-role-preview");
       roleSelect.addEventListener("change", () => {
         const nextRole = roleSelect.value;
-        roleInfo.replaceWith(renderRoleDescription(nextRole, "admin-role-description admin-role-preview"));
-        roleWrap.querySelector(".admin-role-preview")?.setAttribute("data-selected-role", nextRole);
+        const nextInfo = renderRoleDescription(nextRole, "admin-role-description admin-role-preview");
+        roleInfo.replaceWith(nextInfo);
+        roleInfo = nextInfo;
         updateAdminMemberRole(member, nextRole);
       });
       roleWrap.appendChild(roleSelect);
