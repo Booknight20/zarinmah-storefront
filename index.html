@@ -98,6 +98,9 @@ header {
 .account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
 .account-item strong { display:block; font-size:12px; color:var(--text); }
 .account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.admin-listing-extra { margin-top:9px; padding-top:8px; border-top:1px solid var(--line); }
+.admin-listing-extra[hidden] { display:none !important; }
+.admin-listing-toggle { margin-top:8px; }
 .admin-listing-preview-details { display:grid; gap:2px; margin:10px 0; padding:9px; border:1px solid var(--line); border-radius:8px; background:#111a1e; }
 .admin-listing-preview-details p { margin:3px 0; color:var(--text); font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
 .admin-listing-preview-details p:last-child { white-space:pre-wrap; }
@@ -1548,24 +1551,33 @@ function renderListingCards(box, items, admin) {
   items.forEach(item => {
     const card = makeElement("div", "account-item");
     card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
-    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${item.weight || "—"} ${item.weight_unit || "گرم"} · ${item.city || ""}`));
+    const weightSummary = item.weight == null || item.weight === ""
+      ? "وزن اعلام نشده"
+      : `${item.weight} ${item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"}`;
+    const placeSummary = [item.province, item.city].filter(Boolean).join("، ");
+    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${weightSummary}${placeSummary ? " · " + placeSummary : ""}`));
+
     const photoUrls = [item.image_url || item.photo_url, item.image_url_2 || item.photo_url_2]
       .map(value => String(value || "").trim())
       .filter(value => /^https:\/\//i.test(value));
-    if (photoUrls.length) {
-      const photos = makeElement("div", "account-listing-photos");
-      photoUrls.forEach((url, index) => {
-        const photo = document.createElement("img");
-        photo.className = "account-listing-photo";
-        photo.alt = `تصویر ${index + 1} آگهی`;
-        photo.loading = "lazy";
-        photo.src = url;
-        photo.onerror = () => photo.remove();
-        photos.appendChild(photo);
-      });
-      card.appendChild(photos);
-    }
+
     if (admin) {
+      const extraDetails = makeElement("div", "admin-listing-extra");
+      extraDetails.hidden = true;
+      if (photoUrls.length) {
+        const photos = makeElement("div", "account-listing-photos");
+        photoUrls.forEach((url, index) => {
+          const photo = document.createElement("img");
+          photo.className = "account-listing-photo";
+          photo.alt = `تصویر ${index + 1} آگهی`;
+          photo.loading = "lazy";
+          photo.src = url;
+          photo.onerror = () => photo.remove();
+          photos.appendChild(photo);
+        });
+        extraDetails.appendChild(photos);
+      }
+
       const details = makeElement("div", "admin-listing-preview-details");
       const weightText = item.weight == null || item.weight === ""
         ? "اعلام نشده"
@@ -1591,9 +1603,8 @@ function renderListingCards(box, items, admin) {
       addDetail("قیمت‌گذاری", priceText);
       addDetail("توضیحات فروشنده", item.description || "توضیحی ثبت نشده است");
       if (item.created_at) addDetail("تاریخ ثبت", new Date(item.created_at).toLocaleString("fa-IR"));
-      card.appendChild(details);
-    }
-    if (admin) {
+      extraDetails.appendChild(details);
+
       const sellerButton = makeElement("button", "account-action", "اطلاعات فروشنده");
       sellerButton.type = "button";
       sellerButton.setAttribute("aria-expanded", "false");
@@ -1614,9 +1625,34 @@ function renderListingCards(box, items, admin) {
         sellerButton.setAttribute("aria-expanded", opening ? "true" : "false");
         sellerButton.textContent = opening ? "بستن اطلاعات فروشنده" : "اطلاعات فروشنده";
       });
-      card.appendChild(sellerButton);
-      card.appendChild(sellerDetails);
+      extraDetails.append(sellerButton, sellerDetails);
+
+      const detailsToggle = makeElement("button", "account-action admin-listing-toggle", "نمایش جزئیات و تصاویر");
+      detailsToggle.type = "button";
+      detailsToggle.setAttribute("aria-expanded", "false");
+      detailsToggle.addEventListener("click", () => {
+        const opening = extraDetails.hidden;
+        extraDetails.hidden = !opening;
+        detailsToggle.setAttribute("aria-expanded", opening ? "true" : "false");
+        detailsToggle.textContent = opening ? "بستن جزئیات آگهی" : "نمایش جزئیات و تصاویر";
+      });
+      card.append(detailsToggle, extraDetails);
+    } else {
+      if (photoUrls.length) {
+        const photos = makeElement("div", "account-listing-photos");
+        photoUrls.forEach((url, index) => {
+          const photo = document.createElement("img");
+          photo.className = "account-listing-photo";
+          photo.alt = `تصویر ${index + 1} آگهی`;
+          photo.loading = "lazy";
+          photo.src = url;
+          photo.onerror = () => photo.remove();
+          photos.appendChild(photo);
+        });
+        card.appendChild(photos);
+      }
     }
+
     const actions = makeElement("div", "account-actions");
     if (admin) {
       actions.appendChild(invoiceActionButton(item.id));
@@ -1644,7 +1680,6 @@ function renderListingCards(box, items, admin) {
     box.appendChild(card);
   });
 }
-
 
 let adminMembersPage = 1;
 let adminMembersSearch = "";
