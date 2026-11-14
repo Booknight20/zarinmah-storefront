@@ -860,6 +860,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
       <button class="close" type="button" onclick="closeModal('authModal')" aria-label="بستن">✕</button>
     </div>
     <div id="authLoggedOut">
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
       <div id="authEmailModeEntry" class="auth-actions" style="display:none;margin-bottom:12px">
         <button class="btn btn-outline" id="authEmailModeButton" type="button" onclick="toggleAuthMethod('email')">ورود آزمایشی با ایمیل</button>
       </div>
@@ -890,7 +891,6 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         <input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد پیامک‌شده">
         <small>کد را فقط در همین صفحه وارد کنید و در اختیار دیگران نگذارید.</small>
       </div>
-      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
       <div class="auth-actions">
         <button class="btn" id="authSendButton" type="button" onclick="requestAuthOtp()">دریافت کد پیامکی</button>
         <button class="btn" id="authVerifyButton" type="button" style="display:none" onclick="verifyAuthOtp()">تأیید و ورود</button>
@@ -1009,7 +1009,7 @@ async function signInWithEmail() {
   if (!IS_ZARINMAH_STAGING) return;
   const email = document.getElementById('authEmail').value.trim().toLowerCase();
   const password = document.getElementById('authPassword').value;
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) {
     setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
     return;
   }
@@ -1034,7 +1034,7 @@ async function signUpWithEmail() {
   if (!IS_ZARINMAH_STAGING) return;
   const email = document.getElementById('authEmail').value.trim().toLowerCase();
   const password = document.getElementById('authPassword').value;
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) {
     setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
     return;
   }
@@ -1232,7 +1232,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
     if (profileReady) {
       label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile.full_name;
-      document.getElementById('profilePhone').value = session.user.phone || session.user.email || '';
+      document.getElementById('profilePhone').value = session.user.phone || '';
       document.getElementById('sellerName').value = currentUserProfile.full_name;
       document.getElementById('buyerName').value = currentUserProfile.full_name;
       closeModal('profileModal');
@@ -1240,7 +1240,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
-      document.getElementById('profilePhone').value = session.user.phone || session.user.email || '';
+      document.getElementById('profilePhone').value = session.user.phone || '';
       document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
         : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
@@ -1307,7 +1307,7 @@ async function saveUserProfile(event) {
     profileReady = true;
     document.getElementById('sellerName').value = fullName;
     document.getElementById('buyerName').value = fullName;
-    document.getElementById('authUserLabel').textContent = `${fullName} · ${currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر'} · ${currentAuthSession.user.phone || ''}`;
+    document.getElementById('authUserLabel').textContent = `${fullName} · ${currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر'} · ${currentAuthSession.user.phone || currentAuthSession.user.email || ''}`;
     closeModal('profileModal');
     showToast('اطلاعات حساب با موفقیت ذخیره شد.');
   } catch (error) {
