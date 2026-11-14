@@ -843,7 +843,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
       <div class="field">
         <label for="profileFullName">نام و نام خانوادگی *</label>
         <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
-        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small><div class="field" style="margin-top:12px"><label for="profilePhone">شماره موبایل تأییدشده</label><input id="profilePhone" type="tel" readonly><small>برای تغییر شماره موبایل، تأیید مجدد پیامکی لازم است.</small></div>
+        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small><div class="field" style="margin-top:12px"><label for="profilePhone">شماره تماس *</label><input id="profilePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="مثلاً 09123456789"><small id="profilePhoneHelp">در حساب‌های ورود پیامکی، شماره تأییدشده حساب نمایش داده می‌شود و برای تغییر آن تأیید مجدد پیامکی لازم است.</small></div>
       </div>
       <p class="auth-message" id="profileMessage" role="status" aria-live="polite"></p>
       <button class="btn" id="profileSubmit" type="submit" style="width:100%">ذخیره و ادامه</button>
@@ -1245,15 +1245,28 @@ async function loadCurrentProfile(session = currentAuthSession) {
     if (profileReady) {
       label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile.full_name;
-      document.getElementById('profilePhone').value = session.user.phone || '';
+      const profilePhone = document.getElementById('profilePhone');
+      const isStagingEmail = IS_ZARINMAH_STAGING && !session.user.phone && Boolean(session.user.email);
+      profilePhone.value = session.user.phone || currentUserProfile.mobile || '';
+      profilePhone.readOnly = !isStagingEmail;
+      document.getElementById('profilePhoneHelp').textContent = isStagingEmail
+        ? 'برای حساب آزمایشی، شماره تماس را وارد کنید. این شماره در Staging تأیید پیامکی نشده است.'
+        : 'شماره موبایل تأییدشده حساب شماست؛ تغییر آن فقط با تأیید مجدد پیامکی ممکن است.';
       document.getElementById('sellerName').value = currentUserProfile.full_name;
+      document.getElementById('sellerPhone').value = session.user.phone || currentUserProfile.mobile || '';
       document.getElementById('buyerName').value = currentUserProfile.full_name;
       closeModal('profileModal');
       loadAccountPanel();
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
-      document.getElementById('profilePhone').value = session.user.phone || '';
+      const profilePhone = document.getElementById('profilePhone');
+      const isStagingEmail = IS_ZARINMAH_STAGING && !session.user.phone && Boolean(session.user.email);
+      profilePhone.value = session.user.phone || currentUserProfile?.mobile || '';
+      profilePhone.readOnly = !isStagingEmail;
+      document.getElementById('profilePhoneHelp').textContent = isStagingEmail
+        ? 'برای حساب آزمایشی، شماره تماس را وارد کنید. این شماره در Staging تأیید پیامکی نشده است.'
+        : 'شماره موبایل تأییدشده حساب شماست؛ تغییر آن فقط با تأیید مجدد پیامکی ممکن است.';
       document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
         : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
@@ -1278,8 +1291,16 @@ async function editUserProfile() {
   document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
   document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
   document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
-  document.getElementById('profilePhone').value = currentAuthSession.user.phone || '';
-  document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی خود را ویرایش کنید. تغییر شماره موبایل نیازمند تأیید مجدد پیامکی است.';
+  const profilePhone = document.getElementById('profilePhone');
+  const isStagingEmail = IS_ZARINMAH_STAGING && !currentAuthSession.user.phone && Boolean(currentAuthSession.user.email);
+  profilePhone.value = currentAuthSession.user.phone || currentUserProfile.mobile || '';
+  profilePhone.readOnly = !isStagingEmail;
+  document.getElementById('profilePhoneHelp').textContent = isStagingEmail
+    ? 'برای حساب آزمایشی، شماره تماس را وارد کنید. این شماره در Staging تأیید پیامکی نشده است.'
+    : 'شماره موبایل تأییدشده حساب شماست؛ تغییر آن فقط با تأیید مجدد پیامکی ممکن است.';
+  document.getElementById('profileMessage').textContent = isStagingEmail
+    ? 'نام و شماره تماس را برای آزمایش Staging تکمیل کنید.'
+    : 'نام و نام خانوادگی خود را ویرایش کنید. تغییر شماره موبایل نیازمند تأیید مجدد پیامکی است.';
   document.getElementById('profileModal').classList.add('show');
 }
 
@@ -1290,6 +1311,14 @@ async function saveUserProfile(event) {
     return;
   }
   const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
+  const isStagingEmail = IS_ZARINMAH_STAGING && !currentAuthSession.user.phone && Boolean(currentAuthSession.user.email);
+  const profilePhone = document.getElementById('profilePhone');
+  const contactPhone = isStagingEmail ? normalizeIranPhone(profilePhone.value) : '';
+  if (isStagingEmail && !contactPhone) {
+    document.getElementById('profileMessage').textContent = 'شماره موبایل معتبر وارد کنید؛ مانند 09123456789.';
+    profilePhone.focus();
+    return;
+  }
   if (fullName.split(' ').length < 2 || fullName.length < 5) {
     document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
     return;
@@ -1307,7 +1336,7 @@ async function saveUserProfile(event) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${currentAuthSession.access_token}`
       },
-      body: JSON.stringify({ action: 'complete_profile', full_name: fullName })
+      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
@@ -1320,6 +1349,7 @@ async function saveUserProfile(event) {
     profileReady = true;
     document.getElementById('sellerName').value = fullName;
     document.getElementById('buyerName').value = fullName;
+    document.getElementById('sellerPhone').value = currentAuthSession.user.phone || result.profile?.mobile || '';
     document.getElementById('authUserLabel').textContent = `${fullName} · ${currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر'} · ${currentAuthSession.user.phone || currentAuthSession.user.email || ''}`;
     closeModal('profileModal');
     showToast('اطلاعات حساب با موفقیت ذخیره شد.');
