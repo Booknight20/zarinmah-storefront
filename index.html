@@ -159,12 +159,13 @@ header {
 .account-summary { color:var(--muted); font-size:11px; margin:4px 0 10px; }
 .admin-members-section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
 .admin-members-title { color:var(--gold); font-size:13px; margin:0 0 8px; }
-.admin-member-card { border:1px solid var(--line); border-radius:10px; padding:10px; background:#101820; }
-.admin-member-card strong { display:block; font-size:12px; }
+.admin-member-card { min-width:0; border:1px solid rgba(199,162,75,.2); border-radius:14px; padding:14px; background:linear-gradient(145deg,#121d25,#0e151b); box-shadow:0 8px 22px rgba(0,0,0,.14); transition:border-color .18s ease,transform .18s ease; }
+.admin-member-card:hover { border-color:rgba(199,162,75,.48); transform:translateY(-1px); }
+.admin-member-card strong { display:block; font-size:13px; }
 .admin-member-card p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
-.admin-member-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; margin:8px 0; }
-.admin-member-toolbar input { min-width:0; width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:#0d0c0a; color:var(--text); font-size:11px; }
-.admin-member-list { display:grid; gap:8px; max-height:300px; overflow:auto; }
+.admin-member-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; margin:12px 0 16px; }
+.admin-member-toolbar input { min-width:0; width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:#0d141a; color:var(--text); font-size:12px; }
+.admin-member-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:12px; max-height:none; overflow:visible; }
 .admin-member-listings { margin-top:9px; padding:9px; border:1px solid #66552b; border-radius:8px; background:#0c1116; display:grid; gap:8px; }
 .admin-member-listing { padding:8px; border-bottom:1px solid var(--line); }
 .admin-member-listing-photo { display:block; width:min(220px,100%); max-height:180px; object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#090908; margin:7px 0; }
@@ -173,21 +174,33 @@ header {
 .admin-member-listing p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
 .admin-member-listing .account-actions { margin-top:7px; }
 
-.admin-member-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.admin-member-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; padding-bottom:10px; border-bottom:1px solid rgba(199,162,75,.12); }
 .admin-member-identity { min-width:0; }
-.admin-member-identity span { display:block; margin-top:4px; color:var(--muted); font-size:11px; }
-.admin-member-state { flex:0 0 auto; border:1px solid var(--line); border-radius:20px; padding:3px 8px; font-size:10px; }
+.admin-member-identity span { display:block; margin-top:4px; color:var(--muted); font-size:11px; direction:ltr; text-align:right; }
+.admin-member-state { flex:0 0 auto; border:1px solid var(--line); border-radius:20px; padding:4px 9px; font-size:10px; white-space:nowrap; background:rgba(255,255,255,.025); }
 .admin-member-state.active { color:#70d5a0; border-color:rgba(70,190,125,.4); }
 .admin-member-state.inactive { color:#ff9b9b; border-color:rgba(210,90,90,.4); }
-.admin-member-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:9px 0; }
-.admin-member-stat { padding:6px 3px; border-radius:7px; background:#0b1116; text-align:center; }
+.admin-member-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin:12px 0; }
+.admin-member-stat { min-width:0; padding:8px 3px; border:1px solid rgba(199,162,75,.09); border-radius:8px; background:rgba(5,12,17,.58); text-align:center; }
 .admin-member-stat b,.admin-member-stat small { display:block; }
 .admin-member-stat b { color:var(--gold); font-size:13px; }
 .admin-member-stat small { color:var(--muted); font-size:9px; }
-.admin-member-profile { margin-top:10px; padding:10px; border:1px solid #66552b; border-radius:9px; background:#0c1116; }
-.admin-member-role-control { display:flex; flex-direction:column; gap:7px; min-width:min(100%,280px); flex:1 1 280px; padding:9px; border:1px solid #66552b; border-radius:9px; background:#10171d; }
-.admin-member-role-control > small { color:var(--muted); font-size:11px; }
-.admin-member-role-control select { width:100%; min-height:38px; }
+.admin-member-profile { margin-top:12px; padding:13px; border:1px solid rgba(199,162,75,.22); border-radius:11px; background:#0b1319; }
+.admin-member-profile[hidden] { display:none !important; }
+.admin-member-card .account-actions { align-items:center; gap:7px; margin-top:12px; }
+.admin-member-card .account-action { padding:7px 10px; font-size:10px; border-radius:8px; }
+.admin-member-card .admin-member-role-control { order:5; }
+@media(max-width:1050px) { .admin-member-list { grid-template-columns:1fr; } }
+@media(max-width:650px) {
+  .admin-member-card { padding:11px; }
+  .admin-member-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .admin-member-heading { align-items:flex-start; flex-direction:column; }
+  .admin-member-role-control { min-width:100%; }
+}
+.admin-member-role-control { display:flex; flex-direction:column; gap:6px; min-width:min(100%,230px); flex:1 1 230px; padding:9px 11px; border:1px solid rgba(199,162,75,.22); border-radius:10px; background:#0d151c; }
+.admin-member-role-control > small { color:var(--muted); font-size:10px; }
+.admin-member-role-control select { width:100%; min-height:36px; border:1px solid var(--line); border-radius:7px; padding:5px 8px; background:#111a21; color:var(--text); }
+.admin-member-role-summary { margin:0 !important; color:#c8c0b1 !important; font-size:10px !important; line-height:1.7; }
 .admin-role-description { padding:9px; border:1px solid #34414a; border-radius:8px; background:#0b1218; color:var(--text); font-size:11px; line-height:1.8; }
 .admin-role-description strong { display:block; color:var(--gold); margin-bottom:4px; font-size:12px; }
 .admin-role-description p { margin:3px 0 0; color:var(--muted); }
@@ -2117,9 +2130,6 @@ function renderAdminMembers(box, data) {
     const statusLabel = member.is_active ? "فعال" : "غیرفعال";
     heading.appendChild(makeElement("span", member.is_active ? "admin-member-state active" : "admin-member-state inactive", roleLabel + " · " + statusLabel));
     card.appendChild(heading);
-    if (!isSuperAdmin() || member.role === "admin") {
-      card.appendChild(renderRoleDescription(member.role, "admin-role-description admin-role-current"));
-    }
     const stats = makeElement("div", "admin-member-stats");
     [["کل آگهی‌ها",counts.total],["در انتظار",counts.pending],["منتشرشده",counts.published],["فروخته‌شده",counts.sold],["حذف‌شده",counts.deleted]].forEach(([label,value]) => {
       const stat = makeElement("div", "admin-member-stat");
@@ -2149,16 +2159,14 @@ function renderAdminMembers(box, data) {
         roleSelect.appendChild(option);
       });
       roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
-      let roleInfo = renderRoleDescription(roleSelect.value, "admin-role-description admin-role-preview");
+      const roleSummary = makeElement("p", "admin-member-role-summary", ROLE_DESCRIPTIONS[roleSelect.value]?.summary || ROLE_DESCRIPTIONS.user.summary);
       roleSelect.addEventListener("change", () => {
         const nextRole = roleSelect.value;
-        const nextInfo = renderRoleDescription(nextRole, "admin-role-description admin-role-preview");
-        roleInfo.replaceWith(nextInfo);
-        roleInfo = nextInfo;
+        roleSummary.textContent = ROLE_DESCRIPTIONS[nextRole]?.summary || ROLE_DESCRIPTIONS.user.summary;
         updateAdminMemberRole(member, nextRole);
       });
       roleWrap.appendChild(roleSelect);
-      roleWrap.appendChild(roleInfo);
+      roleWrap.appendChild(roleSummary);
       actions.appendChild(roleWrap);
     }
     const listings = makeElement("button", "account-action", "آگهی‌های این عضو");
