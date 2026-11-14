@@ -969,12 +969,10 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
     <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
       <button type="button" class="active" data-admin-workspace-tab="listings" onclick="showAdminWorkspaceTab('listings')">مدیریت آگهی‌ها</button>
       <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
-      <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">اعضا و فضای ذخیره‌سازی</button>
     </div>
     <div class="admin-workspace-content">
       <div id="adminWorkspaceListings"></div>
       <div id="adminWorkspaceRequests"></div>
-      <div id="adminWorkspaceMembers"></div>
     </div>
   </div>
 </div>
@@ -1508,8 +1506,7 @@ async function openAdminWorkspace() {
 
   const panels = [
     ["accountAdmin", "adminWorkspaceListings"],
-    ["accountRequests", "adminWorkspaceRequests"],
-    ["accountListings", "adminWorkspaceMembers"]
+    ["accountRequests", "adminWorkspaceRequests"]
   ];
   panels.forEach(([panelId, targetId]) => {
     const panel = document.getElementById(panelId);
@@ -1521,21 +1518,18 @@ async function openAdminWorkspace() {
 
 function showAdminWorkspaceTab(tab) {
   if (currentUserRole !== "admin") return;
-  ["listings", "requests", "members"].forEach(name => {
+  ["listings", "requests"].forEach(name => {
     const panel = document.getElementById("adminWorkspace" + name[0].toUpperCase() + name.slice(1));
     const button = document.querySelector(`[data-admin-workspace-tab="${name}"]`);
     if (panel) panel.classList.toggle("active", name === tab);
     if (button) button.classList.toggle("active", name === tab);
   });
-  if (tab === "members" && !adminMembersLoaded) loadAdminMembers();
 }
 
 function closeAdminWorkspace() {
   const accountPanel = document.querySelector("#authLoggedIn .account-panel");
   if (accountPanel) {
-    [
-      ["accountListings", "accountRequests", "accountAdmin"]
-    ].flat().forEach(id => {
+    ["accountRequests", "accountAdmin"].forEach(id => {
       const panel = document.getElementById(id);
       if (panel) accountPanel.appendChild(panel);
     });
