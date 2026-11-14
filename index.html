@@ -860,6 +860,26 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
       <button class="close" type="button" onclick="closeModal('authModal')" aria-label="بستن">✕</button>
     </div>
     <div id="authLoggedOut">
+      <div id="authEmailModeEntry" class="auth-actions" style="display:none;margin-bottom:12px">
+        <button class="btn btn-outline" id="authEmailModeButton" type="button" onclick="toggleAuthMethod('email')">ورود آزمایشی با ایمیل</button>
+      </div>
+      <div id="authEmailMode" style="display:none">
+        <div class="field" id="authEmailGroup">
+          <label for="authEmail">ایمیل</label>
+          <input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
+        </div>
+        <div class="field" id="authPasswordGroup" style="margin-top:12px">
+          <label for="authPassword">رمز عبور</label>
+          <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه">
+        </div>
+        <div class="auth-actions" style="margin-top:14px">
+          <button class="btn" id="authEmailSignInButton" type="button" onclick="signInWithEmail()">ورود با ایمیل</button>
+          <button class="btn btn-outline" id="authEmailSignUpButton" type="button" onclick="signUpWithEmail()">ساخت حساب آزمایشی</button>
+          <button class="btn btn-outline" id="authBackToPhoneButton" type="button" onclick="toggleAuthMethod('phone')">بازگشت به ورود پیامکی</button>
+        </div>
+        <p class="auth-help">این روش فقط برای آزمایش محیط Preview است؛ ورود نهایی سامانه با شماره موبایل و کد پیامکی خواهد بود.</p>
+      </div>
+      <div id="authPhoneMode">
       <div class="field" id="authPhoneGroup">
         <label for="authPhone">شماره موبایل</label>
         <input id="authPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="مثلاً 09123456789">
@@ -877,6 +897,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         <button class="btn btn-outline" id="authResendButton" type="button" style="display:none" onclick="requestAuthOtp(true)">ارسال مجدد کد</button>
       </div>
       <p class="auth-help">با ورود، حساب کاربری شما در زرین ماه ایجاد یا بازیابی می‌شود.</p>
+      </div>
     </div>
     <div id="authLoggedIn" style="display:none">
       <p class="auth-status" id="authUserLabel"></p>
@@ -907,6 +928,7 @@ const MARKET_API = '/api/market';
 
 const SUPABASE_URL = 'https://qijahxokldkaqmjinfvy.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_gxessMO-YfOyBbvSb-cuYw_UvTTG23s';
+const IS_ZARINMAH_STAGING = SUPABASE_URL === 'https://qijahxokldkaqmjinfvy.supabase.co';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let authPhoneE164 = '';
 let authResendTimer = null;
@@ -950,6 +972,10 @@ function openAccount() {
 }
 
 function openAuthModal() {
+  if (IS_ZARINMAH_STAGING) {
+    document.getElementById('authEmailModeEntry').style.display = 'flex';
+  }
+  toggleAuthMethod('phone');
   document.getElementById('authModal').classList.add('show');
   document.getElementById('authModal').setAttribute('aria-hidden', 'false');
   document.getElementById('authMessage').textContent = '';
@@ -958,6 +984,78 @@ function openAuthModal() {
 
 function setAuthMessage(message) {
   document.getElementById('authMessage').textContent = message || '';
+}
+
+function toggleAuthMethod(method) {
+  const useEmail = method === 'email' && IS_ZARINMAH_STAGING;
+  document.getElementById('authPhoneMode').style.display = useEmail ? 'none' : 'block';
+  document.getElementById('authEmailMode').style.display = useEmail ? 'block' : 'none';
+  document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING && !useEmail ? 'flex' : 'none';
+  setAuthMessage('');
+  if (useEmail) {
+    document.getElementById('authEmail').focus();
+  } else {
+    document.getElementById('authPhone').focus();
+  }
+}
+
+function setEmailAuthBusy(busy) {
+  ['authEmailSignInButton', 'authEmailSignUpButton', 'authBackToPhoneButton'].forEach(id => {
+    document.getElementById(id).disabled = busy;
+  });
+}
+
+async function signInWithEmail() {
+  if (!IS_ZARINMAH_STAGING) return;
+  const email = document.getElementById('authEmail').value.trim().toLowerCase();
+  const password = document.getElementById('authPassword').value;
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
+    setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
+    return;
+  }
+  setEmailAuthBusy(true);
+  setAuthMessage('در حال ورود با ایمیل…');
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data.session) throw new Error('نشست ورود ایجاد نشد.');
+    setAuthMessage('ورود با موفقیت انجام شد.');
+    updateAuthUI(data.session);
+    openAccountDrawer();
+  } catch (error) {
+    console.error('Preview email sign-in failed:', error);
+    setAuthMessage(error.message || 'ورود انجام نشد؛ ایمیل و رمز عبور را بررسی کنید.');
+  } finally {
+    setEmailAuthBusy(false);
+  }
+}
+
+async function signUpWithEmail() {
+  if (!IS_ZARINMAH_STAGING) return;
+  const email = document.getElementById('authEmail').value.trim().toLowerCase();
+  const password = document.getElementById('authPassword').value;
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || password.length < 8) {
+    setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
+    return;
+  }
+  setEmailAuthBusy(true);
+  setAuthMessage('در حال ساخت حساب آزمایشی…');
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) throw error;
+    if (data.session) {
+      setAuthMessage('حساب آزمایشی ساخته شد و وارد شدید.');
+      updateAuthUI(data.session);
+      openAccountDrawer();
+    } else {
+      setAuthMessage('حساب ایجاد شد. ایمیل تأیید را بررسی کنید؛ سپس با همان ایمیل و رمز عبور وارد شوید.');
+    }
+  } catch (error) {
+    console.error('Preview email sign-up failed:', error);
+    setAuthMessage(error.message || 'ساخت حساب انجام نشد.');
+  } finally {
+    setEmailAuthBusy(false);
+  }
 }
 
 function startAuthResendCooldown(seconds = 30) {
@@ -1074,7 +1172,7 @@ function updateAuthUI(session) {
   document.getElementById('authLoggedIn').style.display = loggedIn ? 'block' : 'none';
   document.getElementById('accountButton').textContent = loggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام';
   if (loggedIn) {
-    const phone = session.user.phone || '';
+    const phone = session.user.phone || session.user.email || '';
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
     document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
     const roleBadge = document.getElementById('authRoleLabel');
@@ -1089,6 +1187,9 @@ function updateAuthUI(session) {
     if (isAccountPage) openAuthModal();
     document.getElementById('authPhoneGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
+    document.getElementById('authPhoneMode').style.display = 'block';
+    document.getElementById('authEmailMode').style.display = 'none';
+    document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING ? 'flex' : 'none';
     document.getElementById('authSendButton').style.display = 'inline-block';
     document.getElementById('authSendButton').disabled = false;
     document.getElementById('authVerifyButton').style.display = 'none';
@@ -1129,17 +1230,17 @@ async function loadCurrentProfile(session = currentAuthSession) {
     const label = document.getElementById('authUserLabel');
     const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
     if (profileReady) {
-      label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || ''}`;
+      label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile.full_name;
-      document.getElementById('profilePhone').value = session.user.phone || '';
+      document.getElementById('profilePhone').value = session.user.phone || session.user.email || '';
       document.getElementById('sellerName').value = currentUserProfile.full_name;
       document.getElementById('buyerName').value = currentUserProfile.full_name;
       closeModal('profileModal');
       loadAccountPanel();
     } else {
-      label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || ''}`;
+      label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
-      document.getElementById('profilePhone').value = session.user.phone || '';
+      document.getElementById('profilePhone').value = session.user.phone || session.user.email || '';
       document.getElementById('profileMessage').textContent = currentUserProfile?.is_active === false
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
         : 'برای فعال‌شدن امکانات حساب، نام و نام خانوادگی خود را تکمیل کنید.';
