@@ -1434,6 +1434,7 @@ document.getElementById('profileForm').addEventListener('submit', saveUserProfil
 
 let accountDataCache = null;
 let accountLoading = false;
+let editingListingId = null;
 const accountQueryState = {
   listings_page: 1,
   requests_page: 1,
@@ -1599,6 +1600,12 @@ function renderListingCards(box, items, admin) {
         if (item.status !== "deleted") actions.appendChild(accountActionButton("حذف", "delete", item.id, "listing", true));
       }
     } else if (!item.deleted_at) {
+      if (["pending", "published"].includes(item.status)) {
+        const edit = makeElement("button", "account-action", "ویرایش آگهی");
+        edit.type = "button";
+        edit.addEventListener("click", () => openListingEditor(item));
+        actions.appendChild(edit);
+      }
       if (item.status === "published") actions.appendChild(accountActionButton("فروخته شد", "sold", item.id));
       actions.appendChild(accountActionButton("حذف آگهی", "delete", item.id, "listing", true));
     }
@@ -2039,6 +2046,117 @@ function showToast(message) {
   }, 3500);
 }
 
+function resetSellerFormForCreate() {
+  editingListingId = null;
+  const form = document.getElementById("sellerForm");
+  form.reset();
+  form.style.display = "block";
+  document.getElementById("sellerResult").style.display = "none";
+  document.querySelector("#sellerModal .modal-head h2").textContent = "ثبت آگهی فروش طلا";
+  const submit = form.querySelector('button[type="submit"]');
+  submit.textContent = "ثبت آگهی";
+  photoInputs.forEach((input, index) => {
+    input.required = index === 0;
+    photoPreviews[index].removeAttribute("src");
+    photoPreviews[index].classList.remove("show");
+    photoStatuses[index].textContent = "هنوز عکسی انتخاب نشده است.";
+    photoRemoveButtons[index].style.display = "none";
+  });
+  invoiceInput.required = true;
+  invoiceStatus.textContent = "هنوز فاکتوری انتخاب نشده است.";
+  document.getElementById("invoiceConfirm").checked = false;
+  updateItemFields();
+  updatePricingFields();
+}
+
+function openListingEditor(item) {
+  if (!currentAuthSession || !profileReady) {
+    showToast("برای ویرایش آگهی ابتدا وارد حساب کاربری شوید.");
+    return openAuthModal();
+  }
+  if (!item || !["pending", "published"].includes(item.status) || item.deleted_at) {
+    showToast("این آگهی در حال حاضر قابل ویرایش نیست.");
+    return;
+  }
+  editingListingId = item.id;
+  const form = document.getElementById("sellerForm");
+  form.reset();
+  form.style.display = "block";
+  document.getElementById("sellerResult").style.display = "none";
+  document.querySelector("#sellerModal .modal-head h2").textContent = "ویرایش آگهی فروش طلا";
+  const submit = form.querySelector('button[type="submit"]');
+  submit.textContent = "ذخیره و ارسال برای بررسی مجدد";
+
+  document.getElementById("sellerName").value = currentUserProfile?.full_name || item.seller_name || "";
+  document.getElementById("sellerPhone").value = currentAuthSession.user.phone || currentUserProfile?.mobile || item.seller_mobile || "";
+  provinceSelect.value = item.province || "";
+  provinceSelect.dispatchEvent(new Event("change"));
+  citySelect.value = item.city || "";
+
+  const productType = String(item.product_type || "");
+  let category = "jewelry";
+  let subtype = "";
+  if (productType.includes("پارسیان")) {
+    category = "parsian";
+  } else if (productType.includes("آب‌شده") || productType.includes("آب شده")) {
+    category = "melted";
+  } else {
+    const coinMatch = Object.entries({
+      "تمام سکه امامی": "سکه تمام امامی",
+      "تمام سکه بهار آزادی": "سکه تمام بهار آزادی",
+      "نیم سکه": "نیم‌سکه",
+      "ربع سکه": "ربع‌سکه",
+      "سکه یک گرمی بانک مرکزی": "سکه یک گرمی بانک مرکزی",
+      "سایر سکه‌ها": "سایر سکه‌ها"
+    }).find(([, value]) => value === productType);
+    if (coinMatch) {
+      category = "coin";
+      subtype = coinMatch[0];
+    } else {
+      subtype = Object.entries({
+        "انگشتر": "انگشتر طلا", "گوشواره": "گوشواره طلا", "النگو": "النگو طلا",
+        "زنجیر": "زنجیر طلا", "گردنبند": "گردنبند طلا", "دستبند": "دستبند طلا",
+        "پابند": "پابند طلا", "آویز": "آویز طلا", "سایر زیورآلات": "زیورآلات طلا"
+      }).find(([, value]) => value === productType)?.[0] || "سایر زیورآلات";
+    }
+  }
+  itemSelect.value = category;
+  updateItemFields();
+  if (category === "jewelry") document.getElementById("jewelryType").value = subtype;
+  if (category === "coin") document.getElementById("coinType").value = subtype;
+  if (category === "parsian") document.getElementById("parsianWeight").value = item.weight ?? "";
+  else document.getElementById("sellerWeight").value = item.weight ?? "";
+  document.getElementById("sellerKarat").value = item.purity || "";
+
+  pricingSelect.value = item.pricing_method || "";
+  updatePricingFields();
+  if (item.pricing_method === "fixed") document.getElementById("fixedPrice").value = item.price ?? "";
+  if (item.pricing_method === "percent") document.getElementById("pricePercent").value = item.pricing_value ?? "";
+  if (item.pricing_method === "amount") document.getElementById("priceAmount").value = item.pricing_value ?? "";
+  document.getElementById("sellerDescription").value = item.description || "";
+
+  photoInputs.forEach((input, index) => {
+    input.required = false;
+    const url = index === 0 ? (item.image_url || item.photo_url) : (item.image_url_2 || item.photo_url_2);
+    if (url && /^https:\/\//i.test(url)) {
+      photoPreviews[index].src = url;
+      photoPreviews[index].classList.add("show");
+      photoStatuses[index].textContent = "عکس فعلی حفظ می‌شود؛ برای جایگزینی، عکس جدید انتخاب کنید.";
+    } else {
+      photoPreviews[index].removeAttribute("src");
+      photoPreviews[index].classList.remove("show");
+      photoStatuses[index].textContent = "برای این بخش عکسی ثبت نشده است؛ عکس انتخاب کنید.";
+    }
+    photoRemoveButtons[index].style.display = "none";
+  });
+  invoiceInput.required = !item.invoice_available;
+  invoiceStatus.textContent = item.invoice_available
+    ? "فاکتور فعلی به‌صورت خصوصی حفظ می‌شود؛ در صورت نیاز می‌توانید فاکتور جدید بارگذاری کنید."
+    : "برای این آگهی فاکتور ثبت‌شده‌ای پیدا نشد؛ بارگذاری فاکتور جدید الزامی است.";
+  document.getElementById("invoiceConfirm").checked = true;
+  document.getElementById("sellerModal").classList.add("show");
+}
+
 function openSeller() {
   if (!currentAuthSession) {
     showToast("برای ثبت آگهی ابتدا وارد حساب کاربری شوید.");
@@ -2052,6 +2170,7 @@ function openSeller() {
     editUserProfile();
     return;
   }
+  resetSellerFormForCreate();
   document.getElementById("sellerPhone").value = sellerContactPhone;
   document.getElementById("sellerName").value = currentUserProfile.full_name;
   document.getElementById("sellerModal").classList.add("show");
@@ -2816,7 +2935,7 @@ document.getElementById('sellerForm').addEventListener(
     const photos = photoInputs.map(input => input.files[0]).filter(Boolean);
     const invoice = invoiceInput.files[0];
 
-    if (!photos.length || !photoInputs[0].files[0] || !invoice) {
+    if (!editingListingId && (!photos.length || !photoInputs[0].files[0] || !invoice)) {
       showToast('عکس اول محصول و فاکتور فروش الزامی هستند؛ عکس دوم اختیاری است.');
       return;
     }
@@ -2849,10 +2968,14 @@ document.getElementById('sellerForm').addEventListener(
     const originalText = submitButton.textContent;
 
     submitButton.disabled = true;
-    submitButton.textContent = 'در حال ارسال آگهی…';
+    submitButton.textContent = editingListingId ? 'در حال ذخیره ویرایش…' : 'در حال ارسال آگهی…';
 
     try {
       const formData = new FormData(form);
+      if (editingListingId) {
+        formData.append("action", "edit_listing");
+        formData.append("listing_id", String(editingListingId));
+      }
       const { data: authData } = await supabaseClient.auth.getSession();
       const accessToken = authData?.session?.access_token;
       if (!accessToken) throw new Error("نشست ورود شما معتبر نیست؛ دوباره وارد شوید.");
@@ -2882,34 +3005,30 @@ document.getElementById('sellerForm').addEventListener(
         return;
       }
 
+      const wasEditing = Boolean(editingListingId);
+      const editedId = editingListingId;
+      editingListingId = null;
       form.style.display = 'none';
 
       const resultBox = document.getElementById('sellerResult');
       resultBox.style.display = 'block';
 
-      resultBox.querySelector('h3').textContent =
-        `آگهی شماره ${result.id} ثبت شد`;
+      resultBox.querySelector('h3').textContent = wasEditing
+        ? `ویرایش آگهی شماره ${editedId} ثبت شد`
+        : `آگهی شماره ${result.id} ثبت شد`;
 
-      resultBox.querySelector('p').textContent =
-        result.admin_notification_sent
-          ? (
-              'آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' +
-              (
-                result.invoice_sent
-                  ? 'فاکتور نیز به مدیر ارسال شد.'
-                  : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.'
-              )
-            )
-          : (
-              'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. ' +
-              'از ثبت دوباره آگهی خودداری کن.'
-            );
+      resultBox.querySelector('p').textContent = wasEditing
+        ? (result.admin_notification_sent
+            ? 'تغییرات ذخیره شد و آگهی تا تأیید دوباره مدیر از ویترین خارج است. فاکتور قبلی حفظ شده است؛ در صورت بارگذاری فاکتور جدید، نسخه جدید نیز برای مدیر ارسال می‌شود.'
+            : 'تغییرات ذخیره شد و آگهی در انتظار بررسی مجدد است، اما پیام مدیر ارسال نشد. از ارسال دوباره فرم خودداری کنید.')
+        : (result.admin_notification_sent
+            ? ('آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' + (result.invoice_sent ? 'فاکتور نیز به مدیر ارسال شد.' : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.'))
+            : 'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. از ثبت دوباره آگهی خودداری کن.');
 
-      showToast(
-        result.admin_notification_sent
-          ? 'آگهی برای بررسی مدیر ارسال شد.'
-          : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'
-      );
+      showToast(wasEditing
+        ? 'ویرایش آگهی ذخیره شد و برای بررسی مجدد ارسال شد.'
+        : (result.admin_notification_sent ? 'آگهی برای بررسی مدیر ارسال شد.' : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'));
+      if (wasEditing) await loadAccountPanel();
 
     } catch (error) {
       showToast(error.message || 'خطا در ارتباط با سرور.');
