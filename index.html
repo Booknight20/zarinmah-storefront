@@ -844,7 +844,20 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         <label for="profileFullName">نام و نام خانوادگی *</label>
         <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
         <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
-        <div class="field" style="margin-top:12px"><label for="profileAddress">آدرس محل سکونت *</label><textarea id="profileAddress" name="address" required maxlength="500" rows="3" autocomplete="street-address" placeholder="استان، شهر، خیابان، کوچه و پلاک"></textarea></div>
+        <div class="field" style="margin-top:12px">
+          <label for="profileProvince">استان محل سکونت *</label>
+          <select id="profileProvince" name="province" required>
+            <option value="">انتخاب استان</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label for="profileCity">شهر محل سکونت *</label>
+          <select id="profileCity" name="city" required disabled>
+            <option value="">ابتدا استان را انتخاب کنید</option>
+          </select>
+          <small>فهرست شهرها مطابق فرم ثبت آگهی است.</small>
+        </div>
+        <div class="field" style="margin-top:12px"><label for="profileAddress">نشانی دقیق محل سکونت *</label><textarea id="profileAddress" name="address" required maxlength="500" rows="3" autocomplete="street-address" placeholder="خیابان، کوچه، پلاک و واحد"></textarea></div>
         <div class="field" style="margin-top:12px"><label for="profileNationalId">کد ملی *</label><input id="profileNationalId" name="national_id" type="text" inputmode="numeric" dir="ltr" maxlength="10" minlength="10" pattern="[0-9۰-۹٠-٩]{10}" required autocomplete="off" placeholder="۱۰ رقم کد ملی"><small>کد ملی فقط برای احراز هویت و بررسی مدیر استفاده می‌شود.</small></div>
         <div class="field" style="margin-top:12px"><label for="profilePhone">شماره تماس *</label><input id="profilePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="مثلاً 09123456789"><small id="profilePhoneHelp">در حساب‌های ورود پیامکی، شماره تأییدشده حساب نمایش داده می‌شود و برای تغییر آن تأیید مجدد پیامکی لازم است.</small></div>
       </div>
@@ -1258,6 +1271,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
       currentUserProfile.is_active === true &&
       String(currentUserProfile.full_name || '').trim() &&
       String(currentUserProfile.address || '').trim().length >= 10 &&
+      Boolean(majorCitiesByProvince[currentUserProfile.province]?.includes(currentUserProfile.city)) &&
       /^\d{10}$/.test(String(currentUserProfile.national_id || ''))
     );
     const label = document.getElementById('authUserLabel');
@@ -1280,6 +1294,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
+      setProfileLocation(currentUserProfile?.province || '', currentUserProfile?.city || '');
       document.getElementById('profileAddress').value = currentUserProfile?.address || '';
       document.getElementById('profileNationalId').value = currentUserProfile?.national_id || '';
       const profilePhone = document.getElementById('profilePhone');
@@ -1313,6 +1328,7 @@ async function editUserProfile() {
   document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
   document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
   document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
+  setProfileLocation(currentUserProfile.province || '', currentUserProfile.city || '');
   document.getElementById('profileAddress').value = currentUserProfile.address || '';
   document.getElementById('profileNationalId').value = currentUserProfile.national_id || '';
   const profilePhone = document.getElementById('profilePhone');
@@ -1335,6 +1351,8 @@ async function saveUserProfile(event) {
     return;
   }
   const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
+  const province = profileProvinceSelect.value;
+  const city = profileCitySelect.value;
   const address = document.getElementById('profileAddress').value.trim();
   const nationalId = document.getElementById('profileNationalId').value
     .replace(/[۰-۹٠-٩]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) >= 0 ? '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) : '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
@@ -1351,8 +1369,13 @@ async function saveUserProfile(event) {
     document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
     return;
   }
+  if (!majorCitiesByProvince[province]?.includes(city)) {
+    document.getElementById('profileMessage').textContent = 'استان و شهر محل سکونت را انتخاب کنید.';
+    profileProvinceSelect.focus();
+    return;
+  }
   if (address.length < 10) {
-    document.getElementById('profileMessage').textContent = 'آدرس کامل محل سکونت را وارد کنید.';
+    document.getElementById('profileMessage').textContent = 'نشانی دقیق محل سکونت را وارد کنید.';
     document.getElementById('profileAddress').focus();
     return;
   }
@@ -1382,7 +1405,7 @@ async function saveUserProfile(event) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${currentAuthSession.access_token}`
       },
-      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, address, national_id: nationalId, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
+      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, province, city, address, national_id: nationalId, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
@@ -2359,6 +2382,34 @@ provinceSelect.addEventListener('change', () => {
 
   citySelect.disabled = cities.length === 0;
 });
+
+const profileProvinceSelect = document.getElementById('profileProvince');
+const profileCitySelect = document.getElementById('profileCity');
+profileProvinceSelect.innerHTML = provinceSelect.innerHTML;
+
+function populateProfileCities(selectedCity = '') {
+  const cities = majorCitiesByProvince[profileProvinceSelect.value] || [];
+  profileCitySelect.replaceChildren();
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = cities.length ? 'انتخاب شهر' : 'ابتدا استان را انتخاب کنید';
+  profileCitySelect.appendChild(placeholder);
+  cities.forEach(city => {
+    const option = document.createElement('option');
+    option.value = city;
+    option.textContent = city;
+    profileCitySelect.appendChild(option);
+  });
+  profileCitySelect.disabled = cities.length === 0;
+  profileCitySelect.value = cities.includes(selectedCity) ? selectedCity : '';
+}
+
+profileProvinceSelect.addEventListener('change', () => populateProfileCities());
+
+function setProfileLocation(province = '', city = '') {
+  profileProvinceSelect.value = province || '';
+  populateProfileCities(city || '');
+}
 
 function setSubfield(id, show) {
   const field = document.getElementById(id);
