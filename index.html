@@ -111,6 +111,36 @@ header {
 .admin-listing-extra { margin-top:9px; padding-top:8px; border-top:1px solid var(--line); }
 .admin-listing-extra[hidden] { display:none !important; }
 .admin-listing-toggle { margin-top:8px; }
+
+.admin-status-section { margin:12px 0 18px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#0d1215; }
+.admin-status-section.pending { border-color:rgba(220,175,70,.45); }
+.admin-status-section.published { border-color:rgba(70,190,125,.35); }
+.admin-status-section.sold { border-color:rgba(100,160,200,.35); }
+.admin-status-section.rejected,.admin-status-section.deleted { border-color:rgba(210,90,90,.35); }
+.admin-status-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0; padding:8px 11px; font-size:12px; background:rgba(199,162,75,.08); }
+.admin-status-section.published .admin-status-title { background:rgba(40,150,90,.10); }
+.admin-status-section.sold .admin-status-title { background:rgba(65,125,165,.10); }
+.admin-status-section.rejected .admin-status-title,.admin-status-section.deleted .admin-status-title { background:rgba(180,60,60,.10); }
+.admin-status-title small { color:var(--muted); font-size:10px; font-weight:400; }
+.admin-listing-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:11px; }
+.admin-listing-table th,.admin-listing-table td { padding:6px 8px; border-top:1px solid rgba(199,162,75,.12); text-align:right; vertical-align:middle; overflow-wrap:anywhere; }
+.admin-listing-table th { color:var(--muted); font-size:10px; font-weight:600; background:rgba(255,255,255,.025); }
+.admin-listing-table .admin-row-title { font-weight:700; color:var(--text); }
+.admin-listing-table .admin-row-details td { padding:8px 10px; background:#10171a; }
+.admin-listing-table .admin-row-details[hidden] { display:none; }
+.admin-listing-table .admin-listing-extra { margin:0; padding:0; border:0; }
+.admin-listing-table .admin-listing-toggle { margin:0; white-space:nowrap; }
+.admin-listing-table .account-actions { margin:0; gap:4px; }
+.admin-listing-table .account-action { padding:4px 7px; font-size:10px; }
+@media(max-width:650px) {
+ .admin-listing-table { font-size:10px; }
+ .admin-listing-table th,.admin-listing-table td { padding:5px 4px; }
+ .admin-listing-table th:first-child,.admin-listing-table td:first-child { display:none; }
+ .admin-listing-table .admin-row-title { font-size:10px; }
+ .admin-listing-table .account-actions { flex-direction:column; align-items:stretch; }
+ .admin-listing-table .account-action { white-space:nowrap; }
+}
+
 .admin-listing-preview-details { display:grid; gap:2px; margin:10px 0; padding:9px; border:1px solid var(--line); border-radius:8px; background:#111a1e; }
 .admin-listing-preview-details p { margin:3px 0; color:var(--text); font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
 .admin-listing-preview-details p:last-child { white-space:pre-wrap; }
@@ -2115,6 +2145,77 @@ async function updateAdminMember(member, changes) {
   }
 }
 
+function renderAdminListingTables(box, items) {
+  const groups = [
+    {key:"pending",title:"آگهی‌های در انتظار تأیید"},
+    {key:"published",title:"آگهی‌های منتشرشده"},
+    {key:"sold",title:"آگهی‌های فروخته‌شده"},
+    {key:"rejected",title:"آگهی‌های ردشده"},
+    {key:"deleted",title:"آگهی‌های حذف‌شده"}
+  ];
+  groups.forEach(group => {
+    const rows = items.filter(item => (item.deleted_at ? "deleted" : item.status) === group.key);
+    if (!rows.length) return;
+    const section = makeElement("section", "admin-status-section " + group.key);
+    const heading = makeElement("h3", "admin-status-title");
+    heading.append(makeElement("span", "", group.title));
+    heading.append(makeElement("small", "", rows.length.toLocaleString("fa-IR") + " مورد در این صفحه"));
+    section.appendChild(heading);
+    const table = document.createElement("table");
+    table.className = "admin-listing-table";
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    ["شماره","عنوان آگهی","وزن","شهر","جزئیات و عملیات"].forEach(label => headerRow.appendChild(makeElement("th", "", label)));
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    rows.forEach(item => {
+      const temp = document.createElement("div");
+      renderListingCards(temp, [item], true);
+      const card = temp.firstElementChild;
+      const headingNode = card?.querySelector(".admin-listing-heading");
+      const title = headingNode?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
+      const badge = headingNode?.querySelector(".admin-listing-status");
+      const weight = item.weight == null || item.weight === "" ? "—" : (item.weight + " " + (item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"));
+      const city = [item.city, item.province].filter(Boolean).join("، ") || "—";
+      const detailsButton = card?.querySelector(".admin-listing-toggle");
+      const details = card?.querySelector(".admin-listing-extra");
+      const actions = card?.querySelector(".account-actions");
+      const row = document.createElement("tr");
+      row.appendChild(makeElement("td", "", String(item.id)));
+      row.appendChild(makeElement("td", "admin-row-title", title.replace(/^آگهی #\d+ · /, "")));
+      row.appendChild(makeElement("td", "", weight));
+      row.appendChild(makeElement("td", "", city));
+      const operationCell = document.createElement("td");
+      if (detailsButton) operationCell.appendChild(detailsButton);
+      if (actions) operationCell.appendChild(actions);
+      row.appendChild(operationCell);
+      tbody.appendChild(row);
+      if (details) {
+        const detailRow = document.createElement("tr");
+        detailRow.className = "admin-row-details";
+        detailRow.hidden = true;
+        const detailCell = document.createElement("td");
+        detailCell.colSpan = 5;
+        detailCell.appendChild(details);
+        detailRow.appendChild(detailCell);
+        if (detailsButton) {
+          detailsButton.addEventListener("click", () => {
+            detailRow.hidden = details.hidden;
+          });
+        }
+        tbody.appendChild(detailRow);
+      }
+    });
+    table.appendChild(tbody);
+    section.appendChild(table);
+    box.appendChild(section);
+  });
+  if (!box.querySelector(".admin-status-section")) {
+    box.appendChild(makeElement("p", "account-empty", "آگهی‌ای با این وضعیت‌ها در نتایج فعلی پیدا نشد."));
+  }
+}
+
 function renderAccountPanel(data) {
   const listingsBox = document.getElementById("accountListings");
   const requestsBox = document.getElementById("accountRequests");
@@ -2150,7 +2251,7 @@ function renderAccountPanel(data) {
   if (admin) {
     adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
     appendAccountToolbar(adminBox, "listings", listingsPage);
-    renderListingCards(adminBox, data.listings, true);
+    renderAdminListingTables(adminBox, data.listings);
     appendAccountPagination(adminBox, "listings", listingsPage);
   }
 }
