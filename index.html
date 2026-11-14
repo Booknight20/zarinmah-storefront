@@ -1007,12 +1007,19 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
       <button class="btn btn-outline" type="button" onclick="closeAdminWorkspace()">بازگشت به حساب کاربری</button>
     </div>
     <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
-      <button type="button" class="active" data-admin-workspace-tab="listings" onclick="showAdminWorkspaceTab('listings')">مدیریت آگهی‌ها</button>
+      <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
+      <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">همه آگهی‌ها</button>
+      <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
+      <button type="button" data-admin-workspace-tab="published" onclick="showAdminWorkspaceTab('published')">منتشرشده</button>
+      <button type="button" data-admin-workspace-tab="sold" onclick="showAdminWorkspaceTab('sold')">فروخته‌شده</button>
+      <button type="button" data-admin-workspace-tab="rejected" onclick="showAdminWorkspaceTab('rejected')">ردشده</button>
+      <button type="button" data-admin-workspace-tab="deleted" onclick="showAdminWorkspaceTab('deleted')">حذف‌شده</button>
       <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
     </div>
     <div class="admin-workspace-content">
       <div id="adminWorkspaceListings"></div>
       <div id="adminWorkspaceRequests"></div>
+      <div id="adminWorkspaceMembers"></div>
     </div>
   </div>
 </div>
@@ -1533,42 +1540,46 @@ async function openAdminWorkspace() {
     showToast("این بخش فقط برای مدیر سامانه قابل دسترسی است.");
     return;
   }
-  const accountPanel = document.querySelector("#authLoggedIn .account-panel");
-  if (!accountPanel) return;
+  if (!document.querySelector("#authLoggedIn .account-panel")) return;
   closeModal("authModal");
   const workspace = document.getElementById("adminWorkspace");
   workspace.classList.add("show");
   workspace.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
-
   if (!accountDataCache) await loadAccountPanel();
-  showAccountTab("admin");
-
-  const panels = [
-    ["accountAdmin", "adminWorkspaceListings"],
-    ["accountRequests", "adminWorkspaceRequests"]
-  ];
-  panels.forEach(([panelId, targetId]) => {
-    const panel = document.getElementById(panelId);
-    const target = document.getElementById(targetId);
-    if (panel && target) target.appendChild(panel);
+  const panels = [["accountAdmin","adminWorkspaceListings"],["accountRequests","adminWorkspaceRequests"]];
+  panels.forEach(([panelId,targetId]) => {
+    const panel=document.getElementById(panelId), target=document.getElementById(targetId);
+    if(panel && target) target.appendChild(panel);
   });
-  document.getElementById("accountAdmin").style.display = "grid";
-  document.getElementById("accountRequests").style.display = "grid";
-  showAdminWorkspaceTab("listings");
+  accountQueryState.listings_status = "all";
+  accountQueryState.listings_page = 1;
+  await loadAccountPanel();
+  showAdminWorkspaceTab("all");
+  loadAdminMembers();
 }
 
-function showAdminWorkspaceTab(tab) {
+async function showAdminWorkspaceTab(tab) {
   if (currentUserRole !== "admin") return;
-  ["listings", "requests"].forEach(name => {
-    const panel = document.getElementById("adminWorkspace" + name[0].toUpperCase() + name.slice(1));
-    const button = document.querySelector(`[data-admin-workspace-tab="${name}"]`);
-    if (panel) {
-      panel.classList.toggle("active", name === tab);
-      panel.style.display = name === tab ? "grid" : "none";
-    }
-    if (button) button.classList.toggle("active", name === tab);
+  const listingTabs = ["all","pending","published","sold","rejected","deleted"];
+  const panels = ["listings","requests","members"];
+  panels.forEach(name => {
+    const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
+    if(panel) panel.style.display = (name === "listings" && listingTabs.includes(tab)) || name === tab ? "block" : "none";
   });
+  document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
+    button.classList.toggle("active", button.dataset.adminWorkspaceTab === tab);
+  });
+  if (listingTabs.includes(tab)) {
+    const nextStatus = tab === "all" ? "all" : tab;
+    if (accountQueryState.listings_status !== nextStatus) {
+      accountQueryState.listings_status = nextStatus;
+      accountQueryState.listings_page = 1;
+      await loadAccountPanel();
+    }
+  } else if (tab === "members") {
+    loadAdminMembers();
+  }
 }
 
 function closeAdminWorkspace() {
@@ -1859,7 +1870,7 @@ async function openAdminInvoice(listingId) {
 
 async function loadAdminMembers() {
   if (!currentAuthSession?.access_token || currentUserRole !== "admin") return;
-  const box = document.getElementById("accountAdmin");
+  const box = document.getElementById("adminWorkspaceMembers") || document.getElementById("accountAdmin");
   const params = new URLSearchParams({
     action: "admin_members",
     members_page: String(adminMembersPage),
