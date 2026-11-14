@@ -1766,13 +1766,14 @@ function appendAccountPagination(box, kind, pagination) {
   box.appendChild(nav);
 }
 
-function renderListingCards(box, items, admin) {
+function renderListingCards(box, items, admin, listingManager = false) {
+  const staff = admin || listingManager;
   if (!items.length) {
     box.appendChild(makeElement("p", "account-empty", "موردی با این شرایط پیدا نشد."));
     return;
   }
   items.forEach(item => {
-    const card = makeElement("div", admin ? "account-item admin-listing-card" : "account-item");
+    const card = makeElement("div", staff ? "account-item admin-listing-card" : "account-item");
     const title = makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`);
     const weightSummary = item.weight == null || item.weight === ""
       ? "وزن اعلام نشده"
@@ -1780,7 +1781,7 @@ function renderListingCards(box, items, admin) {
     const placeSummary = [item.province, item.city].filter(Boolean).join("، ");
     const statusValue = item.deleted_at ? "deleted" : item.status;
     const statusLabel = item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status);
-    if (admin) {
+    if (staff) {
       const heading = makeElement("div", "admin-listing-heading");
       heading.append(title);
       const statusBadge = makeElement("span", `admin-listing-status ${["pending","published","sold","rejected","deleted"].includes(statusValue) ? statusValue : ""}`, statusLabel);
@@ -1796,7 +1797,7 @@ function renderListingCards(box, items, admin) {
       .map(value => String(value || "").trim())
       .filter(value => /^https:\/\//i.test(value));
 
-    if (admin) {
+    if (staff) {
       const extraDetails = makeElement("div", "admin-listing-extra");
       extraDetails.hidden = true;
       if (photoUrls.length) {
@@ -1889,8 +1890,8 @@ function renderListingCards(box, items, admin) {
     }
 
     const actions = makeElement("div", "account-actions");
-    if (admin) {
-      actions.appendChild(invoiceActionButton(item.id));
+    if (staff) {
+      if (admin && item.invoice_available) actions.appendChild(invoiceActionButton(item.id));
       if (item.deleted_at) {
         actions.appendChild(accountActionButton("بازیابی", "restore", item.id));
       } else {
@@ -2342,7 +2343,7 @@ async function updateAdminMember(member, changes) {
   }
 }
 
-function renderAdminListingTables(box, items) {
+function renderAdminListingTables(box, items, superAdmin = true, listingManager = false) {
   const groups = [
     {key:"pending",title:"آگهی‌های در انتظار تأیید"},
     {key:"published",title:"آگهی‌های منتشرشده"},
@@ -2368,7 +2369,7 @@ function renderAdminListingTables(box, items) {
     const tbody = document.createElement("tbody");
     rows.forEach(item => {
       const temp = document.createElement("div");
-      renderListingCards(temp, [item], true);
+      renderListingCards(temp, [item], superAdmin, listingManager);
       const card = temp.firstElementChild;
       const headingNode = card?.querySelector(".admin-listing-heading");
       const title = headingNode?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
@@ -2422,6 +2423,7 @@ function renderAccountPanel(data) {
   const adminBox = document.getElementById("accountAdmin");
   [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
   const admin = data.role === "admin";
+  const listingManager = data.role === "listing_manager";
   const hasManagementAccess = ["admin","listing_manager","member_manager"].includes(data.role);
   const adminButton = document.getElementById("adminWorkspaceButton");
   if (adminButton) adminButton.style.display = hasManagementAccess ? "inline-block" : "none";
@@ -2431,7 +2433,7 @@ function renderAccountPanel(data) {
 
   appendAccountToolbar(listingsBox, "listings", listingsPage);
   listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
-  renderListingCards(listingsBox, data.listings, admin);
+  renderListingCards(listingsBox, data.listings, admin, listingManager);
   appendAccountPagination(listingsBox, "listings", listingsPage);
 
   appendAccountToolbar(requestsBox, "requests", requestsPage);
@@ -2441,7 +2443,7 @@ function renderAccountPanel(data) {
     const card = makeElement("div", "account-item");
     card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
     card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
-    if (admin) {
+    if (admin || listingManager) {
       card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
       if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی درخواست", "forward", item.id, "request"));
     }
@@ -2449,11 +2451,11 @@ function renderAccountPanel(data) {
   });
   appendAccountPagination(requestsBox, "requests", requestsPage);
 
-  if (admin) {
+  if (admin || listingManager) {
     adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
     appendAccountToolbar(adminBox, "listings", listingsPage);
     adminBox.querySelector(".account-toolbar select")?.remove();
-    renderAdminListingTables(adminBox, data.listings);
+    renderAdminListingTables(adminBox, data.listings, admin, listingManager);
     appendAccountPagination(adminBox, "listings", listingsPage);
   }
 }
