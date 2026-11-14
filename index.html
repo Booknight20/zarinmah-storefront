@@ -1497,6 +1497,27 @@ function renderListingCards(box, items, admin) {
       });
       card.appendChild(photos);
     }
+    if (admin) {
+      const sellerButton = makeElement("button", "account-action", "اطلاعات فروشنده");
+      sellerButton.type = "button";
+      sellerButton.setAttribute("aria-expanded", "false");
+      const sellerDetails = makeElement("div", "account-seller-details");
+      sellerDetails.hidden = true;
+      const account = item.seller_account || null;
+      const sellerName = account?.full_name || item.seller_name || "ثبت نشده";
+      const sellerMobile = account?.mobile || item.seller_mobile || "ثبت نشده";
+      sellerDetails.appendChild(makeElement("p", "", `نام فروشنده: ${sellerName}`));
+      sellerDetails.appendChild(makeElement("p", "", `شماره تماس: ${sellerMobile}`));
+      sellerDetails.appendChild(makeElement("p", "", `وضعیت حساب: ${account ? (account.is_active ? "فعال" : "غیرفعال") : (item.owner_user_id ? "اطلاعات حساب در دسترس نیست" : "آگهی بدون مالک حساب کاربری")}`));
+      sellerButton.addEventListener("click", () => {
+        const opening = sellerDetails.hidden;
+        sellerDetails.hidden = !opening;
+        sellerButton.setAttribute("aria-expanded", opening ? "true" : "false");
+        sellerButton.textContent = opening ? "بستن اطلاعات فروشنده" : "اطلاعات فروشنده";
+      });
+      card.appendChild(sellerButton);
+      card.appendChild(sellerDetails);
+    }
     const actions = makeElement("div", "account-actions");
     if (admin) {
       actions.appendChild(invoiceActionButton(item.id));
