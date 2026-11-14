@@ -1174,12 +1174,24 @@ function updateAuthUI(session) {
   if (loggedIn) {
     const phone = session.user.phone || session.user.email || '';
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
-    document.getElementById('authUserLabel').textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
+    const userLabel = document.getElementById('authUserLabel');
     const roleBadge = document.getElementById('authRoleLabel');
-    roleBadge.textContent = 'در حال بررسی نقش حساب…';
-    roleBadge.dataset.role = '';
     roleBadge.style.display = 'inline-flex';
-    loadCurrentProfile(session);
+
+    // A token refresh for the same user must not overwrite an already loaded profile.
+    if (sameUser && currentUserProfile) {
+      const isAdmin = currentUserRole === 'admin';
+      roleBadge.textContent = isAdmin ? 'نقش حساب: مدیر سامانه' : 'نقش حساب: کاربر عادی';
+      roleBadge.dataset.role = isAdmin ? 'admin' : 'user';
+      userLabel.textContent = profileReady
+        ? `${currentUserProfile.full_name} · ${isAdmin ? 'مدیر اصلی' : 'کاربر'} · ${phone}`
+        : `تکمیل اطلاعات حساب · ${phone}`;
+    } else {
+      userLabel.textContent = `وارد حساب زرین ماه شده‌اید: ${masked}`;
+      roleBadge.textContent = 'در حال بررسی نقش حساب…';
+      roleBadge.dataset.role = '';
+      loadCurrentProfile(session);
+    }
     if (isAccountPage) openAccountDrawer();
   } else {
     profileRequestId += 1;
