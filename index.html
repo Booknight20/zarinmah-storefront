@@ -2117,6 +2117,9 @@ function renderAdminMembers(box, data) {
     const statusLabel = member.is_active ? "فعال" : "غیرفعال";
     heading.appendChild(makeElement("span", member.is_active ? "admin-member-state active" : "admin-member-state inactive", roleLabel + " · " + statusLabel));
     card.appendChild(heading);
+    if (!isSuperAdmin() || member.role === "admin") {
+      card.appendChild(renderRoleDescription(member.role, "admin-role-description admin-role-current"));
+    }
     const stats = makeElement("div", "admin-member-stats");
     [["کل آگهی‌ها",counts.total],["در انتظار",counts.pending],["منتشرشده",counts.published],["فروخته‌شده",counts.sold],["حذف‌شده",counts.deleted]].forEach(([label,value]) => {
       const stat = makeElement("div", "admin-member-stat");
