@@ -96,6 +96,16 @@ header {
 .account-tab.active { background:var(--gold); color:#17130a; }
 .account-list { display:grid; gap:9px; max-height:360px; overflow:auto; }
 .account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
+.admin-listing-card { padding:7px 9px; border-radius:8px; }
+.admin-listing-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.admin-listing-heading strong { min-width:0; flex:1; font-size:11px; }
+.admin-listing-status { display:inline-flex; align-items:center; border-radius:20px; padding:3px 8px; font-size:10px; font-weight:700; white-space:nowrap; border:1px solid transparent; }
+.admin-listing-status.pending { color:#f3c86b; background:rgba(180,130,30,.13); border-color:rgba(220,175,70,.45); }
+.admin-listing-status.published { color:#70d5a0; background:rgba(40,150,90,.12); border-color:rgba(70,190,125,.35); }
+.admin-listing-status.sold { color:#9fc6df; background:rgba(65,125,165,.13); border-color:rgba(100,160,200,.35); }
+.admin-listing-status.rejected,.admin-listing-status.deleted { color:#ff9b9b; background:rgba(180,60,60,.12); border-color:rgba(210,90,90,.35); }
+.admin-listing-summary { display:flex; align-items:center; flex-wrap:wrap; gap:5px 12px; margin:4px 0 0 !important; font-size:10px !important; }
+.admin-listing-toggle { padding:4px 9px; font-size:10px; }
 .account-item strong { display:block; font-size:12px; color:var(--text); }
 .account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
 .admin-listing-extra { margin-top:9px; padding-top:8px; border-top:1px solid var(--line); }
@@ -1568,7 +1578,7 @@ function accountActionButton(label, action, id, kind = "listing", danger = false
 }
 
 function accountStatusLabel(status) {
-  return ({ all: "همه وضعیت‌ها", pending: "در انتظار بررسی", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده", forwarded: "بررسی‌شده" })[status] || status;
+  return ({ all: "همه وضعیت‌ها", pending: "در انتظار بررسی", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده", rejected: "ردشده", forwarded: "بررسی‌شده" })[status] || status;
 }
 
 function appendAccountToolbar(box, kind, pagination) {
@@ -1643,13 +1653,25 @@ function renderListingCards(box, items, admin) {
     return;
   }
   items.forEach(item => {
-    const card = makeElement("div", "account-item");
-    card.appendChild(makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`));
+    const card = makeElement("div", admin ? "account-item admin-listing-card" : "account-item");
+    const title = makeElement("strong", "", `آگهی #${item.id} · ${item.title || item.product_type || "محصول طلا"}`);
     const weightSummary = item.weight == null || item.weight === ""
       ? "وزن اعلام نشده"
       : `${item.weight} ${item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"}`;
     const placeSummary = [item.province, item.city].filter(Boolean).join("، ");
-    card.appendChild(makeElement("p", "", `وضعیت: ${item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status)} · ${weightSummary}${placeSummary ? " · " + placeSummary : ""}`));
+    const statusValue = item.deleted_at ? "deleted" : item.status;
+    const statusLabel = item.deleted_at ? "حذف‌شده" : accountStatusLabel(item.status);
+    if (admin) {
+      const heading = makeElement("div", "admin-listing-heading");
+      heading.append(title);
+      const statusBadge = makeElement("span", `admin-listing-status ${["pending","published","sold","rejected","deleted"].includes(statusValue) ? statusValue : ""}`, statusLabel);
+      heading.append(statusBadge);
+      card.append(heading);
+      card.appendChild(makeElement("p", "admin-listing-summary", `${weightSummary}${placeSummary ? " · " + placeSummary : ""}`));
+    } else {
+      card.append(title);
+      card.appendChild(makeElement("p", "", `وضعیت: ${statusLabel} · ${weightSummary}${placeSummary ? " · " + placeSummary : ""}`));
+    }
 
     const photoUrls = [item.image_url || item.photo_url, item.image_url_2 || item.photo_url_2]
       .map(value => String(value || "").trim())
