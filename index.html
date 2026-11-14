@@ -1258,7 +1258,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
       currentUserProfile.is_active === true &&
       String(currentUserProfile.full_name || '').trim() &&
       String(currentUserProfile.address || '').trim().length >= 10 &&
-      /^\\d{10}$/.test(String(currentUserProfile.national_id || ''))
+      /^\d{10}$/.test(String(currentUserProfile.national_id || ''))
     );
     const label = document.getElementById('authUserLabel');
     const roleLabel = currentUserRole === 'admin' ? 'مدیر اصلی' : 'کاربر';
