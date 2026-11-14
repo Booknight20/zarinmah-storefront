@@ -1626,7 +1626,7 @@ function appendAccountToolbar(box, kind, pagination) {
   const status = document.createElement("select");
   status.setAttribute("aria-label", "فیلتر وضعیت");
   const options = isListings
-    ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["deleted","حذف‌شده"]]
+    ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["rejected","ردشده"],["deleted","حذف‌شده"]]
     : [["all","همه درخواست‌ها"],["pending","در انتظار بررسی"],["forwarded","بررسی‌شده"]];
   options.forEach(([value,label]) => {
     const option = document.createElement("option");
