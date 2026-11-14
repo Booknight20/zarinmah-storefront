@@ -1443,6 +1443,8 @@ const accountQueryState = {
   requests_search: ""
 };
 
+let adminMembersLoaded = false;
+
 function showAccountTab(tab) {
   ["listings", "requests", "admin"].forEach(name => {
     const panel = document.getElementById(name === "listings" ? "accountListings" : name === "requests" ? "accountRequests" : "accountAdmin");
@@ -1450,7 +1452,11 @@ function showAccountTab(tab) {
     if (panel) panel.style.display = name === tab ? "grid" : "none";
     if (button) button.classList.toggle("active", name === tab);
   });
-  if (tab === "admin" && currentUserRole !== "admin") showAccountTab("listings");
+  if (tab === "admin" && currentUserRole !== "admin") {
+    showAccountTab("listings");
+    return;
+  }
+  if (tab === "admin" && !adminMembersLoaded) loadAdminMembers();
 }
 
 function accountActionButton(label, action, id, kind = "listing", danger = false) {
@@ -1974,8 +1980,8 @@ async function loadAccountPanel() {
     if (!response.ok || !result.ok) throw new Error(result.error || "دریافت اطلاعات حساب ناموفق بود.");
     if (currentAuthSession?.user?.id !== result.profile?.id) return;
     accountDataCache = result;
+    adminMembersLoaded = false;
     renderAccountPanel(result);
-    if (result.role === "admin") await loadAdminMembers();
   } catch (error) {
     boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
   } finally {
