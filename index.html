@@ -185,6 +185,14 @@ header {
 .admin-member-stat b { color:var(--gold); font-size:13px; }
 .admin-member-stat small { color:var(--muted); font-size:9px; }
 .admin-member-profile { margin-top:10px; padding:10px; border:1px solid #66552b; border-radius:9px; background:#0c1116; }
+.admin-member-role-control { display:flex; flex-direction:column; gap:7px; min-width:min(100%,280px); flex:1 1 280px; padding:9px; border:1px solid #66552b; border-radius:9px; background:#10171d; }
+.admin-member-role-control > small { color:var(--muted); font-size:11px; }
+.admin-member-role-control select { width:100%; min-height:38px; }
+.admin-role-description { padding:9px; border:1px solid #34414a; border-radius:8px; background:#0b1218; color:var(--text); font-size:11px; line-height:1.8; }
+.admin-role-description strong { display:block; color:var(--gold); margin-bottom:4px; font-size:12px; }
+.admin-role-description p { margin:3px 0 0; color:var(--muted); }
+.admin-role-preview { margin-top:2px; }
+.admin-member-profile-field:has(span) { overflow-wrap:anywhere; }
 .admin-member-profile h5 { margin:0 0 9px; color:var(--gold); font-size:12px; }
 .admin-member-profile-grid,.admin-member-listing-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
 .admin-member-profile-field,.admin-member-listing-field { min-width:0; padding:7px; border-radius:7px; background:#121a21; }
@@ -1091,6 +1099,41 @@ let currentUserRole = 'user';
 let profileReady = false;
 
 const ROLE_LABELS = { admin: 'مدیر کل', listing_manager: 'مدیر آگهی‌ها', member_manager: 'مدیر اعضا', user: 'کاربر عادی' };
+const ROLE_DESCRIPTIONS = {
+  admin: {
+    summary: "مدیریت کامل سامانه و نظارت بر همه بخش‌ها.",
+    permissions: "مشاهده و مدیریت آگهی‌ها و درخواست‌های خرید؛ مشاهده اطلاعات کامل اعضا و کد ملی؛ دسترسی به فاکتورهای خصوصی؛ فعال‌سازی و غیرفعال‌سازی حساب‌ها؛ تغییر نقش اعضا و مشاهده گزارش‌های مدیریتی.",
+    limits: "تنها مدیر کل فعلی است و این نقش از پنل به عضو دیگری واگذار نمی‌شود."
+  },
+  listing_manager: {
+    summary: "بررسی و مدیریت آگهی‌ها و درخواست‌های خرید.",
+    permissions: "مشاهده آگهی‌های اعضا؛ بررسی، تأیید، رد و مدیریت وضعیت آگهی‌ها؛ رسیدگی به درخواست‌های خرید و مشاهده اطلاعات ضروری تماس برای انجام وظیفه.",
+    limits: "بدون دسترسی به فاکتور خصوصی، کد ملی، مدیریت اعضا، تغییر نقش‌ها یا تنظیمات مدیریتی."
+  },
+  member_manager: {
+    summary: "رسیدگی به حساب‌ها و اطلاعات اعضای سامانه.",
+    permissions: "جست‌وجوی اعضا؛ مشاهده اطلاعات پروفایل و نشانی؛ مشاهده آگهی‌های هر عضو و جزئیات آن‌ها؛ ویرایش اطلاعات مجاز و فعال یا غیرفعال کردن حساب‌ها.",
+    limits: "بدون دسترسی به کد ملی، فاکتور خصوصی، تأیید یا رد آگهی‌ها، مدیریت درخواست‌های خرید یا تغییر نقش اعضا."
+  },
+  user: {
+    summary: "استفاده عادی از امکانات خریدوفروش زرین ماه.",
+    permissions: "ثبت آگهی؛ مشاهده و ویرایش آگهی‌های خودش طبق قوانین؛ مدیریت اطلاعات حساب شخصی؛ ثبت و پیگیری درخواست‌های خرید؛ مشاهده آگهی‌های منتشرشده.",
+    limits: "بدون دسترسی مدیریتی یا امکان مشاهده اطلاعات خصوصی سایر اعضا."
+  }
+};
+const roleDescriptionText = role => {
+  const info = ROLE_DESCRIPTIONS[role] || ROLE_DESCRIPTIONS.user;
+  return info.summary + " اختیارات: " + info.permissions + " محدودیت‌ها: " + info.limits;
+};
+const renderRoleDescription = (role, className = "admin-role-description") => {
+  const info = ROLE_DESCRIPTIONS[role] || ROLE_DESCRIPTIONS.user;
+  const box = makeElement("div", className);
+  box.appendChild(makeElement("strong", "", ROLE_LABELS[role] || ROLE_LABELS.user));
+  box.appendChild(makeElement("p", "", info.summary));
+  box.appendChild(makeElement("p", "", "اختیارات: " + info.permissions));
+  box.appendChild(makeElement("p", "", "محدودیت‌ها: " + info.limits));
+  return box;
+};
 const isSuperAdmin = () => currentUserRole === 'admin';
 const canManageListings = () => ['admin', 'listing_manager'].includes(currentUserRole);
 const canManageMembers = () => ['admin', 'member_manager'].includes(currentUserRole);
@@ -1353,6 +1396,7 @@ function updateAuthUI(session) {
       const roleLabel = ROLE_LABELS[currentUserRole] || ROLE_LABELS.user;
       roleBadge.textContent = 'نقش حساب: ' + roleLabel;
       roleBadge.dataset.role = currentUserRole;
+      roleBadge.title = roleDescriptionText(currentUserRole);
       userLabel.textContent = profileReady
         ? `${currentUserProfile.full_name} · ${roleLabel} · ${phone}`
         : `تکمیل اطلاعات حساب · ${phone}`;
@@ -1407,6 +1451,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
     const roleBadge = document.getElementById('authRoleLabel');
     roleBadge.textContent = 'نقش حساب: ' + (ROLE_LABELS[currentUserRole] || ROLE_LABELS.user);
     roleBadge.dataset.role = currentUserRole;
+    roleBadge.title = roleDescriptionText(currentUserRole);
     roleBadge.style.display = 'inline-flex';
     profileReady = Boolean(
       currentUserProfile &&
@@ -2101,8 +2146,15 @@ function renderAdminMembers(box, data) {
         roleSelect.appendChild(option);
       });
       roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
-      roleSelect.addEventListener("change", () => updateAdminMemberRole(member, roleSelect.value));
+      const roleInfo = renderRoleDescription(roleSelect.value, "admin-role-description admin-role-preview");
+      roleSelect.addEventListener("change", () => {
+        const nextRole = roleSelect.value;
+        roleInfo.replaceWith(renderRoleDescription(nextRole, "admin-role-description admin-role-preview"));
+        roleWrap.querySelector(".admin-role-preview")?.setAttribute("data-selected-role", nextRole);
+        updateAdminMemberRole(member, nextRole);
+      });
       roleWrap.appendChild(roleSelect);
+      roleWrap.appendChild(roleInfo);
       actions.appendChild(roleWrap);
     }
     const listings = makeElement("button", "account-action", "آگهی‌های این عضو");
@@ -2132,6 +2184,7 @@ function renderAdminMembers(box, data) {
       ["تاریخ عضویت",member.created_at ? new Date(member.created_at).toLocaleString("fa-IR") : null],
       ["آخرین به‌روزرسانی",member.updated_at ? new Date(member.updated_at).toLocaleString("fa-IR") : null],
       ["نقش حساب",roleLabel],
+      ["شرح سطح دسترسی",roleDescriptionText(member.role)],
       ["وضعیت حساب",statusLabel]
     ];
     const grid = makeElement("div", "admin-member-profile-grid");
