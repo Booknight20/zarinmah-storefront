@@ -836,14 +836,17 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
     <div class="modal-head">
       <div>
         <h2 id="profileTitle">تکمیل حساب کاربری</h2>
-        <p>برای استفاده از امکانات خرید و فروش، نام و نام خانوادگی خود را ثبت کنید.</p>
+        <p>برای استفاده از امکانات خرید و فروش، اطلاعات هویتی و نشانی خود را تکمیل کنید.</p>
       </div>
     </div>
     <form id="profileForm">
       <div class="field">
         <label for="profileFullName">نام و نام خانوادگی *</label>
         <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
-        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small><div class="field" style="margin-top:12px"><label for="profilePhone">شماره تماس *</label><input id="profilePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="مثلاً 09123456789"><small id="profilePhoneHelp">در حساب‌های ورود پیامکی، شماره تأییدشده حساب نمایش داده می‌شود و برای تغییر آن تأیید مجدد پیامکی لازم است.</small></div>
+        <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
+        <div class="field" style="margin-top:12px"><label for="profileAddress">آدرس محل سکونت *</label><textarea id="profileAddress" name="address" required maxlength="500" rows="3" autocomplete="street-address" placeholder="استان، شهر، خیابان، کوچه و پلاک"></textarea></div>
+        <div class="field" style="margin-top:12px"><label for="profileNationalId">کد ملی *</label><input id="profileNationalId" name="national_id" type="text" inputmode="numeric" dir="ltr" maxlength="10" minlength="10" pattern="[0-9۰-۹٠-٩]{10}" required autocomplete="off" placeholder="۱۰ رقم کد ملی"><small>کد ملی فقط برای احراز هویت و بررسی مدیر استفاده می‌شود.</small></div>
+        <div class="field" style="margin-top:12px"><label for="profilePhone">شماره تماس *</label><input id="profilePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="مثلاً 09123456789"><small id="profilePhoneHelp">در حساب‌های ورود پیامکی، شماره تأییدشده حساب نمایش داده می‌شود و برای تغییر آن تأیید مجدد پیامکی لازم است.</small></div>
       </div>
       <p class="auth-message" id="profileMessage" role="status" aria-live="polite"></p>
       <button class="btn" id="profileSubmit" type="submit" style="width:100%">ذخیره و ادامه</button>
@@ -1271,6 +1274,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
+      document.getElementById('profileAddress').value = currentUserProfile?.address || '';
+      document.getElementById('profileNationalId').value = currentUserProfile?.national_id || '';
       const profilePhone = document.getElementById('profilePhone');
       const isStagingEmail = IS_ZARINMAH_STAGING && !session.user.phone && Boolean(session.user.email);
       profilePhone.value = session.user.phone || currentUserProfile?.mobile || '';
@@ -1302,6 +1307,8 @@ async function editUserProfile() {
   document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
   document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
   document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
+  document.getElementById('profileAddress').value = currentUserProfile.address || '';
+  document.getElementById('profileNationalId').value = currentUserProfile.national_id || '';
   const profilePhone = document.getElementById('profilePhone');
   const isStagingEmail = IS_ZARINMAH_STAGING && !currentAuthSession.user.phone && Boolean(currentAuthSession.user.email);
   profilePhone.value = currentAuthSession.user.phone || currentUserProfile.mobile || '';
@@ -1322,6 +1329,10 @@ async function saveUserProfile(event) {
     return;
   }
   const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
+  const address = document.getElementById('profileAddress').value.trim();
+  const nationalId = document.getElementById('profileNationalId').value
+    .replace(/[۰-۹٠-٩]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) >= 0 ? '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) : '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/\D/g, '');
   const isStagingEmail = IS_ZARINMAH_STAGING && !currentAuthSession.user.phone && Boolean(currentAuthSession.user.email);
   const profilePhone = document.getElementById('profilePhone');
   const contactPhone = isStagingEmail ? normalizeIranPhone(profilePhone.value) : '';
@@ -1332,6 +1343,24 @@ async function saveUserProfile(event) {
   }
   if (fullName.split(' ').length < 2 || fullName.length < 5) {
     document.getElementById('profileMessage').textContent = 'نام و نام خانوادگی کامل را وارد کنید.';
+    return;
+  }
+  if (address.length < 10) {
+    document.getElementById('profileMessage').textContent = 'آدرس کامل محل سکونت را وارد کنید.';
+    document.getElementById('profileAddress').focus();
+    return;
+  }
+  if (!/^\d{10}$/.test(nationalId) || /^([0-9])\1{9}$/.test(nationalId)) {
+    document.getElementById('profileMessage').textContent = 'کد ملی باید ۱۰ رقم معتبر باشد.';
+    document.getElementById('profileNationalId').focus();
+    return;
+  }
+  const nationalSum = nationalId.slice(0, 9).split('').reduce((sum, digit, index) => sum + Number(digit) * (10 - index), 0);
+  const nationalRemainder = nationalSum % 11;
+  const nationalCheck = nationalRemainder < 2 ? nationalRemainder : 11 - nationalRemainder;
+  if (nationalCheck !== Number(nationalId[9])) {
+    document.getElementById('profileMessage').textContent = 'کد ملی واردشده معتبر نیست؛ آن را بررسی کنید.';
+    document.getElementById('profileNationalId').focus();
     return;
   }
   const button = document.getElementById('profileSubmit');
@@ -1347,7 +1376,7 @@ async function saveUserProfile(event) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${currentAuthSession.access_token}`
       },
-      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
+      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, address, national_id: nationalId, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
@@ -1508,6 +1537,8 @@ function renderListingCards(box, items, admin) {
       const sellerMobile = account?.mobile || item.seller_mobile || "ثبت نشده";
       sellerDetails.appendChild(makeElement("p", "", `نام فروشنده: ${sellerName}`));
       sellerDetails.appendChild(makeElement("p", "", `شماره تماس: ${sellerMobile}`));
+      sellerDetails.appendChild(makeElement("p", "", `آدرس: ${account?.address || "ثبت نشده"}`));
+      sellerDetails.appendChild(makeElement("p", "", `کد ملی: ${account?.national_id || "ثبت نشده"}`));
       sellerDetails.appendChild(makeElement("p", "", `وضعیت حساب: ${account ? (account.is_active ? "فعال" : "غیرفعال") : (item.owner_user_id ? "اطلاعات حساب در دسترس نیست" : "آگهی بدون مالک حساب کاربری")}`));
       sellerButton.addEventListener("click", () => {
         const opening = sellerDetails.hidden;
