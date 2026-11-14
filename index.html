@@ -2222,7 +2222,10 @@ function renderAdminListingTables(box, items) {
       const actions = card?.querySelector(".account-actions");
       const row = document.createElement("tr");
       row.appendChild(makeElement("td", "", String(item.id)));
-      row.appendChild(makeElement("td", "admin-row-title", title.replace(/^آگهی #\d+ · /, "")));
+      const titleCell = makeElement("td", "admin-row-title");
+      titleCell.appendChild(makeElement("span", "", title.replace(/^آگهی #\d+ · /, "")));
+      if (badge) titleCell.appendChild(badge);
+      row.appendChild(titleCell);
       row.appendChild(makeElement("td", "", weight));
       row.appendChild(makeElement("td", "", city));
       const operationCell = document.createElement("td");
