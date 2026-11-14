@@ -1513,6 +1513,8 @@ async function openAdminWorkspace() {
     const target = document.getElementById(targetId);
     if (panel && target) target.appendChild(panel);
   });
+  document.getElementById("accountAdmin").style.display = "grid";
+  document.getElementById("accountRequests").style.display = "grid";
   showAdminWorkspaceTab("listings");
 }
 
