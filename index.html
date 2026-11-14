@@ -856,7 +856,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
     <div class="modal-head">
       <div>
         <h2 id="authTitle">ورود به حساب زرین ماه</h2>
-        <p>با شماره موبایل خود کد یک‌بارمصرف دریافت کنید.</p>
+        <p id="authSubtitle">با شماره موبایل خود کد یک‌بارمصرف دریافت کنید.</p>
       </div>
       <button class="close" type="button" onclick="closeModal('authModal')" aria-label="بستن">✕</button>
     </div>
@@ -973,14 +973,24 @@ function openAccount() {
 }
 
 function openAuthModal() {
+  const title = document.getElementById('authTitle');
+  const subtitle = document.getElementById('authSubtitle');
   if (IS_ZARINMAH_STAGING) {
-    document.getElementById('authEmailModeEntry').style.display = 'flex';
+    title.textContent = 'ورود آزمایشی به زرین ماه';
+    subtitle.textContent = 'در محیط Staging ورود و ثبت‌نام فقط با ایمیل و رمز عبور انجام می‌شود؛ پیامک OTP غیرفعال است.';
+    document.getElementById('authEmailModeEntry').style.display = 'none';
+    toggleAuthMethod('email');
+  } else {
+    title.textContent = 'ورود به حساب زرین ماه';
+    subtitle.textContent = 'با شماره موبایل خود کد یک‌بارمصرف دریافت کنید.';
+    toggleAuthMethod('phone');
   }
-  toggleAuthMethod('phone');
   document.getElementById('authModal').classList.add('show');
   document.getElementById('authModal').setAttribute('aria-hidden', 'false');
   document.getElementById('authMessage').textContent = '';
-  if (!currentAuthSession) document.getElementById('authPhone').focus();
+  if (!currentAuthSession) {
+    document.getElementById(IS_ZARINMAH_STAGING ? 'authEmail' : 'authPhone').focus();
+  }
 }
 
 function setAuthMessage(message) {
@@ -988,10 +998,11 @@ function setAuthMessage(message) {
 }
 
 function toggleAuthMethod(method) {
-  const useEmail = method === 'email' && IS_ZARINMAH_STAGING;
+  const useEmail = IS_ZARINMAH_STAGING ? true : false;
   document.getElementById('authPhoneMode').style.display = useEmail ? 'none' : 'block';
   document.getElementById('authEmailMode').style.display = useEmail ? 'block' : 'none';
-  document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING && !useEmail ? 'flex' : 'none';
+  document.getElementById('authEmailModeEntry').style.display = 'none';
+  document.getElementById('authBackToPhoneButton').style.display = IS_ZARINMAH_STAGING ? 'none' : 'inline-block';
   setAuthMessage('');
   if (useEmail) {
     document.getElementById('authEmail').focus();
@@ -1167,7 +1178,7 @@ function updateAuthUI(session) {
   const loggedIn = Boolean(currentAuthSession);
   const sellerPhone = document.getElementById("sellerPhone");
   const buyerPhoneLabel = document.getElementById("buyerPhoneLabel");
-  if (sellerPhone) sellerPhone.value = loggedIn ? (session.user.phone || "") : "";
+  if (sellerPhone) sellerPhone.value = loggedIn ? (session.user.phone || currentUserProfile?.mobile || "") : "";
   if (buyerPhoneLabel) buyerPhoneLabel.textContent = loggedIn ? (session.user.phone || "شماره تأییدشده ثبت نشده") : "پس از ورود نمایش داده می‌شود.";
   document.getElementById('authLoggedOut').style.display = loggedIn ? 'none' : 'block';
   document.getElementById('authLoggedIn').style.display = loggedIn ? 'block' : 'none';
@@ -1947,7 +1958,13 @@ function openSeller() {
     return;
   }
   if (!profileReady) { location.href = '/account'; return; }
-  document.getElementById("sellerPhone").value = currentAuthSession.user.phone || "";
+  const sellerContactPhone = currentAuthSession.user.phone || currentUserProfile?.mobile || '';
+  if (!sellerContactPhone) {
+    showToast('شماره تماس در پروفایل ثبت نشده است؛ ابتدا پروفایل را ویرایش و ذخیره کنید.');
+    editUserProfile();
+    return;
+  }
+  document.getElementById("sellerPhone").value = sellerContactPhone;
   document.getElementById("sellerName").value = currentUserProfile.full_name;
   document.getElementById("sellerModal").classList.add("show");
 }
