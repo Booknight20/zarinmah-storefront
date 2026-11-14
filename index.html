@@ -136,6 +136,21 @@ header {
 
 @media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
 
+.admin-workspace { display:none; position:fixed; inset:0; z-index:90; overflow:auto; background:#0c0b09; padding:22px; }
+.admin-workspace.show { display:block; }
+.admin-workspace-inner { width:min(1200px,100%); margin:0 auto; }
+.admin-workspace-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:8px 0 18px; border-bottom:1px solid var(--line); }
+.admin-workspace-head h2 { color:var(--gold); margin:0; font-size:22px; }
+.admin-workspace-nav { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
+.admin-workspace-nav button { border:1px solid var(--line); border-radius:9px; padding:9px 14px; color:var(--text); background:#15130f; cursor:pointer; }
+.admin-workspace-nav button.active { color:#17130a; background:var(--gold); border-color:var(--gold); font-weight:bold; }
+.admin-workspace-content { border:1px solid var(--line); border-radius:14px; padding:16px; background:#11100d; min-height:55vh; }
+.admin-workspace-content > .account-list { max-height:none; overflow:visible; }
+#adminWorkspaceListings,#adminWorkspaceRequests,#adminWorkspaceMembers { display:none; }
+#adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active { display:block; }
+#adminWorkspaceMembers .account-list { max-height:none; overflow:visible; }
+@media(max-width:650px) { .admin-workspace { padding:14px; } .admin-workspace-content { padding:10px; } .admin-workspace-head h2 { font-size:18px; } }
+
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
 .hero {
@@ -931,13 +946,35 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
         <div class="account-tabs">
           <button class="account-tab active" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
           <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌های خرید</button>
-          <button class="account-tab" type="button" data-account-tab="admin" id="adminAccountTab" style="display:none" onclick="showAccountTab('admin')">مدیریت سامانه</button>
         </div>
         <button class="account-action account-refresh" type="button" onclick="loadAccountPanel()">به‌روزرسانی اطلاعات</button>
+        <button class="btn admin-workspace-launch" id="adminWorkspaceButton" type="button" style="display:none;margin:8px 0" onclick="openAdminWorkspace()">ورود به مدیریت سامانه</button>
         <div class="account-list" id="accountListings"><p class="account-empty">برای دریافت اطلاعات، کمی صبر کنید…</p></div>
         <div class="account-list" id="accountRequests" style="display:none"></div>
         <div class="account-list" id="accountAdmin" style="display:none"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-workspace" id="adminWorkspace" aria-hidden="true">
+  <div class="admin-workspace-inner">
+    <div class="admin-workspace-head">
+      <div>
+        <h2>مدیریت سامانه زرین ماه</h2>
+        <p class="auth-status">محیط اختصاصی مدیریت؛ دسترسی فقط برای مدیر سامانه</p>
+      </div>
+      <button class="btn btn-outline" type="button" onclick="closeAdminWorkspace()">بازگشت به حساب کاربری</button>
+    </div>
+    <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
+      <button type="button" class="active" data-admin-workspace-tab="listings" onclick="showAdminWorkspaceTab('listings')">مدیریت آگهی‌ها</button>
+      <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
+      <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">اعضا و فضای ذخیره‌سازی</button>
+    </div>
+    <div class="admin-workspace-content">
+      <div id="adminWorkspaceListings"></div>
+      <div id="adminWorkspaceRequests"></div>
+      <div id="adminWorkspaceMembers"></div>
     </div>
   </div>
 </div>
@@ -1451,6 +1488,64 @@ const accountQueryState = {
 };
 
 let adminMembersLoaded = false;
+let adminWorkspaceHome = null;
+
+async function openAdminWorkspace() {
+  if (!currentAuthSession?.access_token || currentUserRole !== "admin") {
+    showToast("این بخش فقط برای مدیر سامانه قابل دسترسی است.");
+    return;
+  }
+  const accountPanel = document.querySelector("#authLoggedIn .account-panel");
+  if (!accountPanel) return;
+  closeModal("authModal");
+  const workspace = document.getElementById("adminWorkspace");
+  workspace.classList.add("show");
+  workspace.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (!accountDataCache) await loadAccountPanel();
+  showAccountTab("admin");
+
+  const panels = [
+    ["accountAdmin", "adminWorkspaceListings"],
+    ["accountRequests", "adminWorkspaceRequests"],
+    ["accountListings", "adminWorkspaceMembers"]
+  ];
+  panels.forEach(([panelId, targetId]) => {
+    const panel = document.getElementById(panelId);
+    const target = document.getElementById(targetId);
+    if (panel && target) target.appendChild(panel);
+  });
+  showAdminWorkspaceTab("listings");
+}
+
+function showAdminWorkspaceTab(tab) {
+  if (currentUserRole !== "admin") return;
+  ["listings", "requests", "members"].forEach(name => {
+    const panel = document.getElementById("adminWorkspace" + name[0].toUpperCase() + name.slice(1));
+    const button = document.querySelector(`[data-admin-workspace-tab="${name}"]`);
+    if (panel) panel.classList.toggle("active", name === tab);
+    if (button) button.classList.toggle("active", name === tab);
+  });
+  if (tab === "members" && !adminMembersLoaded) loadAdminMembers();
+}
+
+function closeAdminWorkspace() {
+  const accountPanel = document.querySelector("#authLoggedIn .account-panel");
+  if (accountPanel) {
+    [
+      ["accountListings", "accountRequests", "accountAdmin"]
+    ].flat().forEach(id => {
+      const panel = document.getElementById(id);
+      if (panel) accountPanel.appendChild(panel);
+    });
+  }
+  document.getElementById("adminWorkspace").classList.remove("show");
+  document.getElementById("adminWorkspace").setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  if (currentAuthSession) openAccountDrawer();
+  showAccountTab("listings");
+}
 
 function showAccountTab(tab) {
   ["listings", "requests", "admin"].forEach(name => {
@@ -2005,7 +2100,8 @@ function renderAccountPanel(data) {
   const adminBox = document.getElementById("accountAdmin");
   [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
   const admin = data.role === "admin";
-  document.getElementById("adminAccountTab").style.display = admin ? "inline-block" : "none";
+  const adminButton = document.getElementById("adminWorkspaceButton");
+  if (adminButton) adminButton.style.display = admin ? "inline-block" : "none";
   const pagination = data.pagination || {};
   const listingsPage = pagination.listings || { page: 1, total: data.listings.length, total_pages: 1, status: "all" };
   const requestsPage = pagination.requests || { page: 1, total: data.purchase_requests.length, total_pages: 1, status: "all" };
