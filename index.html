@@ -176,18 +176,18 @@ header {
 
 @media(max-width:480px) { .account-toolbar { grid-template-columns:1fr 1fr; } .account-toolbar input { grid-column:1/-1; } }
 
-.admin-workspace { display:none; position:fixed; inset:0; z-index:90; overflow:auto; background:#0c0b09; padding:22px; }
+.admin-workspace { display:none; position:fixed; inset:0; z-index:90; overflow:auto; background:#0c0b09; padding:14px; }
 .admin-workspace.show { display:block; }
 .admin-workspace-inner { width:100%; max-width:none; margin:0 auto; }
 .admin-workspace-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:8px 0 18px; border-bottom:1px solid var(--line); }
 .admin-workspace-brand { display:flex; align-items:center; gap:12px; }
 .admin-workspace-brand img { width:62px; height:62px; object-fit:contain; flex:0 0 62px; }
 .admin-workspace-head h2 { color:var(--gold); margin:0; font-size:22px; }
-.admin-workspace-layout { display:grid; grid-template-columns:210px minmax(0,1fr); gap:12px; align-items:start; margin-top:18px; }
+.admin-workspace-layout { display:grid; grid-template-columns:180px minmax(0,1fr); gap:10px; align-items:start; margin-top:14px; width:100%; }
 .admin-workspace-nav { display:flex; flex-direction:column; gap:7px; padding:12px; border:1px solid var(--line); border-radius:14px; background:#11100d; position:sticky; top:14px; }
 .admin-workspace-nav button { width:100%; text-align:right; border:1px solid var(--line); border-radius:9px; padding:9px 12px; color:var(--text); background:#15130f; cursor:pointer; }
 .admin-workspace-nav button.active { color:#17130a; background:var(--gold); border-color:var(--gold); font-weight:bold; }
-.admin-workspace-content { min-width:0; border:1px solid var(--line); border-radius:14px; padding:16px; background:#11100d; min-height:55vh; }
+.admin-workspace-content { min-width:0; width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:14px; padding:18px; background:#11100d; min-height:55vh; }
 .admin-workspace-content > .account-list { max-height:none; overflow:visible; }
 #adminWorkspaceListings,#adminWorkspaceRequests,#adminWorkspaceMembers,#adminWorkspaceStorage { display:none; }
 #adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active,#adminWorkspaceStorage.active { display:block; }
