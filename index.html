@@ -1521,7 +1521,10 @@ function showAdminWorkspaceTab(tab) {
   ["listings", "requests"].forEach(name => {
     const panel = document.getElementById("adminWorkspace" + name[0].toUpperCase() + name.slice(1));
     const button = document.querySelector(`[data-admin-workspace-tab="${name}"]`);
-    if (panel) panel.classList.toggle("active", name === tab);
+    if (panel) {
+      panel.classList.toggle("active", name === tab);
+      panel.style.display = name === tab ? "grid" : "none";
+    }
     if (button) button.classList.toggle("active", name === tab);
   });
 }
