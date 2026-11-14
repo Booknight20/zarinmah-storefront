@@ -98,6 +98,9 @@ header {
 .account-item { border:1px solid var(--line); border-radius:10px; padding:10px; background:#0d1519; }
 .account-item strong { display:block; font-size:12px; color:var(--text); }
 .account-item p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+.admin-listing-preview-details { display:grid; gap:2px; margin:10px 0; padding:9px; border:1px solid var(--line); border-radius:8px; background:#111a1e; }
+.admin-listing-preview-details p { margin:3px 0; color:var(--text); font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
+.admin-listing-preview-details p:last-child { white-space:pre-wrap; }
 .account-listing-photos { display:flex; flex-wrap:wrap; gap:8px; margin:9px 0; }
 .account-listing-photo { width:min(150px, calc(50% - 4px)); max-height:130px; object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#090908; }
 .account-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
@@ -1561,6 +1564,34 @@ function renderListingCards(box, items, admin) {
         photos.appendChild(photo);
       });
       card.appendChild(photos);
+    }
+    if (admin) {
+      const details = makeElement("div", "admin-listing-preview-details");
+      const weightText = item.weight == null || item.weight === ""
+        ? "اعلام نشده"
+        : `${item.weight} ${item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"}`;
+      const purityText = item.purity || item.karat || "اعلام نشده";
+      const locationText = [item.province, item.city].filter(Boolean).join("، ") || "اعلام نشده";
+      let priceText = "اعلام نشده";
+      if (item.pricing_method === "fixed" && item.price != null && item.price !== "") {
+        const numericPrice = Number(item.price);
+        priceText = Number.isFinite(numericPrice) ? `${numericPrice.toLocaleString("fa-IR")} تومان` : String(item.price);
+      } else if (item.pricing_method === "percent" && item.pricing_value != null) {
+        priceText = `${item.pricing_value}٪ بالاتر از تابلو`;
+      } else if (item.pricing_method === "amount" && item.pricing_value != null) {
+        priceText = `${Number(item.pricing_value).toLocaleString("fa-IR")} تومان بالاتر از تابلو`;
+      } else if (item.pricing_method === "negotiable") {
+        priceText = "توافقی";
+      }
+      const addDetail = (label, value) => details.appendChild(makeElement("p", "", `${label}: ${value || "اعلام نشده"}`));
+      addDetail("نوع کالا", item.product_type || item.item_type || item.title);
+      addDetail("وزن", weightText);
+      addDetail("عیار", purityText);
+      addDetail("استان و شهر", locationText);
+      addDetail("قیمت‌گذاری", priceText);
+      addDetail("توضیحات فروشنده", item.description || "توضیحی ثبت نشده است");
+      if (item.created_at) addDetail("تاریخ ثبت", new Date(item.created_at).toLocaleString("fa-IR"));
+      card.appendChild(details);
     }
     if (admin) {
       const sellerButton = makeElement("button", "account-action", "اطلاعات فروشنده");
