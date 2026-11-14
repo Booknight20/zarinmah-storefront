@@ -2954,12 +2954,12 @@ document.getElementById('sellerForm').addEventListener(
       showToast('حجم هر عکس پس از فشرده‌سازی نباید بیشتر از ۵۰۰ کیلوبایت باشد.');
       return;
     }
-    if (invoice.size > maxInvoiceSize) {
+    if (invoice && invoice.size > maxInvoiceSize) {
       showToast('حجم فاکتور نباید بیشتر از ۱٫۵ مگابایت باشد.');
       return;
     }
 
-    const estimatedSize = photos.reduce((total, photo) => total + photo.size, 0) + invoice.size + 64 * 1024;
+    const estimatedSize = photos.reduce((total, photo) => total + photo.size, 0) + (invoice?.size || 0) + 64 * 1024;
 
     if (estimatedSize > 4 * 1024 * 1024) {
       showToast('حجم مجموع فایل‌ها بیشتر از حد مجاز است.');
