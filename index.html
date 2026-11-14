@@ -1008,7 +1008,7 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
     </div>
     <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
       <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
-      <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">همه آگهی‌ها</button>
+      <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">مدیریت آگهی‌ها</button>
       <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
       <button type="button" data-admin-workspace-tab="published" onclick="showAdminWorkspaceTab('published')">منتشرشده</button>
       <button type="button" data-admin-workspace-tab="sold" onclick="showAdminWorkspaceTab('sold')">فروخته‌شده</button>
@@ -2262,6 +2262,7 @@ function renderAccountPanel(data) {
   if (admin) {
     adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
     appendAccountToolbar(adminBox, "listings", listingsPage);
+    adminBox.querySelector(".account-toolbar select")?.remove();
     renderAdminListingTables(adminBox, data.listings);
     appendAccountPagination(adminBox, "listings", listingsPage);
   }
