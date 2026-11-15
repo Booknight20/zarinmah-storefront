@@ -893,6 +893,19 @@ body.account-page-open #authModal .account-profile-field strong {
   display:block; margin-top:5px; color:var(--text);
   font-size:14px; overflow-wrap:anywhere;
 }
+body.account-page-open #authModal .account-profile-field {
+  transition:border-color .18s ease, background .18s ease;
+}
+body.account-page-open #authModal .account-profile-field:hover {
+  border-color:rgba(199,162,75,.42);
+  background:linear-gradient(145deg,#14212a,#101920);
+}
+body.account-page-open #authModal .account-panel > h3 {
+  font-size:18px; letter-spacing:-.2px;
+}
+body.account-page-open #authModal .account-summary {
+  line-height:1.9;
+}
 @media(max-width:760px) {
   body.account-page-open #authModal .modal { padding:18px 13px; }
   body.account-page-open #authModal .modal-head h2 { font-size:21px; }
