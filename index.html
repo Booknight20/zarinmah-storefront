@@ -660,6 +660,43 @@ body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;
  .admin-listing-extra .account-listing-photo { width:100%; max-width:100%; }
  .admin-member-modal-head,.admin-listing-detail-header { align-items:flex-start; }
 }
+
+/* Stability fixes: render dialogs at document root to avoid transformed-parent clipping */
+html { scrollbar-gutter: stable; }
+body.admin-modal-lock { overflow:hidden !important; }
+.admin-member-profile.modal-open,.admin-listing-extra.modal-open {
+ position:fixed !important; inset:50% auto auto 50% !important;
+ transform:translate(-50%,-50%) !important;
+ width:min(1080px,calc(100vw - 40px)) !important;
+ max-width:calc(100vw - 40px) !important;
+ max-height:calc(100dvh - 40px) !important;
+ overflow-x:hidden !important; overflow-y:auto !important;
+ overscroll-behavior:contain !important;
+}
+.admin-member-profile.modal-open { min-width:0 !important; }
+.admin-listing-extra.modal-open { min-width:0 !important; }
+.admin-listing-grid-photo,.admin-listing-grid-placeholder {
+ display:block; width:100%; height:112px; min-height:112px; max-height:112px;
+ aspect-ratio:16 / 9; object-fit:contain; flex:0 0 112px;
+}
+.admin-listing-extra .account-listing-photo {
+ display:block; width:220px; height:180px; min-height:180px; max-height:180px;
+ flex:0 0 220px; object-fit:contain;
+}
+.admin-member-listing-thumb {
+ display:block; width:68px; height:68px; min-width:68px; min-height:68px;
+ max-width:68px; max-height:68px; flex:0 0 68px; object-fit:contain;
+}
+@media(max-width:760px) {
+ .admin-member-profile.modal-open,.admin-listing-extra.modal-open {
+   width:calc(100vw - 24px) !important; max-width:calc(100vw - 24px) !important;
+   max-height:calc(100dvh - 24px) !important; padding:14px !important;
+ }
+ .admin-listing-extra .account-listing-photo {
+   width:min(100%,280px); max-width:100%; height:180px; flex-basis:100%;
+ }
+}
+
 </style>
 </head>
 
@@ -1967,12 +2004,15 @@ function renderListingCards(box, items, admin, listingManager = false) {
       const detailHeading = makeElement("div", "");
       detailHeading.append(makeElement("strong", "", "پرونده کامل آگهی"));
       detailHeading.append(makeElement("small", "", "شناسه آگهی #" + item.id));
+      let listingDetailsOriginParent = null;
+      let listingDetailsOriginNext = null;
       const closeListingDetails = makeElement("button", "account-action", "بستن پرونده");
       closeListingDetails.type = "button";
       closeListingDetails.addEventListener("click", () => {
         extraDetails.classList.remove("modal-open");
         extraDetails.hidden = true;
         document.body.classList.remove("admin-modal-lock");
+        if (listingDetailsOriginParent) listingDetailsOriginParent.insertBefore(extraDetails, listingDetailsOriginNext && listingDetailsOriginNext.parentNode === listingDetailsOriginParent ? listingDetailsOriginNext : null);
         detailsToggle.textContent = "نمایش جزئیات و تصاویر";
         detailsToggle.setAttribute("aria-expanded", "false");
       });
@@ -2045,6 +2085,11 @@ function renderListingCards(box, items, admin, listingManager = false) {
       detailsToggle.type = "button";
       detailsToggle.setAttribute("aria-expanded", "false");
       detailsToggle.addEventListener("click", () => {
+        if (extraDetails.parentNode !== document.body) {
+          listingDetailsOriginParent = extraDetails.parentNode;
+          listingDetailsOriginNext = extraDetails.nextSibling;
+          document.body.appendChild(extraDetails);
+        }
         extraDetails.hidden = false;
         extraDetails.classList.add("modal-open");
         document.body.classList.add("admin-modal-lock");
@@ -2389,12 +2434,15 @@ function renderAdminMembers(box, data) {
     const modalTitle = makeElement("div", "admin-member-identity");
     modalTitle.append(makeElement("strong", "", "پرونده عضو · " + (member.full_name || "بدون نام")));
     modalTitle.append(makeElement("span", "", "شناسه عضویت: " + String(member.id || "—")));
+    let profileOriginParent = null;
+    let profileOriginNext = null;
     const closeProfile = makeElement("button", "account-action", "بستن پرونده");
     closeProfile.type = "button";
     closeProfile.addEventListener("click", () => {
       profile.classList.remove("modal-open");
       profile.hidden = true;
       document.body.classList.remove("admin-modal-lock");
+      if (profileOriginParent) profileOriginParent.insertBefore(profile, profileOriginNext && profileOriginNext.parentNode === profileOriginParent ? profileOriginNext : null);
       detailsButton.textContent = "جزئیات عضو";
     });
     modalHead.append(modalTitle, closeProfile);
@@ -2482,6 +2530,11 @@ function renderAdminMembers(box, data) {
     const detailsButton = makeElement("button", "account-action admin-member-open", "جزئیات عضو");
     detailsButton.type = "button";
     detailsButton.addEventListener("click", () => {
+      if (profile.parentNode !== document.body) {
+        profileOriginParent = profile.parentNode;
+        profileOriginNext = profile.nextSibling;
+        document.body.appendChild(profile);
+      }
       profile.hidden = false;
       profile.classList.add("modal-open");
       document.body.classList.add("admin-modal-lock");
