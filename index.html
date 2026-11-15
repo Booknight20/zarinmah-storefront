@@ -209,6 +209,9 @@ header {
 .admin-member-stat small { color:var(--muted); font-size:9px; }
 .admin-member-profile { margin-top:12px; padding:13px; border:1px solid rgba(199,162,75,.22); border-radius:11px; background:#0b1319; }
 .admin-member-profile[hidden] { display:none !important; }
+.admin-member-profile.modal-open { display:block !important; position:fixed; inset:3vh 3vw; z-index:120; overflow:auto; margin:0; padding:20px; background:#0d151b; border:1px solid var(--gold); box-shadow:0 20px 80px #000; }
+.admin-modal-lock { overflow:hidden; }
+@media(max-width:520px) { .admin-member-profile.modal-open { inset:1vh 1vw; padding:12px; } .admin-member-profile-grid { grid-template-columns:1fr; } }
 .admin-member-card .account-actions { align-items:center; gap:7px; margin-top:12px; }
 .admin-member-card .account-action { padding:7px 10px; font-size:10px; border-radius:8px; }
 .admin-member-card .admin-member-role-control { order:5; }
@@ -2291,8 +2294,10 @@ function renderAdminMembers(box, data) {
     details.type = "button";
     details.addEventListener("click", () => {
       const panel = card.querySelector(".admin-member-profile");
-      const open = panel.hidden;
+      const open = !panel.classList.contains("modal-open");
+      panel.classList.toggle("modal-open", open);
       panel.hidden = !open;
+      document.body.classList.toggle("admin-modal-lock", open);
       details.textContent = open ? "بستن اطلاعات عضو" : "مشاهده اطلاعات کامل عضو";
     });
     actions.appendChild(details);
@@ -2332,7 +2337,14 @@ function renderAdminMembers(box, data) {
     card.appendChild(actions);
     const profile = makeElement("div", "admin-member-profile");
     profile.hidden = true;
-    profile.appendChild(makeElement("h5", "", "اطلاعات ثبت‌شده عضو"));
+    profile.appendChild(makeElement("h5", "", "اطلاعات ثبت‌شده عضو"));    const closeProfile = makeElement("button", "account-action", "بستن پنجره");
+    closeProfile.type = "button";
+    closeProfile.addEventListener("click", () => {
+      profile.classList.remove("modal-open"); profile.hidden = true;
+      document.body.classList.remove("admin-modal-lock");
+      details.textContent = "مشاهده اطلاعات کامل عضو";
+    });
+    profile.appendChild(closeProfile);
     const rows = [
       ["نام و نام خانوادگی",member.full_name],
       ["شماره تماس",member.mobile],
