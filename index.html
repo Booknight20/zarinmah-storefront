@@ -799,6 +799,74 @@ body.account-drawer-open #authModal #authLoggedIn>a,body.account-drawer-open #au
 body.account-drawer-open #profileModal{z-index:110}
 body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;max-height:90vh;margin:auto;border-radius:16px}
 @keyframes accountDrawerIn{from{transform:translateX(35px);opacity:.7}to{transform:translateX(0);opacity:1}}
+
+/* Dedicated member workspace at /account */
+body.account-page-open { overflow:auto; background:#0c0b09; }
+body.account-page-open > header,
+body.account-page-open > main,
+body.account-page-open > footer { display:none !important; }
+body.account-page-open #authModal {
+  display:block; position:fixed; inset:0; z-index:80; overflow:auto;
+  padding:0; background:#0c0b09; backdrop-filter:none;
+}
+body.account-page-open #authModal .modal {
+  width:min(1440px,100%); min-height:100vh; height:auto; max-height:none;
+  overflow:visible; margin:0 auto; padding:28px clamp(16px,3vw,42px);
+  border:0; border-radius:0; background:
+    radial-gradient(ellipse at top right,rgba(199,162,75,.09),transparent 42%),
+    linear-gradient(160deg,#111a20,#0c0b09 72%);
+  box-shadow:none; animation:none;
+}
+body.account-page-open #authModal .modal-head {
+  padding:4px 0 20px; border-bottom:1px solid var(--line);
+}
+body.account-page-open #authModal .modal-head h2 { color:var(--gold); font-size:25px; }
+body.account-page-open #authModal .modal-head p { color:var(--muted); }
+body.account-page-open #authModal .modal-head .close { display:none; }
+body.account-page-open #authLoggedIn { max-width:none; }
+body.account-page-open #authLoggedIn > .auth-status {
+  display:inline-block; margin:18px 0 8px; padding:9px 13px;
+  border:1px solid var(--line); border-radius:10px; background:#10191f;
+}
+body.account-page-open #authLoggedIn > a,
+body.account-page-open #authLoggedIn > button { margin:5px 5px 5px 0; }
+body.account-page-open #authLoggedIn > a:first-of-type { margin-inline-start:0; }
+body.account-page-open #authModal .account-panel {
+  display:block; margin-top:20px; padding:20px 0 0; border-top:1px solid var(--line);
+}
+body.account-page-open #authModal .account-panel h3 {
+  color:var(--gold); font-size:21px; margin:0 0 14px;
+}
+body.account-page-open #authModal .account-tabs {
+  display:flex; flex-wrap:wrap; gap:9px; margin:12px 0;
+  padding:10px; border:1px solid var(--line); border-radius:13px;
+  background:rgba(12,18,22,.88);
+}
+body.account-page-open #authModal .account-tab {
+  min-width:150px; padding:10px 16px; font-size:12px; border-radius:9px;
+}
+body.account-page-open #authModal .account-tab.active {
+  box-shadow:0 5px 16px rgba(199,162,75,.16);
+}
+body.account-page-open #authModal .account-refresh { margin:8px 0 14px; padding:8px 13px; }
+body.account-page-open #authModal .account-list {
+  max-height:none; overflow:visible; gap:13px;
+}
+body.account-page-open #authModal .account-item {
+  padding:16px; border-radius:13px; background:linear-gradient(145deg,#121e25,#0d151a);
+}
+body.account-page-open #authModal .account-item strong { font-size:14px; }
+body.account-page-open #authModal .account-item p { font-size:12px; line-height:1.9; }
+body.account-page-open #authModal .account-toolbar { margin:14px 0; }
+@media(max-width:650px) {
+  body.account-page-open #authModal .modal { padding:18px 13px; }
+  body.account-page-open #authModal .modal-head h2 { font-size:20px; }
+  body.account-page-open #authModal .account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:8px; }
+  body.account-page-open #authModal .account-tab { min-width:0; padding:9px 7px; }
+  body.account-page-open #authLoggedIn > a,
+  body.account-page-open #authLoggedIn > button { font-size:11px; padding:8px 10px; }
+}
+
 @media(max-width:650px){body.account-drawer-open #authModal .modal{width:100%;border-radius:0;padding:18px 15px}body.account-drawer-open #authModal .modal-head h2{font-size:20px}body.account-drawer-open #profileModal .modal{width:calc(100% - 24px);height:auto;max-height:90vh;border-radius:14px}}
 
 .admin-modal-lock { overflow:hidden !important; }
@@ -1503,6 +1571,7 @@ const isAccountPage = location.pathname.replace(/\/+$/, '') === '/account';
 
 function openAccountDrawer() {
   document.body.classList.add('account-drawer-open');
+  if (isAccountPage) document.body.classList.add('account-page-open');
   const modal = document.getElementById('authModal');
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
@@ -1510,8 +1579,16 @@ function openAccountDrawer() {
 }
 
 function openAccount() {
-  if (currentAuthSession) { openAccountDrawer(); return; }
-  openAuthModal();
+  if (!currentAuthSession) {
+    openAuthModal();
+    return;
+  }
+  if (isAccountPage) {
+    openAccountDrawer();
+    return;
+  }
+  // Open the member workspace in a separate browser tab; Supabase restores the shared session.
+  window.open(new URL('/account', window.location.origin).href, '_blank', 'noopener');
 }
 
 function openAuthModal() {
@@ -1726,6 +1803,7 @@ function updateAuthUI(session) {
   document.getElementById('authLoggedIn').style.display = loggedIn ? 'block' : 'none';
   document.getElementById('accountButton').textContent = loggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام';
   if (loggedIn) {
+    document.getElementById('authTitle').textContent = isAccountPage ? 'حساب کاربری زرین ماه' : 'حساب کاربری زرین ماه';
     const phone = session.user.phone || session.user.email || '';
     const masked = phone.length > 5 ? phone.slice(0, 4) + '••••' + phone.slice(-3) : 'کاربر واردشده';
     const userLabel = document.getElementById('authUserLabel');
