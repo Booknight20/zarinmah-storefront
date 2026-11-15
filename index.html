@@ -302,66 +302,7 @@ header {
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
 
-/* Member account workspace: admin-style right navigation and left content */
-body.account-page-open { overflow:auto; background:#0c0b09; }
-body.account-page-open > header,body.account-page-open > main,body.account-page-open > footer { display:none !important; }
-body.account-page-open #authModal { display:block; position:fixed; inset:0; z-index:80; overflow:auto; padding:0; background:#0c0b09; backdrop-filter:none; }
-body.account-page-open #authModal .modal { width:min(1500px,100%); min-height:100vh; height:auto; max-height:none; overflow:visible; margin:0 auto; padding:24px clamp(14px,2.5vw,36px); border:0; border-radius:0; background:radial-gradient(ellipse at top right,rgba(199,162,75,.08),transparent 42%),linear-gradient(160deg,#111a20,#0c0b09 72%); box-shadow:none; animation:none; }
-body.account-page-open #authModal .modal-head { padding:4px 0 18px; border-bottom:1px solid var(--line); }
-body.account-page-open #authModal .modal-head h2 { color:var(--gold); font-size:24px; }
-body.account-page-open #authModal .modal-head p { color:var(--muted); }
-body.account-page-open #authModal .modal-head .close { display:none; }
-body.account-page-open #authLoggedIn { display:block !important; max-width:none; }
-body.account-page-open #authLoggedIn > .auth-status { display:block; margin:0 0 8px; padding:13px 15px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(145deg,#14212a,#0d151b); font-size:13px; }
-body.account-page-open #authLoggedIn > .account-role-badge { margin:0 0 12px; }
-body.account-page-open #authLoggedIn > a,body.account-page-open #authLoggedIn > button { margin:4px 6px 8px 0; }
-body.account-page-open #authModal .account-panel { display:grid; grid-template-columns:220px minmax(0,1fr); grid-template-rows:auto auto 1fr; gap:12px; align-items:start; margin-top:12px; padding-top:14px; border-top:1px solid var(--line); }
-body.account-page-open #authModal .account-panel > h3 { grid-column:1/-1; color:var(--gold); font-size:20px; margin:0; }
-body.account-page-open #authModal .account-tabs { grid-column:1; grid-row:2 / span 3; display:flex; flex-direction:column; align-items:stretch; gap:7px; margin:0; padding:11px; border:1px solid var(--line); border-radius:13px; background:#11100d; position:sticky; top:12px; }
-body.account-page-open #authModal .account-tab { width:100%; min-height:43px; padding:10px 12px; text-align:right; font-size:12px; border:1px solid var(--line); border-radius:9px; background:#15130f; color:var(--text); }
-body.account-page-open #authModal .account-tab.active { color:#17130a; background:var(--gold); border-color:var(--gold); font-weight:bold; }
-body.account-page-open #authModal .account-refresh,body.account-page-open #authModal #adminWorkspaceButton { grid-column:1; width:100%; margin:0; }
-body.account-page-open #authModal .account-list { grid-column:2; grid-row:2 / span 3; min-width:0; width:100%; max-height:none; overflow:visible; gap:12px; }
-body.account-page-open #authModal .account-item { padding:16px; border-radius:12px; background:linear-gradient(145deg,#121e25,#0d151a); }
-body.account-page-open #authModal .account-profile-view { align-content:start; }
-body.account-page-open #authModal .account-profile-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-body.account-page-open #authModal .account-profile-field { min-width:0; padding:13px; border:1px solid rgba(199,162,75,.17); border-radius:10px; background:#101920; }
-body.account-page-open #authModal .account-profile-field small { display:block; color:var(--muted); font-size:10px; }
-body.account-page-open #authModal .account-profile-field strong { display:block; margin-top:4px; color:var(--text); font-size:13px; overflow-wrap:anywhere; }
-@media(max-width:560px) {
-  body.account-page-open #authModal .modal { padding:16px 12px; }
-  body.account-page-open #authModal .account-panel { grid-template-columns:minmax(0,1fr); grid-template-rows:auto; gap:10px; }
-  body.account-page-open #authModal .account-tabs {
-    grid-column:1; grid-row:auto; position:relative; top:auto;
-    display:flex; flex-direction:row; flex-wrap:nowrap; align-items:stretch;
-    gap:7px; width:100%; max-width:100%; box-sizing:border-box;
-    padding:8px; overflow-x:auto; overflow-y:hidden;
-    overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
-    scrollbar-width:thin; scrollbar-color:rgba(199,162,75,.55) transparent;
-  }
-  body.account-page-open #authModal .account-tab {
-    flex:0 0 auto; width:auto; min-width:max-content; min-height:42px;
-    padding:9px 13px; text-align:center; white-space:nowrap; font-size:12px;
-  }
-  body.account-page-open #authModal .account-refresh,
-  body.account-page-open #authModal #adminWorkspaceButton {
-    grid-column:1; grid-row:auto; width:auto; max-width:100%; justify-self:start;
-  }
-  body.account-page-open #authModal .account-list {
-    grid-column:1; grid-row:auto; min-width:0; width:100%; max-width:100%;
-    box-sizing:border-box; overflow:visible;
-  }
-  body.account-page-open #authModal .account-item { padding:12px; }
-  body.account-page-open #authModal .account-profile-grid { grid-template-columns:1fr; }
-}
-@media(max-width:420px) {
-  body.account-page-open #authModal .modal { padding:12px 9px; }
-  body.account-page-open #authModal .account-panel { gap:8px; }
-  body.account-page-open #authModal .account-tabs { padding:6px; gap:6px; }
-  body.account-page-open #authModal .account-tab { min-height:40px; padding:8px 11px; font-size:11px; }
-  body.account-page-open #authModal .account-item { padding:10px; }
-}
-
+/* Member workspace styles are defined once in the dedicated block below. */
 .hero {
   padding: 60px 0;
   background:
@@ -871,63 +812,122 @@ body.account-page-open #authModal {
   padding:0; background:#0c0b09; backdrop-filter:none;
 }
 body.account-page-open #authModal .modal {
-  width:min(1440px,100%); min-height:100vh; height:auto; max-height:none;
-  overflow:visible; margin:0 auto; padding:28px clamp(16px,3vw,42px);
+  width:min(1480px,100%); min-height:100vh; height:auto; max-height:none;
+  overflow:visible; margin:0 auto; padding:30px clamp(20px,3vw,48px);
   border:0; border-radius:0; background:
     radial-gradient(ellipse at top right,rgba(199,162,75,.09),transparent 42%),
     linear-gradient(160deg,#111a20,#0c0b09 72%);
   box-shadow:none; animation:none;
 }
 body.account-page-open #authModal .modal-head {
-  padding:4px 0 20px; border-bottom:1px solid var(--line);
+  padding:4px 0 22px; border-bottom:1px solid var(--line);
 }
-body.account-page-open #authModal .modal-head h2 { color:var(--gold); font-size:25px; }
+body.account-page-open #authModal .modal-head h2 { color:var(--gold); font-size:26px; }
 body.account-page-open #authModal .modal-head p { color:var(--muted); }
 body.account-page-open #authModal .modal-head .close { display:none; }
-body.account-page-open #authLoggedIn { max-width:none; }
+body.account-page-open #authLoggedIn { display:block !important; max-width:none; }
 body.account-page-open #authLoggedIn > .auth-status {
-  display:inline-block; margin:18px 0 8px; padding:9px 13px;
+  display:inline-block; margin:18px 0 8px; padding:10px 14px;
   border:1px solid var(--line); border-radius:10px; background:#10191f;
 }
 body.account-page-open #authLoggedIn > a,
-body.account-page-open #authLoggedIn > button { margin:5px 5px 5px 0; }
-body.account-page-open #authLoggedIn > a:first-of-type { margin-inline-start:0; }
+body.account-page-open #authLoggedIn > button { margin:5px 6px 5px 0; }
 body.account-page-open #authModal .account-panel {
-  display:block; margin-top:20px; padding:20px 0 0; border-top:1px solid var(--line);
+  display:grid; grid-template-columns:245px minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto auto;
+  gap:14px; align-items:start; margin-top:22px; padding:22px 0 0;
+  border-top:1px solid var(--line);
 }
-body.account-page-open #authModal .account-panel h3 {
-  color:var(--gold); font-size:21px; margin:0 0 14px;
+body.account-page-open #authModal .account-panel > h3 {
+  grid-column:1/-1; grid-row:1; color:var(--gold);
+  font-size:22px; margin:0 0 3px;
 }
 body.account-page-open #authModal .account-tabs {
-  display:flex; flex-wrap:wrap; gap:9px; margin:12px 0;
-  padding:10px; border:1px solid var(--line); border-radius:13px;
-  background:rgba(12,18,22,.88);
+  grid-column:1; grid-row:2; display:flex; flex-direction:column;
+  align-items:stretch; gap:8px; margin:0; padding:12px;
+  border:1px solid var(--line); border-radius:14px;
+  background:linear-gradient(160deg,#121713,#0d1215);
+  position:sticky; top:16px;
 }
 body.account-page-open #authModal .account-tab {
-  min-width:150px; padding:10px 16px; font-size:12px; border-radius:9px;
+  width:100%; min-height:48px; padding:11px 14px;
+  text-align:right; font-size:13px; border:1px solid var(--line);
+  border-radius:10px; background:#151a18; color:var(--text);
 }
 body.account-page-open #authModal .account-tab.active {
-  box-shadow:0 5px 16px rgba(199,162,75,.16);
+  color:#17130a; background:var(--gold); border-color:var(--gold);
+  font-weight:700; box-shadow:0 5px 16px rgba(199,162,75,.16);
 }
-body.account-page-open #authModal .account-refresh { margin:8px 0 14px; padding:8px 13px; }
-body.account-page-open #authModal .account-list {
-  max-height:none; overflow:visible; gap:13px;
+body.account-page-open #authModal .account-refresh {
+  grid-column:1; grid-row:3; width:100%; margin:0;
+}
+body.account-page-open #authModal #adminWorkspaceButton {
+  grid-column:1; grid-row:4; width:100%; margin:0 !important;
+}
+body.account-page-open #authModal #accountProfile,
+body.account-page-open #authModal #accountSupport,
+body.account-page-open #authModal #accountListings,
+body.account-page-open #authModal #accountRequests,
+body.account-page-open #authModal #accountAdmin {
+  grid-column:2; grid-row:2 / span 3; min-width:0; width:100%;
+  max-width:100%; max-height:none; overflow:visible; gap:13px;
 }
 body.account-page-open #authModal .account-item {
-  padding:16px; border-radius:13px; background:linear-gradient(145deg,#121e25,#0d151a);
+  padding:17px; border-radius:13px;
+  background:linear-gradient(145deg,#121e25,#0d151a);
 }
 body.account-page-open #authModal .account-item strong { font-size:14px; }
 body.account-page-open #authModal .account-item p { font-size:12px; line-height:1.9; }
-body.account-page-open #authModal .account-toolbar { margin:14px 0; }
-@media(max-width:650px) {
-  body.account-page-open #authModal .modal { padding:18px 13px; }
-  body.account-page-open #authModal .modal-head h2 { font-size:20px; }
-  body.account-page-open #authModal .account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:8px; }
-  body.account-page-open #authModal .account-tab { min-width:0; padding:9px 7px; }
-  body.account-page-open #authLoggedIn > a,
-  body.account-page-open #authLoggedIn > button { font-size:11px; padding:8px 10px; }
+body.account-page-open #authModal .account-profile-grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
 }
-
+body.account-page-open #authModal .account-profile-field {
+  min-width:0; padding:14px; border:1px solid rgba(199,162,75,.17);
+  border-radius:11px; background:#101920;
+}
+body.account-page-open #authModal .account-profile-field small {
+  display:block; color:var(--muted); font-size:11px;
+}
+body.account-page-open #authModal .account-profile-field strong {
+  display:block; margin-top:5px; color:var(--text);
+  font-size:14px; overflow-wrap:anywhere;
+}
+@media(max-width:760px) {
+  body.account-page-open #authModal .modal { padding:18px 13px; }
+  body.account-page-open #authModal .modal-head h2 { font-size:21px; }
+  body.account-page-open #authModal .account-panel {
+    grid-template-columns:minmax(0,1fr); grid-template-rows:auto; gap:11px;
+  }
+  body.account-page-open #authModal .account-tabs {
+    grid-column:1; grid-row:auto; position:relative; top:auto;
+    display:flex; flex-direction:row; flex-wrap:nowrap; align-items:stretch;
+    gap:7px; width:100%; max-width:100%; box-sizing:border-box;
+    padding:8px; overflow-x:auto; overflow-y:hidden;
+    overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+  }
+  body.account-page-open #authModal .account-tab {
+    flex:0 0 auto; width:auto; min-width:max-content;
+    min-height:43px; padding:9px 13px; text-align:center;
+    white-space:nowrap; font-size:12px;
+  }
+  body.account-page-open #authModal #accountProfile,
+  body.account-page-open #authModal #accountSupport,
+  body.account-page-open #authModal #accountListings,
+  body.account-page-open #authModal #accountRequests,
+  body.account-page-open #authModal #accountAdmin {
+    grid-column:1; grid-row:auto; min-width:0; width:100%;
+  }
+  body.account-page-open #authModal .account-refresh,
+  body.account-page-open #authModal #adminWorkspaceButton {
+    grid-column:1; grid-row:auto; width:auto; max-width:100%; justify-self:start;
+  }
+  body.account-page-open #authModal .account-profile-grid { grid-template-columns:1fr; }
+}
+@media(max-width:420px) {
+  body.account-page-open #authModal .modal { padding:12px 9px; }
+  body.account-page-open #authModal .account-panel { gap:8px; }
+  body.account-page-open #authModal .account-item { padding:11px; }
+}
 @media(max-width:650px){body.account-drawer-open #authModal .modal{width:100%;border-radius:0;padding:18px 15px}body.account-drawer-open #authModal .modal-head h2{font-size:20px}body.account-drawer-open #profileModal .modal{width:calc(100% - 24px);height:auto;max-height:90vh;border-radius:14px}}
 
 .admin-modal-lock { overflow:hidden !important; }
