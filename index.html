@@ -328,8 +328,39 @@ body.account-page-open #authModal .account-profile-grid { display:grid; grid-tem
 body.account-page-open #authModal .account-profile-field { min-width:0; padding:13px; border:1px solid rgba(199,162,75,.17); border-radius:10px; background:#101920; }
 body.account-page-open #authModal .account-profile-field small { display:block; color:var(--muted); font-size:10px; }
 body.account-page-open #authModal .account-profile-field strong { display:block; margin-top:4px; color:var(--text); font-size:13px; overflow-wrap:anywhere; }
-@media(max-width:760px) { body.account-page-open #authModal .modal { padding:16px 12px; } body.account-page-open #authModal .account-panel { grid-template-columns:145px minmax(0,1fr); gap:8px; } body.account-page-open #authModal .account-tabs { padding:7px; } body.account-page-open #authModal .account-tab { min-height:40px; padding:8px; font-size:11px; } body.account-page-open #authModal .account-item { padding:11px; } }
-@media(max-width:560px) { body.account-page-open #authModal .account-panel { grid-template-columns:minmax(0,1fr); } body.account-page-open #authModal .account-tabs { grid-column:1; grid-row:auto; position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } body.account-page-open #authModal .account-tab { text-align:center; } body.account-page-open #authModal .account-refresh,body.account-page-open #authModal #adminWorkspaceButton,body.account-page-open #authModal .account-list { grid-column:1; grid-row:auto; } body.account-page-open #authModal .account-profile-grid { grid-template-columns:1fr; } }
+@media(max-width:760px) {
+  body.account-page-open #authModal .modal { padding:16px 12px; }
+  body.account-page-open #authModal .account-panel { grid-template-columns:minmax(0,1fr); grid-template-rows:auto; gap:10px; }
+  body.account-page-open #authModal .account-tabs {
+    grid-column:1; grid-row:auto; position:relative; top:auto;
+    display:flex; flex-direction:row; flex-wrap:nowrap; align-items:stretch;
+    gap:7px; width:100%; max-width:100%; box-sizing:border-box;
+    padding:8px; overflow-x:auto; overflow-y:hidden;
+    overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin; scrollbar-color:rgba(199,162,75,.55) transparent;
+  }
+  body.account-page-open #authModal .account-tab {
+    flex:0 0 auto; width:auto; min-width:max-content; min-height:42px;
+    padding:9px 13px; text-align:center; white-space:nowrap; font-size:12px;
+  }
+  body.account-page-open #authModal .account-refresh,
+  body.account-page-open #authModal #adminWorkspaceButton {
+    grid-column:1; grid-row:auto; width:auto; max-width:100%; justify-self:start;
+  }
+  body.account-page-open #authModal .account-list {
+    grid-column:1; grid-row:auto; min-width:0; width:100%; max-width:100%;
+    box-sizing:border-box; overflow:visible;
+  }
+  body.account-page-open #authModal .account-item { padding:12px; }
+  body.account-page-open #authModal .account-profile-grid { grid-template-columns:1fr; }
+}
+@media(max-width:420px) {
+  body.account-page-open #authModal .modal { padding:12px 9px; }
+  body.account-page-open #authModal .account-panel { gap:8px; }
+  body.account-page-open #authModal .account-tabs { padding:6px; gap:6px; }
+  body.account-page-open #authModal .account-tab { min-height:40px; padding:8px 11px; font-size:11px; }
+  body.account-page-open #authModal .account-item { padding:10px; }
+}
 
 .hero {
   padding: 60px 0;
