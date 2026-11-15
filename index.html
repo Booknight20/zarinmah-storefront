@@ -3177,6 +3177,7 @@ function makeElement(tag, className, content) {
 }
 
 function createListingCard(item) {
+  const article = makeElement('article', 'product');
   const visual = makeElement('div', 'product-visual');
   const heroFrame = makeElement('div', 'product-hero-frame');
   const heroPhoto = document.createElement('img');
