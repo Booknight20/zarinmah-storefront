@@ -1544,6 +1544,7 @@ body.admin-modal-lock { overflow:hidden !important; }
         <button type="button" data-admin-workspace-tab="sold" onclick="showAdminWorkspaceTab('sold')">فروخته‌شده</button>
         <button type="button" data-admin-workspace-tab="rejected" onclick="showAdminWorkspaceTab('rejected')">ردشده</button>
         <button type="button" data-admin-workspace-tab="deleted" onclick="showAdminWorkspaceTab('deleted')">حذف‌شده</button>
+        <button type="button" data-admin-workspace-tab="archive" onclick="showAdminWorkspaceTab('archive')">بایگانی آگهی‌ها</button>
         <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
         <button type="button" data-admin-workspace-tab="storage" onclick="showAdminWorkspaceTab('storage')">مدیریت فضا</button>
       </div>
@@ -2113,8 +2114,8 @@ let editingListingId = null;
 const accountQueryState = {
   listings_page: 1,
   requests_page: 1,
-  listings_status: "all",
-  requests_status: "all",
+  listings_status: "active",
+  requests_status: "active",
   listings_search: "",
   requests_search: ""
 };
@@ -2144,8 +2145,10 @@ async function openAdminWorkspace() {
         panel.style.display = "block";
       }
     });
-    accountQueryState.listings_status = "all";
+    accountQueryState.listings_status = "active";
+    accountQueryState.requests_status = "active";
     accountQueryState.listings_page = 1;
+    accountQueryState.requests_page = 1;
     await loadAccountPanel();
   }
   document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
@@ -2167,7 +2170,7 @@ async function showAdminWorkspaceTab(tab) {
   if (tab === "members" && !canManageMembers()) return;
   if (tab === "storage" && !isSuperAdmin()) return;
   if (tab === "overview" && !isSuperAdmin()) return;
-  const listingTabs = ["all","pending","published","sold","rejected","deleted"];
+  const listingTabs = ["all","pending","published","sold","rejected","deleted","archive"];
   const panels = ["overview","listings","requests","members","storage"];
   panels.forEach(name => {
     const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
@@ -2181,7 +2184,7 @@ async function showAdminWorkspaceTab(tab) {
     button.classList.toggle("active", button.dataset.adminWorkspaceTab === tab);
   });
   if (listingTabs.includes(tab)) {
-    const nextStatus = tab === "all" ? "all" : tab;
+    const nextStatus = tab === "all" ? "active" : tab;
     if (accountQueryState.listings_status !== nextStatus) {
       accountQueryState.listings_status = nextStatus;
       accountQueryState.listings_page = 1;
@@ -2234,7 +2237,7 @@ function accountActionButton(label, action, id, kind = "listing", danger = false
 
 function accountStatusLabel(status) {
   return ({
-    all: "همه وضعیت‌ها", pending: "در انتظار پاسخ فروشنده",
+    all: "همه وضعیت‌ها", active: "جاری و نیازمند پیگیری", archive: "بایگانی", pending: "در انتظار پاسخ فروشنده",
     approved: "تأییدشده؛ آماده پرداخت", paid: "پرداخت‌شده",
     published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده",
     rejected: "ردشده", expired: "منقضی‌شده", forwarded: "بررسی‌شده"
@@ -2318,8 +2321,8 @@ function appendAccountToolbar(box, kind, pagination) {
   const status = document.createElement("select");
   status.setAttribute("aria-label", "فیلتر وضعیت");
   const options = isListings
-    ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["rejected","ردشده"],["deleted","حذف‌شده"]]
-    : [["all","همه درخواست‌ها"],["pending","در انتظار پاسخ"],["approved","آماده پرداخت"],["paid","پرداخت‌شده"],["rejected","ردشده"],["expired","منقضی‌شده"]];
+    ? [["active","آگهی‌های جاری"],["archive","بایگانی آگهی‌ها"],["all","همه آگهی‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["rejected","ردشده"],["deleted","حذف‌شده"]]
+    : [["active","درخواست‌های جاری"],["archive","بایگانی درخواست‌ها"],["all","همه درخواست‌ها"],["pending","در انتظار پاسخ"],["approved","آماده پرداخت"],["paid","پرداخت‌شده"],["rejected","ردشده"],["expired","منقضی‌شده"],["forwarded","بررسی‌شده"]];
   options.forEach(([value,label]) => {
     const option = document.createElement("option");
     option.value = value;
@@ -3232,7 +3235,7 @@ function renderAccountProfile() {
   box.appendChild(makeElement("h3", "admin-members-title", "اطلاعات حساب کاربری"));
   box.appendChild(makeElement("p", "account-summary", "اطلاعات ثبت‌شده حساب شما در زرین ماه"));
   const grid = makeElement("div", "account-profile-grid");
-  [["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
+  [["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["کد ملی",profile.national_id],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
     const item = makeElement("div", "account-profile-field");
     item.append(makeElement("small","",label),makeElement("strong","",value || "ثبت نشده"));
     grid.appendChild(item);
