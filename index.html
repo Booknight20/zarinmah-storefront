@@ -2105,7 +2105,7 @@ function appendAccountToolbar(box, kind, pagination) {
   status.setAttribute("aria-label", "فیلتر وضعیت");
   const options = isListings
     ? [["all","همه وضعیت‌ها"],["pending","در انتظار بررسی"],["published","منتشرشده"],["sold","فروخته‌شده"],["rejected","ردشده"],["deleted","حذف‌شده"]]
-    : [["all","همه درخواست‌ها"],["pending","در انتظار بررسی"],["forwarded","بررسی‌شده"]];
+    : [["all","همه درخواست‌ها"],["pending","در انتظار پاسخ"],["approved","آماده پرداخت"],["paid","پرداخت‌شده"],["rejected","ردشده"],["expired","منقضی‌شده"]];
   options.forEach(([value,label]) => {
     const option = document.createElement("option");
     option.value = value;
@@ -3048,6 +3048,9 @@ function renderAccountPanel(data) {
         card.appendChild(actions);
       }
       if (item.status === "approved") card.appendChild(makeElement("p", "account-summary", "در انتظار پرداخت خریدار؛ اطلاعات تماس هنوز نمایش داده نمی‌شود."));
+    } else if (admin || listingManager) {
+      card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
+      if (item.status === "approved") card.appendChild(makeElement("p", "account-summary", "فروشنده درخواست را تأیید کرده و منتظر پرداخت خریدار است."));
     } else {
       if (item.status === "approved") {
         const pay = makeElement("button", "account-action", "پرداخت ۵۰٬۰۰۰ تومان و دریافت شماره فروشنده");
