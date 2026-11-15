@@ -3250,7 +3250,14 @@ function renderAccountProfile() {
   const grid = makeElement("div", "account-profile-grid");
   [["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["کد ملی",profile.national_id],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
     const item = makeElement("div", "account-profile-field");
-    item.append(makeElement("small","",label),makeElement("strong","",value || "ثبت نشده"));
+    const valueElement = makeElement("strong","",value || "ثبت نشده");
+    if (label === "شماره تماس" && value) {
+      valueElement.setAttribute("dir", "ltr");
+      valueElement.style.direction = "ltr";
+      valueElement.style.unicodeBidi = "isolate";
+      valueElement.style.textAlign = "right";
+    }
+    item.append(makeElement("small","",label),valueElement);
     grid.appendChild(item);
   });
   box.appendChild(grid);
