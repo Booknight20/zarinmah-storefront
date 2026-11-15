@@ -152,6 +152,12 @@ header {
 .account-pagination button { border:1px solid var(--gold); color:var(--gold); background:transparent; border-radius:7px; padding:5px 10px; font-size:11px; cursor:pointer; }
 .account-pagination button:disabled { opacity:.35; cursor:not-allowed; }
 .account-summary { color:var(--muted); font-size:11px; margin:4px 0 10px; }
+.account-deadline { display:grid; gap:2px; margin:8px 0; padding:8px 10px; border:1px solid rgba(199,162,75,.28); border-radius:8px; background:rgba(199,162,75,.06); }
+.account-deadline small { color:var(--muted); font-size:10px; }
+.account-deadline strong { color:var(--gold); font-size:14px; line-height:1.8; font-variant-numeric:tabular-nums; }
+.account-deadline span { color:var(--muted); font-size:10px; }
+.account-deadline.is-expired { border-color:rgba(210,90,90,.4); background:rgba(180,60,60,.08); }
+.account-deadline.is-expired strong { color:#ff9b9b; }
 .admin-members-section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
 .admin-members-title { color:var(--gold); font-size:13px; margin:0 0 8px; }
 .admin-overview { display:grid; gap:18px; }
@@ -2089,6 +2095,68 @@ function accountStatusLabel(status) {
   })[status] || status;
 }
 
+let accountServerTimeOffsetMs = 0;
+let accountDeadlineTimer = null;
+
+function renderRequestDeadline(item) {
+  const box = makeElement("div", "account-deadline");
+  if (!item.expires_at) {
+    box.appendChild(makeElement("small", "", "مهلت پرداخت"));
+    box.appendChild(makeElement("strong", "", "۶ ساعت پس از تأیید فروشنده"));
+    return box;
+  }
+  const expiry = new Date(item.expires_at);
+  if (Number.isNaN(expiry.getTime())) return box;
+  box.dataset.requestDeadline = "true";
+  box.dataset.expiresAt = expiry.toISOString();
+  box.appendChild(makeElement("small", "", "زمان باقی‌مانده برای پرداخت"));
+  box.appendChild(makeElement("strong", "account-deadline-countdown", "در حال محاسبه…"));
+  const endTime = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", dateStyle: "short", timeStyle: "short"
+  }).format(expiry);
+  box.appendChild(makeElement("span", "", "پایان مهلت: " + endTime + " · به وقت تهران"));
+  return box;
+}
+
+function updateAccountDeadlines() {
+  const now = Date.now() + accountServerTimeOffsetMs;
+  document.querySelectorAll("[data-request-deadline='true']").forEach(box => {
+    const expiry = new Date(box.dataset.expiresAt).getTime();
+    const countdown = box.querySelector(".account-deadline-countdown");
+    if (!Number.isFinite(expiry) || !countdown) return;
+    const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+    if (remaining <= 0) {
+      box.classList.add("is-expired");
+      countdown.textContent = "مهلت پرداخت به پایان رسیده";
+      const payButton = box.closest(".account-item")?.querySelector("[data-expiry-pay-button]");
+      if (payButton) {
+        payButton.disabled = true;
+        payButton.textContent = "مهلت پرداخت تمام شده";
+      }
+      return;
+    }
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    const seconds = remaining % 60;
+    const parts = [];
+    if (days) parts.push(days.toLocaleString("fa-IR") + " روز");
+    if (days || hours) parts.push(hours.toLocaleString("fa-IR") + " ساعت");
+    parts.push(minutes.toLocaleString("fa-IR") + " دقیقه");
+    parts.push(seconds.toLocaleString("fa-IR") + " ثانیه");
+    countdown.textContent = parts.join(" و ");
+    box.classList.remove("is-expired");
+  });
+}
+
+function startAccountDeadlineClock(serverNow) {
+  const serverTimestamp = new Date(serverNow || "").getTime();
+  accountServerTimeOffsetMs = Number.isFinite(serverTimestamp) ? serverTimestamp - Date.now() : 0;
+  if (accountDeadlineTimer) clearInterval(accountDeadlineTimer);
+  updateAccountDeadlines();
+  accountDeadlineTimer = setInterval(updateAccountDeadlines, 1000);
+}
+
 function appendAccountToolbar(box, kind, pagination) {
   const isListings = kind === "listings";
   const searchKey = isListings ? "listings_search" : "requests_search";
@@ -3023,6 +3091,7 @@ function renderAccountPanel(data) {
   const pagination = data.pagination || {};
   const listingsPage = pagination.listings || { page: 1, total: data.listings.length, total_pages: 1, status: "all" };
   const requestsPage = pagination.requests || { page: 1, total: data.purchase_requests.length, total_pages: 1, status: "all" };
+  startAccountDeadlineClock(data.server_now);
 
   appendAccountToolbar(listingsBox, "listings", listingsPage);
   listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
@@ -3047,16 +3116,24 @@ function renderAccountPanel(data) {
         );
         card.appendChild(actions);
       }
-      if (item.status === "approved") card.appendChild(makeElement("p", "account-summary", "در انتظار پرداخت خریدار؛ اطلاعات تماس هنوز نمایش داده نمی‌شود."));
+      if (item.status === "approved") {
+        card.appendChild(makeElement("p", "account-summary", "در انتظار پرداخت خریدار؛ اطلاعات تماس هنوز نمایش داده نمی‌شود."));
+        card.appendChild(renderRequestDeadline(item));
+      }
     } else if (admin || listingManager) {
       card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
-      if (item.status === "approved") card.appendChild(makeElement("p", "account-summary", "فروشنده درخواست را تأیید کرده و منتظر پرداخت خریدار است."));
+      if (item.status === "approved") {
+        card.appendChild(makeElement("p", "account-summary", "فروشنده درخواست را تأیید کرده و منتظر پرداخت خریدار است."));
+        card.appendChild(renderRequestDeadline(item));
+      }
     } else {
       if (item.status === "approved") {
         const pay = makeElement("button", "account-action", "پرداخت ۵۰٬۰۰۰ تومان و دریافت شماره فروشنده");
         pay.type = "button";
+        pay.dataset.expiryPayButton = "true";
         pay.addEventListener("click", () => startPurchasePayment(item.id));
         card.appendChild(pay);
+        card.appendChild(renderRequestDeadline(item));
       }
       if (item.status === "paid") {
         card.appendChild(makeElement("p", "account-summary", item.seller_contact ? `شماره تماس فروشنده: ${item.seller_contact}` : "پرداخت ثبت شده است؛ برای دریافت اطلاعات تماس با پشتیبانی تماس بگیرید."));
