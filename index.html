@@ -301,6 +301,36 @@ header {
 
 @media(max-width:650px) { .account-btn { padding: 8px 10px; font-size: 11px; } }
 
+
+/* Member account workspace: admin-style right navigation and left content */
+body.account-page-open { overflow:auto; background:#0c0b09; }
+body.account-page-open > header,body.account-page-open > main,body.account-page-open > footer { display:none !important; }
+body.account-page-open #authModal { display:block; position:fixed; inset:0; z-index:80; overflow:auto; padding:0; background:#0c0b09; backdrop-filter:none; }
+body.account-page-open #authModal .modal { width:min(1500px,100%); min-height:100vh; height:auto; max-height:none; overflow:visible; margin:0 auto; padding:24px clamp(14px,2.5vw,36px); border:0; border-radius:0; background:radial-gradient(ellipse at top right,rgba(199,162,75,.08),transparent 42%),linear-gradient(160deg,#111a20,#0c0b09 72%); box-shadow:none; animation:none; }
+body.account-page-open #authModal .modal-head { padding:4px 0 18px; border-bottom:1px solid var(--line); }
+body.account-page-open #authModal .modal-head h2 { color:var(--gold); font-size:24px; }
+body.account-page-open #authModal .modal-head p { color:var(--muted); }
+body.account-page-open #authModal .modal-head .close { display:none; }
+body.account-page-open #authLoggedIn { display:block !important; max-width:none; }
+body.account-page-open #authLoggedIn > .auth-status { display:block; margin:0 0 8px; padding:13px 15px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(145deg,#14212a,#0d151b); font-size:13px; }
+body.account-page-open #authLoggedIn > .account-role-badge { margin:0 0 12px; }
+body.account-page-open #authLoggedIn > a,body.account-page-open #authLoggedIn > button { margin:4px 6px 8px 0; }
+body.account-page-open #authModal .account-panel { display:grid; grid-template-columns:220px minmax(0,1fr); grid-template-rows:auto auto 1fr; gap:12px; align-items:start; margin-top:12px; padding-top:14px; border-top:1px solid var(--line); }
+body.account-page-open #authModal .account-panel > h3 { grid-column:1/-1; color:var(--gold); font-size:20px; margin:0; }
+body.account-page-open #authModal .account-tabs { grid-column:1; grid-row:2 / span 3; display:flex; flex-direction:column; align-items:stretch; gap:7px; margin:0; padding:11px; border:1px solid var(--line); border-radius:13px; background:#11100d; position:sticky; top:12px; }
+body.account-page-open #authModal .account-tab { width:100%; min-height:43px; padding:10px 12px; text-align:right; font-size:12px; border:1px solid var(--line); border-radius:9px; background:#15130f; color:var(--text); }
+body.account-page-open #authModal .account-tab.active { color:#17130a; background:var(--gold); border-color:var(--gold); font-weight:bold; }
+body.account-page-open #authModal .account-refresh,body.account-page-open #authModal #adminWorkspaceButton { grid-column:1; width:100%; margin:0; }
+body.account-page-open #authModal .account-list { grid-column:2; grid-row:2 / span 3; min-width:0; width:100%; max-height:none; overflow:visible; gap:12px; }
+body.account-page-open #authModal .account-item { padding:16px; border-radius:12px; background:linear-gradient(145deg,#121e25,#0d151a); }
+body.account-page-open #authModal .account-profile-view { align-content:start; }
+body.account-page-open #authModal .account-profile-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+body.account-page-open #authModal .account-profile-field { min-width:0; padding:13px; border:1px solid rgba(199,162,75,.17); border-radius:10px; background:#101920; }
+body.account-page-open #authModal .account-profile-field small { display:block; color:var(--muted); font-size:10px; }
+body.account-page-open #authModal .account-profile-field strong { display:block; margin-top:4px; color:var(--text); font-size:13px; overflow-wrap:anywhere; }
+@media(max-width:760px) { body.account-page-open #authModal .modal { padding:16px 12px; } body.account-page-open #authModal .account-panel { grid-template-columns:145px minmax(0,1fr); gap:8px; } body.account-page-open #authModal .account-tabs { padding:7px; } body.account-page-open #authModal .account-tab { min-height:40px; padding:8px; font-size:11px; } body.account-page-open #authModal .account-item { padding:11px; } }
+@media(max-width:560px) { body.account-page-open #authModal .account-panel { grid-template-columns:minmax(0,1fr); } body.account-page-open #authModal .account-tabs { grid-column:1; grid-row:auto; position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } body.account-page-open #authModal .account-tab { text-align:center; } body.account-page-open #authModal .account-refresh,body.account-page-open #authModal #adminWorkspaceButton,body.account-page-open #authModal .account-list { grid-column:1; grid-row:auto; } body.account-page-open #authModal .account-profile-grid { grid-template-columns:1fr; } }
+
 .hero {
   padding: 60px 0;
   background:
@@ -1439,9 +1469,16 @@ body.admin-modal-lock { overflow:hidden !important; }
       <a class="btn btn-outline" href="/" style="margin-left:8px">بازگشت به فروشگاه</a><button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button><button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
       <div class="account-panel">
         <h3>پنل حساب کاربری</h3>
-        <div class="account-tabs">
-          <button class="account-tab active" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
-          <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌های خرید</button>
+        <div class="account-tabs" role="tablist" aria-label="بخش‌های حساب کاربری">
+          <button class="account-tab active" type="button" data-account-tab="profile" onclick="showAccountTab('profile')">اطلاعات کاربر</button>
+          <button class="account-tab" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
+          <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌ها</button>
+          <button class="account-tab" type="button" data-account-tab="support" onclick="showAccountTab('support')">راهنما و پشتیبانی</button>
+        </div>
+        <div class="account-list account-profile-view" id="accountProfile" style="display:none"></div>
+        <div class="account-list account-support-view" id="accountSupport" style="display:none">
+          <section class="account-item"><strong>راهنمای استفاده از زرین ماه</strong><p>برای فروش طلا، از بخش «آگهی‌های من» آگهی ثبت کنید. آگهی پس از بررسی مدیر در سایت منتشر می‌شود.</p><p>برای خرید، از صفحه آگهی درخواست بفرستید. پس از تأیید فروشنده، مهلت پرداخت در بخش «درخواست‌ها» نمایش داده می‌شود.</p><p>تا پیش از پرداخت موفق، اطلاعات تماس فروشنده نمایش داده نمی‌شود.</p></section>
+          <section class="account-item"><strong>پشتیبانی زرین ماه</strong><p>اگر در ثبت آگهی، درخواست خرید یا حساب کاربری مشکلی دارید، از راه ارتباطی پشتیبانی درج‌شده در سایت کمک بگیرید.</p></section>
         </div>
         <button class="account-action account-refresh" type="button" onclick="loadAccountPanel()">به‌روزرسانی اطلاعات</button>
         <button class="btn admin-workspace-launch" id="adminWorkspaceButton" type="button" style="display:none;margin:8px 0" onclick="openAdminWorkspace()">ورود به مدیریت سامانه</button>
@@ -2144,16 +2181,15 @@ function closeAdminWorkspace() {
 }
 
 function showAccountTab(tab) {
-  ["listings", "requests", "admin"].forEach(name => {
-    const panel = document.getElementById(name === "listings" ? "accountListings" : name === "requests" ? "accountRequests" : "accountAdmin");
+  const panels = { profile:"accountProfile", listings:"accountListings", requests:"accountRequests", support:"accountSupport", admin:"accountAdmin" };
+  Object.entries(panels).forEach(([name,id]) => {
+    const panel = document.getElementById(id);
     const button = document.querySelector(`[data-account-tab="${name}"]`);
     if (panel) panel.style.display = name === tab ? "grid" : "none";
     if (button) button.classList.toggle("active", name === tab);
   });
-  if (tab === "admin" && !canManageMembers()) {
-    showAccountTab("listings");
-    return;
-  }
+  if (tab === "admin" && !canManageMembers()) { showAccountTab("profile"); return; }
+  if (tab === "profile") renderAccountProfile();
   if (tab === "admin" && !adminMembersLoaded) loadAdminMembers();
 }
 
@@ -3156,6 +3192,25 @@ function renderAdminListingTables(box, items, superAdmin = true, listingManager 
   if (!items.length) box.appendChild(makeElement("p", "account-empty", "آگهی‌ای با این فیلتر پیدا نشد."));
 }
 
+function renderAccountProfile() {
+  const box = document.getElementById("accountProfile");
+  if (!box) return;
+  box.replaceChildren();
+  const profile = currentUserProfile || {};
+  box.appendChild(makeElement("h3", "admin-members-title", "اطلاعات حساب کاربری"));
+  box.appendChild(makeElement("p", "account-summary", "اطلاعات ثبت‌شده حساب شما در زرین ماه"));
+  const grid = makeElement("div", "account-profile-grid");
+  [["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
+    const item = makeElement("div", "account-profile-field");
+    item.append(makeElement("small","",label),makeElement("strong","",value || "ثبت نشده"));
+    grid.appendChild(item);
+  });
+  box.appendChild(grid);
+  box.appendChild(makeElement("p","account-summary",profileReady ? "اطلاعات حساب شما تکمیل است." : "برای استفاده از همه امکانات خرید و فروش، اطلاعات حساب خود را تکمیل کنید."));
+  const edit = makeElement("button","btn","ویرایش اطلاعات کاربر");
+  edit.type = "button"; edit.addEventListener("click",editUserProfile); box.appendChild(edit);
+}
+
 function renderAccountPanel(data) {
   const listingsBox = document.getElementById("accountListings");
   const requestsBox = document.getElementById("accountRequests");
@@ -3247,6 +3302,8 @@ async function loadAccountPanel() {
     accountDataCache = result;
     adminMembersLoaded = false;
     renderAccountPanel(result);
+    renderAccountProfile();
+    showAccountTab("profile");
   } catch (error) {
     boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
   } finally {
