@@ -2002,6 +2002,10 @@ function renderListingCards(box, items, admin, listingManager = false) {
 
 let adminMembersPage = 1;
 let adminMembersSearch = "";
+let adminMembersStatus = "all";
+let adminMembersRole = "all";
+let adminMembersListings = "all";
+let adminMembersSort = "newest";
 let adminMemberListingsPages = {};
 
 function invoiceActionButton(listingId) {
@@ -2136,7 +2140,11 @@ async function loadAdminMembers() {
   const params = new URLSearchParams({
     action: "admin_members",
     members_page: String(adminMembersPage),
-    members_search: adminMembersSearch
+    members_search: adminMembersSearch,
+    members_status: adminMembersStatus,
+    members_role: adminMembersRole,
+    members_listings: adminMembersListings,
+    members_sort: adminMembersSort
   });
   try {
     const response = await fetch(LISTINGS_API + "?" + params.toString(), {
