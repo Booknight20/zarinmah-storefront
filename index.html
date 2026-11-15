@@ -1963,6 +1963,21 @@ function renderListingCards(box, items, admin, listingManager = false) {
     if (staff) {
       const extraDetails = makeElement("div", "admin-listing-extra");
       extraDetails.hidden = true;
+      const detailHeader = makeElement("div", "admin-listing-detail-header");
+      const detailHeading = makeElement("div", "");
+      detailHeading.append(makeElement("strong", "", "پرونده کامل آگهی"));
+      detailHeading.append(makeElement("small", "", "شناسه آگهی #" + item.id));
+      const closeListingDetails = makeElement("button", "account-action", "بستن پرونده");
+      closeListingDetails.type = "button";
+      closeListingDetails.addEventListener("click", () => {
+        extraDetails.classList.remove("modal-open");
+        extraDetails.hidden = true;
+        document.body.classList.remove("admin-modal-lock");
+        detailsToggle.textContent = "نمایش جزئیات و تصاویر";
+        detailsToggle.setAttribute("aria-expanded", "false");
+      });
+      detailHeader.append(detailHeading, closeListingDetails);
+      extraDetails.appendChild(detailHeader);
       if (photoUrls.length) {
         const photos = makeElement("div", "account-listing-photos");
         photoUrls.forEach((url, index) => {
@@ -2030,10 +2045,11 @@ function renderListingCards(box, items, admin, listingManager = false) {
       detailsToggle.type = "button";
       detailsToggle.setAttribute("aria-expanded", "false");
       detailsToggle.addEventListener("click", () => {
-        const opening = extraDetails.hidden;
-        extraDetails.hidden = !opening;
-        detailsToggle.setAttribute("aria-expanded", opening ? "true" : "false");
-        detailsToggle.textContent = opening ? "بستن جزئیات آگهی" : "نمایش جزئیات و تصاویر";
+        extraDetails.hidden = false;
+        extraDetails.classList.add("modal-open");
+        document.body.classList.add("admin-modal-lock");
+        detailsToggle.setAttribute("aria-expanded", "true");
+        detailsToggle.textContent = "پرونده آگهی باز است";
       });
       card.append(detailsToggle, extraDetails);
     } else {
