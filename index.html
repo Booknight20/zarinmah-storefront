@@ -290,6 +290,18 @@ header {
 #adminWorkspaceListings { min-height:calc(100vh - 230px); box-sizing:border-box; }
 #adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active,#adminWorkspaceStorage.active { display:block; }
 #adminWorkspaceMembers .account-list { max-height:none; overflow:visible; }
+.admin-request-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:9px; margin:10px 0; }
+.admin-request-card { min-width:0; display:flex; flex-direction:column; gap:5px; padding:9px; border:1px solid rgba(199,162,75,.2); border-radius:10px; background:linear-gradient(145deg,#121d25,#0b1218); }
+.admin-request-card > strong { font-size:11px; line-height:1.65; overflow-wrap:anywhere; }
+.admin-request-card > p { margin:1px 0; font-size:10px; line-height:1.65; overflow-wrap:anywhere; }
+.admin-request-card .account-summary { font-size:9px; margin:2px 0; }
+.admin-request-card .account-deadline { gap:0; margin:3px 0; padding:5px 7px; }
+.admin-request-card .account-deadline strong { font-size:11px; }
+.admin-request-card .account-deadline small,.admin-request-card .account-deadline span { font-size:9px; }
+.admin-request-card .account-actions { gap:4px; margin-top:auto; }
+.admin-request-card .account-action { flex:1 1 auto; padding:5px 6px; font-size:9px; }
+@media(max-width:1050px) { .admin-request-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:650px) { .admin-request-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; } .admin-request-card { padding:7px; } }
 @media(max-width:760px) {
   .admin-workspace { padding:14px; }
   .admin-workspace-layout { grid-template-columns: minmax(0,1fr); }
@@ -3296,9 +3308,10 @@ function renderAccountPanel(data) {
   appendAccountToolbar(requestsBox, "requests", requestsPage);
   requestsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.purchase_requests.length.toLocaleString("fa-IR")} از ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} درخواست خرید`));
   requestsBox.appendChild(makeElement("p", "admin-overview-note", "درخواست‌های در انتظار پاسخ یا پرداخت در فهرست جاری هستند؛ درخواست‌های پرداخت‌شده، ردشده، منقضی‌شده یا بررسی‌شده در بایگانی نگهداری می‌شوند."));
+  const requestGrid = makeElement("div", "admin-request-grid");
   if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
   data.purchase_requests.forEach(item => {
-    const card = makeElement("div", "account-item");
+    const card = makeElement("div", "admin-request-card");
     card.appendChild(makeElement("strong", "", `${item.is_seller_request ? "درخواست برای آگهی شما" : "درخواست خرید"} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
     card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
     if (item.is_seller_request) {
@@ -3336,8 +3349,9 @@ function renderAccountPanel(data) {
       }
       if (item.status === "pending") card.appendChild(makeElement("p", "account-summary", "در انتظار پاسخ فروشنده هستید؛ فعلاً نیازی به پرداخت نیست."));
     }
-    requestsBox.appendChild(card);
+    requestGrid.appendChild(card);
   });
+  if (data.purchase_requests.length) requestsBox.appendChild(requestGrid);
   appendAccountPagination(requestsBox, "requests", requestsPage);
 
   if (admin || listingManager) {
