@@ -357,26 +357,53 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   overflow: hidden;
 }
 .product-visual {
-  height: 180px;
-  background: #eee9df;
+  min-height: 180px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 58px;
+  align-items: stretch;
+  gap: 9px;
+  background: linear-gradient(145deg,#f3efe6,#e8e0d0);
   overflow: hidden;
 }
-.product-visual.has-second-photo {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-}
-.product-visual.has-second-photo .product-photo {
+.product-hero-frame {
   min-width: 0;
+  height: 190px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-radius:10px;
+  background:#eee9df;
 }
-.admin-member-listing-photo + .admin-member-listing-photo {
-  margin-top: 4px;
+.product-hero-photo {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  transition:opacity .18s ease;
 }
-.product-photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.product-photo-thumbs {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:0;
 }
+.product-photo-thumb {
+  width:58px;
+  height:58px;
+  padding:3px;
+  border:1px solid rgba(150,113,31,.25);
+  border-radius:8px;
+  background:#fff;
+  cursor:pointer;
+  overflow:hidden;
+}
+.product-photo-thumb.active { border:2px solid #96711f; box-shadow:0 0 0 2px rgba(150,113,31,.12); }
+.product-photo-thumb img { display:block; width:100%; height:100%; object-fit:contain; }
+.product-photo-thumb:focus-visible { outline:2px solid #96711f; outline-offset:2px; }
+.admin-member-listing-photo + .admin-member-listing-photo { margin-top:4px; }
+.product-photo { width:100%; height:100%; object-fit:contain; }
 .product-info { padding: 14px; }
 .product-info h3 { font-size: 14px; margin: 0; }
 .product-meta { font-size: 11px; color: #737b83; }
@@ -3150,46 +3177,61 @@ function makeElement(tag, className, content) {
 }
 
 function createListingCard(item) {
-  const article = makeElement('article', 'product');
   const visual = makeElement('div', 'product-visual');
-  const photo = document.createElement('img');
+  const heroFrame = makeElement('div', 'product-hero-frame');
+  const heroPhoto = document.createElement('img');
+  heroPhoto.className = 'product-hero-photo';
+  heroPhoto.alt = 'تصویر اصلی محصول طلا';
+  heroPhoto.loading = 'lazy';
+  heroPhoto.decoding = 'async';
 
-  photo.className = 'product-photo';
-  photo.alt = 'تصویر محصول طلا';
-  photo.loading = 'lazy';
-  photo.decoding = 'async';
-
-  const fallbackImage =
-    'https://placehold.co/600x400/15130f/c7a24b?text=ZarinMah+Gold';
-
+  const fallbackImage = 'https://placehold.co/600x400/15130f/c7a24b?text=ZarinMah+Gold';
   const imageUrl = String(item.photo_url || item.image_url || '').trim();
   const secondImageUrl = String(item.photo_url_2 || item.image_url_2 || '').trim();
-
-  if (imageUrl && /^https:\/\//i.test(imageUrl)) {
-    photo.src = imageUrl;
-  } else {
-    photo.src = fallbackImage;
-  }
-
-  photo.onerror = () => {
-    if (!photo.src.includes('placehold.co')) {
-      photo.src = fallbackImage;
-    }
+  const galleryUrls = [imageUrl, secondImageUrl].filter((url, index, all) =>
+    /^https:\/\//i.test(url) && all.indexOf(url) === index
+  );
+  let activeGalleryIndex = 0;
+  const setHeroPhoto = index => {
+    activeGalleryIndex = index;
+    const nextUrl = galleryUrls[index] || fallbackImage;
+    heroPhoto.style.opacity = '0.35';
+    heroPhoto.onload = () => { heroPhoto.style.opacity = '1'; };
+    heroPhoto.onerror = () => {
+      heroPhoto.onerror = null;
+      heroPhoto.src = fallbackImage;
+      heroPhoto.style.opacity = '1';
+    };
+    heroPhoto.src = nextUrl;
+    visual.querySelectorAll('.product-photo-thumb').forEach((thumb, thumbIndex) => {
+      thumb.classList.toggle('active', thumbIndex === index);
+      thumb.setAttribute('aria-pressed', thumbIndex === index ? 'true' : 'false');
+    });
   };
+  heroFrame.appendChild(heroPhoto);
+  visual.appendChild(heroFrame);
 
-  visual.appendChild(photo);
-
-  if (secondImageUrl && /^https:\/\//i.test(secondImageUrl)) {
-    visual.classList.add('has-second-photo');
-    const secondPhoto = document.createElement('img');
-    secondPhoto.className = 'product-photo';
-    secondPhoto.alt = 'تصویر دوم محصول طلا';
-    secondPhoto.loading = 'lazy';
-    secondPhoto.decoding = 'async';
-    secondPhoto.src = secondImageUrl;
-    secondPhoto.onerror = () => secondPhoto.remove();
-    visual.appendChild(secondPhoto);
+  if (galleryUrls.length > 1) {
+    const thumbs = makeElement('div', 'product-photo-thumbs');
+    galleryUrls.forEach((url, index) => {
+      const thumb = makeElement('button', 'product-photo-thumb' + (index === 0 ? ' active' : ''));
+      thumb.type = 'button';
+      thumb.setAttribute('aria-label', 'نمایش تصویر ' + (index + 1));
+      thumb.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
+      const thumbImage = document.createElement('img');
+      thumbImage.src = url;
+      thumbImage.alt = 'پیش‌نمایش تصویر ' + (index + 1);
+      thumbImage.loading = 'lazy';
+      thumbImage.decoding = 'async';
+      thumb.appendChild(thumbImage);
+      thumb.addEventListener('click', () => setHeroPhoto(index));
+      thumbs.appendChild(thumb);
+    });
+    visual.appendChild(thumbs);
+  } else if (galleryUrls.length === 1) {
+    visual.style.gridTemplateColumns = 'minmax(0,1fr)';
   }
+  setHeroPhoto(0);
 
   const info = makeElement('div', 'product-info');
 
