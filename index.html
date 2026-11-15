@@ -3183,7 +3183,7 @@ async function updateAdminMember(member, changes) {
 function renderAdminListingTables(box, items, superAdmin = true, listingManager = false) {
   const section = makeElement("section", "admin-status-section admin-listings-unified");
   const heading = makeElement("h3", "admin-status-title");
-  heading.append(makeElement("span", "", "همه آگهی‌ها"));
+  heading.append(makeElement("span", "", accountQueryState.listings_status === "archive" ? "بایگانی آگهی‌ها" : accountQueryState.listings_status === "active" ? "آگهی‌های جاری" : "همه آگهی‌ها"));
   heading.append(makeElement("small", "", items.length.toLocaleString("fa-IR") + " آگهی در این صفحه · حداکثر ۱۶ کارت"));
   section.appendChild(heading);
   const grid = makeElement("div", "admin-listing-grid");
@@ -3263,11 +3263,13 @@ function renderAccountPanel(data) {
 
   appendAccountToolbar(listingsBox, "listings", listingsPage);
   listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
+  listingsBox.appendChild(makeElement("p", "admin-overview-note", "در فهرست جاری فقط آگهی‌های در انتظار بررسی و منتشرشده نمایش داده می‌شوند. آگهی‌های فروخته‌شده، ردشده یا حذف‌شده در بایگانی باقی می‌مانند و از بین نمی‌روند."));
   renderListingCards(listingsBox, data.listings, admin, listingManager);
   appendAccountPagination(listingsBox, "listings", listingsPage);
 
   appendAccountToolbar(requestsBox, "requests", requestsPage);
   requestsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.purchase_requests.length.toLocaleString("fa-IR")} از ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} درخواست خرید`));
+  requestsBox.appendChild(makeElement("p", "admin-overview-note", "درخواست‌های در انتظار پاسخ یا پرداخت در فهرست جاری هستند؛ درخواست‌های پرداخت‌شده، ردشده، منقضی‌شده یا بررسی‌شده در بایگانی نگهداری می‌شوند."));
   if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
   data.purchase_requests.forEach(item => {
     const card = makeElement("div", "account-item");
