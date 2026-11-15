@@ -812,7 +812,8 @@ body.account-page-open #authModal {
   padding:0; background:#0c0b09; backdrop-filter:none;
 }
 body.account-page-open #authModal .modal {
-  width:min(1480px,100%); min-height:100vh; height:auto; max-height:none;
+  width:100% !important; max-width:none !important; box-sizing:border-box;
+  min-height:100vh; height:auto; max-height:none;
   overflow:visible; margin:0 auto; padding:30px clamp(20px,3vw,48px);
   border:0; border-radius:0; background:
     radial-gradient(ellipse at top right,rgba(199,162,75,.09),transparent 42%),
