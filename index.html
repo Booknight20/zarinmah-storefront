@@ -1238,23 +1238,14 @@ body.admin-modal-lock { overflow:hidden !important; }
     <div class="modal-head">
       <div>
         <h2>ثبت درخواست خرید</h2>
-        <p id="purchaseProductTitle">درخواست شما ابتدا توسط پشتیبانی زرین ماه بررسی می‌شود.</p>
+        <p id="purchaseProductTitle">فروشنده ابتدا درخواست شما را بررسی می‌کند.</p>
       </div>
       <button class="close" type="button" onclick="closeModal('purchaseModal')">✕</button>
     </div>
     <form id="purchaseForm">
-      <div class="form-grid">
-        <div class="field full">
-          <label for="buyerName">نام و نام خانوادگی *</label>
-          <input id="buyerName" name="buyer_name" required maxlength="100" autocomplete="name" placeholder="نام و نام خانوادگی">
-        </div>
-        <div class="field full">
-          <label>شماره تماس تأییدشده حساب</label>
-          <p id="buyerPhoneLabel" class="auth-status">پس از ورود نمایش داده می‌شود.</p>
-        </div>
-      </div>
-      <div class="form-note">اطلاعات تماس شما فقط به‌صورت خصوصی در اختیار پشتیبانی زرین ماه قرار می‌گیرد و در سایت یا آگهی عمومی نمایش داده نمی‌شود. ثبت درخواست به معنی قطعی‌شدن معامله نیست.</div>
-      <button class="btn" id="purchaseSubmit" type="submit" style="width:100%">ارسال درخواست خرید</button>
+      <input id="buyerName" type="hidden" value="">
+      <div class="form-note">درخواست شما ابتدا برای فروشنده ارسال می‌شود. اگر فروشنده آن را تأیید کند، می‌توانید با پرداخت ۵۰ هزار تومان اطلاعات تماس او را دریافت کنید. ثبت درخواست به معنی قطعی‌شدن معامله نیست.</div>
+      <button class="btn" id="purchaseSubmit" type="submit" style="width:100%">ارسال درخواست به فروشنده</button>
     </form>
     <div id="purchaseResult" style="display:none">
       <h3>درخواست شما ثبت شد</h3>
@@ -2090,7 +2081,12 @@ function accountActionButton(label, action, id, kind = "listing", danger = false
 }
 
 function accountStatusLabel(status) {
-  return ({ all: "همه وضعیت‌ها", pending: "در انتظار بررسی", published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده", rejected: "ردشده", forwarded: "بررسی‌شده" })[status] || status;
+  return ({
+    all: "همه وضعیت‌ها", pending: "در انتظار پاسخ فروشنده",
+    approved: "تأییدشده؛ آماده پرداخت", paid: "پرداخت‌شده",
+    published: "منتشرشده", sold: "فروخته‌شده", deleted: "حذف‌شده",
+    rejected: "ردشده", expired: "منقضی‌شده", forwarded: "بررسی‌شده"
+  })[status] || status;
 }
 
 function appendAccountToolbar(box, kind, pagination) {
@@ -3038,11 +3034,31 @@ function renderAccountPanel(data) {
   if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
   data.purchase_requests.forEach(item => {
     const card = makeElement("div", "account-item");
-    card.appendChild(makeElement("strong", "", `درخواست #${item.id} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
+    card.appendChild(makeElement("strong", "", `${item.is_seller_request ? "درخواست برای آگهی شما" : "درخواست خرید"} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
     card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
-    if (admin || listingManager) {
-      card.appendChild(makeElement("p", "", `خریدار: ${item.buyer_name || "—"} · تماس: ${item.buyer_mobile || "—"}`));
-      if (item.status === "pending") card.appendChild(accountActionButton("ثبت بررسی درخواست", "forward", item.id, "request"));
+    if (item.is_seller_request) {
+      card.appendChild(makeElement("p", "", `نام خریدار: ${item.buyer_name || "—"}`));
+      if (item.message) card.appendChild(makeElement("p", "", `پیام: ${item.message}`));
+      if (item.status === "pending") {
+        const actions = makeElement("div", "account-actions");
+        actions.append(
+          accountActionButton("تأیید درخواست", "approve", item.id, "request"),
+          accountActionButton("رد درخواست", "reject", item.id, "request", true)
+        );
+        card.appendChild(actions);
+      }
+      if (item.status === "approved") card.appendChild(makeElement("p", "account-summary", "در انتظار پرداخت خریدار؛ اطلاعات تماس هنوز نمایش داده نمی‌شود."));
+    } else {
+      if (item.status === "approved") {
+        const pay = makeElement("button", "account-action", "پرداخت ۵۰٬۰۰۰ تومان و دریافت شماره فروشنده");
+        pay.type = "button";
+        pay.addEventListener("click", () => startPurchasePayment(item.id));
+        card.appendChild(pay);
+      }
+      if (item.status === "paid") {
+        card.appendChild(makeElement("p", "account-summary", item.seller_contact ? `شماره تماس فروشنده: ${item.seller_contact}` : "پرداخت ثبت شده است؛ برای دریافت اطلاعات تماس با پشتیبانی تماس بگیرید."));
+      }
+      if (item.status === "pending") card.appendChild(makeElement("p", "account-summary", "در انتظار پاسخ فروشنده هستید؛ فعلاً نیازی به پرداخت نیست."));
     }
     requestsBox.appendChild(card);
   });
@@ -3085,11 +3101,13 @@ async function runAccountAction(kind, action, id) {
   const descriptions = {
     publish: "آگهی منتشر شود؟", reject: "آگهی رد شود؟", sold: "وضعیت آگهی به فروخته‌شده تغییر کند؟",
     delete: "آگهی به‌صورت نرم‌افزاری حذف شود؟", restore: "آگهی بازیابی و برای بررسی مجدد به حالت انتظار برگردد؟",
-    forward: "درخواست خرید به‌عنوان بررسی‌شده علامت‌گذاری شود؟"
+    forward: "درخواست خرید به‌عنوان بررسی‌شده علامت‌گذاری شود؟",
+    approve: "درخواست خرید را تأیید می‌کنید؟",
+    reject: "این درخواست خرید رد شود؟"
   };
   if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) return;
   const payload = kind === "request"
-    ? { action: "admin_purchase_action", request_id: id, request_action: action }
+    ? { action: action === "approve" || action === "reject" ? "seller_purchase_action" : "admin_purchase_action", request_id: id, request_action: action }
     : { action: canManageListings() ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
   try {
     const response = await fetch(LISTINGS_API, {
@@ -3103,6 +3121,32 @@ async function runAccountAction(kind, action, id) {
     if (!result.preview) await loadAccountPanel();
   } catch (error) {
     showToast(error.message || "عملیات ناموفق بود.");
+  }
+}
+
+async function startPurchasePayment(requestId) {
+  if (!currentAuthSession?.access_token) return openAuthModal();
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${currentAuthSession.access_token}`
+      },
+      body: JSON.stringify({
+        action: "create_purchase_payment",
+        request_id: requestId,
+        return_url: window.location.origin
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "ایجاد پرداخت ناموفق بود.");
+    if (!result.payment_url) throw new Error("نشانی درگاه پرداخت دریافت نشد.");
+    window.location.assign(result.payment_url);
+  } catch (error) {
+    showToast(error.message || "اتصال به درگاه پرداخت برقرار نشد.");
   }
 }
 
@@ -4132,10 +4176,8 @@ document.getElementById('purchaseForm').addEventListener('submit', async event =
     form.style.display = 'none';
     const resultBox = document.getElementById('purchaseResult');
     resultBox.style.display = 'block';
-    resultBox.querySelector('p').textContent = result.admin_notification_sent
-      ? 'درخواست شما به پشتیبانی زرین ماه ارسال شد. پس از بررسی، برای هماهنگی با شما تماس گرفته می‌شود.'
-      : 'درخواست شما ثبت شده، اما اطلاع‌رسانی به پشتیبانی کامل نشده است. لطفاً با پشتیبانی زرین ماه تماس بگیرید و درخواست را دوباره ثبت نکنید.';
-    showToast('درخواست خرید ثبت شد.');
+    resultBox.querySelector('p').textContent = 'درخواست شما برای فروشنده ارسال شد. پس از پاسخ فروشنده، وضعیت را در بخش «درخواست‌های خرید» حساب کاربری ببینید.';
+    showToast('درخواست برای فروشنده ارسال شد.');
   } catch (error) {
     console.error('Purchase request error:', error);
     showToast(error.message || 'ارتباط با سرور برقرار نشد.');
