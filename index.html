@@ -601,6 +601,65 @@ body.account-drawer-open #profileModal{z-index:110}
 body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;max-height:90vh;margin:auto;border-radius:16px}
 @keyframes accountDrawerIn{from{transform:translateX(35px);opacity:.7}to{transform:translateX(0);opacity:1}}
 @media(max-width:650px){body.account-drawer-open #authModal .modal{width:100%;border-radius:0;padding:18px 15px}body.account-drawer-open #authModal .modal-head h2{font-size:20px}body.account-drawer-open #profileModal .modal{width:calc(100% - 24px);height:auto;max-height:90vh;border-radius:14px}}
+
+.admin-modal-lock { overflow:hidden !important; }
+.admin-member-profile.modal-open,.admin-listing-extra.modal-open {
+ display:block !important; position:fixed !important; top:50% !important; left:50% !important;
+ right:auto !important; bottom:auto !important; transform:translate(-50%,-50%) !important;
+ width:min(1080px,94vw) !important; max-height:90vh !important; overflow:auto !important;
+ margin:0 !important; padding:22px !important; z-index:300 !important;
+ border:1px solid rgba(218,181,91,.72) !important; border-radius:18px !important;
+ background:linear-gradient(155deg,#121b22 0%,#0b1116 72%) !important;
+ box-shadow:0 0 0 100vmax rgba(0,0,0,.78),0 24px 90px rgba(0,0,0,.72) !important;
+ overscroll-behavior:contain;
+}
+.admin-member-modal-head,.admin-listing-detail-header {
+ position:sticky; top:-22px; z-index:3; display:flex; align-items:center;
+ justify-content:space-between; gap:16px; margin:-22px -22px 18px;
+ padding:17px 22px; background:linear-gradient(110deg,#1c2830,#111920);
+ border-bottom:1px solid rgba(218,181,91,.28);
+}
+.admin-member-modal-head .admin-member-identity strong,.admin-listing-detail-header strong { font-size:17px; color:var(--gold); }
+.admin-member-modal-head .admin-member-identity span,.admin-listing-detail-header small { display:block; margin-top:5px; color:var(--muted); font-size:11px; }
+.admin-member-profile-overview { grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:18px 0; }
+.admin-member-profile-stat { padding:13px 8px; background:rgba(5,12,17,.72); border-color:rgba(199,162,75,.2); }
+.admin-member-profile-stat b { font-size:20px; }
+.admin-member-profile-section { margin-top:16px; padding:17px; border-radius:13px; background:rgba(7,14,19,.72); }
+.admin-member-profile-section h5 { font-size:13px; margin-bottom:13px; }
+.admin-member-profile-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.admin-member-profile-field { padding:11px 12px; border:1px solid rgba(199,162,75,.10); border-radius:9px; }
+.admin-member-profile-field small { font-size:10px; }
+.admin-member-profile-field span { font-size:12px; line-height:1.8; }
+.admin-member-profile-actions { align-items:stretch; }
+.admin-member-profile-actions > .account-action { min-height:40px; padding:9px 15px; }
+.admin-member-listing { padding:10px 0; }
+.admin-member-listing-summary { padding:11px; border-radius:10px; background:#111b23; }
+.admin-member-listing-thumb { width:68px; height:68px; flex-basis:68px; }
+.admin-member-listing-detail { padding:14px; margin-top:8px; }
+.admin-listing-extra.modal-open { display:block !important; }
+.admin-listing-detail-header { margin-bottom:18px; }
+.admin-listing-extra .admin-listing-preview-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:16px; }
+.admin-listing-extra .admin-listing-preview-details p { margin:0; padding:11px 13px; border:1px solid rgba(199,162,75,.13); border-radius:9px; background:rgba(5,12,17,.68); font-size:12px; line-height:1.9; }
+.admin-listing-extra .admin-listing-preview-details p:last-child { grid-column:1/-1; }
+.admin-listing-extra .account-listing-photos { display:flex; flex-wrap:wrap; gap:12px; margin:8px 0 16px; }
+.admin-listing-extra .account-listing-photo { width:min(220px,32%); height:180px; object-fit:contain; border-radius:11px; background:#070b0e; border:1px solid rgba(199,162,75,.18); }
+.admin-listing-extra > .account-action { margin-top:15px; min-height:40px; }
+.admin-listing-extra .account-seller-details { margin-top:10px; padding:13px; border-radius:10px; background:#101a21; }
+.admin-listing-extra .account-seller-details p { line-height:1.9; }
+.admin-member-audit-row { grid-template-columns:1fr 1fr 2fr; padding:12px; line-height:1.8; }
+@media(max-width:760px) {
+ .admin-member-profile.modal-open,.admin-listing-extra.modal-open { width:96vw !important; max-height:92vh !important; padding:14px !important; border-radius:13px !important; }
+ .admin-member-modal-head,.admin-listing-detail-header { top:-14px; margin:-14px -14px 14px; padding:13px 14px; }
+ .admin-member-profile-overview { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .admin-member-profile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:520px) {
+ .admin-member-profile-overview { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .admin-member-profile-grid,.admin-listing-extra .admin-listing-preview-details { grid-template-columns:1fr; }
+ .admin-listing-extra .admin-listing-preview-details p:last-child { grid-column:auto; }
+ .admin-listing-extra .account-listing-photo { width:100%; max-width:100%; }
+ .admin-member-modal-head,.admin-listing-detail-header { align-items:flex-start; }
+}
 </style>
 </head>
 
