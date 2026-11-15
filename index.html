@@ -2393,7 +2393,7 @@ function renderAdminMembers(box, data) {
     management.appendChild(actions);
     profile.appendChild(management);
 
-    const listingsSection = makeElement("section", "admin-member-profile-section");
+    const listingsSection = makeElement("section", "admin-member-profile-section admin-member-listings-section");
     listingsSection.appendChild(makeElement("h5", "", "آگهی‌های ثبت‌شده عضو"));
     profile.appendChild(listingsSection);
 
@@ -2472,7 +2472,7 @@ async function toggleAdminMemberListings(member, profile, button) {
   button.textContent = "بستن فهرست آگهی‌ها";
   const panel = makeElement("div", "admin-member-listings");
   panel.appendChild(makeElement("p", "account-empty", "در حال دریافت آگهی‌های عضو..."));
-  const section = profile.querySelector(".admin-member-profile-section:last-of-type");
+  const section = profile.querySelector(".admin-member-listings-section");
   (section || profile).appendChild(panel);
   await loadAdminMemberListings(member.id, panel);
 }
