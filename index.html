@@ -2202,6 +2202,12 @@ async function showAdminWorkspaceTab(tab) {
       accountQueryState.listings_status = nextStatus;
       accountQueryState.listings_page = 1;
       await loadAccountPanel();
+      // loadAccountPanel restores the regular account tab state; re-show the
+      // management workspace listing panel after its data has been refreshed.
+      const refreshedListingsBox = document.getElementById("accountAdmin");
+      const refreshedWorkspaceListings = document.getElementById("adminWorkspaceListings");
+      if (refreshedListingsBox) refreshedListingsBox.style.display = "block";
+      if (refreshedWorkspaceListings) refreshedWorkspaceListings.style.display = "block";
     }
   } else if (tab === "overview") {
     await loadAdminDashboardStats();
