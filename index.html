@@ -122,24 +122,19 @@ header {
 .admin-status-section.sold .admin-status-title { background:rgba(65,125,165,.10); }
 .admin-status-section.rejected .admin-status-title,.admin-status-section.deleted .admin-status-title { background:rgba(180,60,60,.10); }
 .admin-status-title small { color:var(--muted); font-size:10px; font-weight:400; }
-.admin-listing-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:11px; }
-.admin-listing-table th,.admin-listing-table td { padding:6px 8px; border-top:1px solid rgba(199,162,75,.12); text-align:right; vertical-align:middle; overflow-wrap:anywhere; }
-.admin-listing-table th { color:var(--muted); font-size:10px; font-weight:600; background:rgba(255,255,255,.025); }
-.admin-listing-table .admin-row-title { font-weight:700; color:var(--text); }
-.admin-listing-table .admin-row-details td { padding:8px 10px; background:#10171a; }
-.admin-listing-table .admin-row-details[hidden] { display:none; }
-.admin-listing-table .admin-listing-extra { margin:0; padding:0; border:0; }
-.admin-listing-table .admin-listing-toggle { margin:0; white-space:nowrap; }
-.admin-listing-table .account-actions { margin:0; gap:4px; }
-.admin-listing-table .account-action { padding:4px 7px; font-size:10px; }
-@media(max-width:650px) {
- .admin-listing-table { font-size:10px; }
- .admin-listing-table th,.admin-listing-table td { padding:5px 4px; }
- .admin-listing-table th:first-child,.admin-listing-table td:first-child { display:none; }
- .admin-listing-table .admin-row-title { font-size:10px; }
- .admin-listing-table .account-actions { flex-direction:column; align-items:stretch; }
- .admin-listing-table .account-action { white-space:nowrap; }
-}
+.admin-listing-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; padding:11px; }
+.admin-listing-grid-card { min-width:0; display:flex; flex-direction:column; gap:7px; padding:9px; border:1px solid rgba(199,162,75,.18); border-radius:11px; background:linear-gradient(145deg,#121d25,#0b1218); }
+.admin-listing-grid-photo,.admin-listing-grid-placeholder { width:100%; height:112px; object-fit:contain; border-radius:8px; background:#080d11; border:1px solid rgba(199,162,75,.12); }
+.admin-listing-grid-placeholder { display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:10px; }
+.admin-listing-grid-top { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; }
+.admin-listing-grid-title { font-size:11px; line-height:1.7; overflow-wrap:anywhere; }
+.admin-listing-grid-summary { margin:0; color:var(--muted); font-size:10px; line-height:1.8; }
+.admin-listing-grid-card .admin-listing-toggle { margin-top:auto; width:100%; }
+.admin-listing-grid-card .account-actions { display:flex; flex-direction:column; }
+.admin-listing-grid-card .account-action { width:100%; }
+.admin-listing-grid-card .admin-listing-extra { padding-top:7px; border-top:1px solid var(--line); }
+@media(max-width:1050px) { .admin-listing-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:650px) { .admin-listing-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:8px; } .admin-listing-grid-card { padding:7px; } .admin-listing-grid-photo,.admin-listing-grid-placeholder { height:88px; } }
 
 .admin-listing-preview-details { display:grid; gap:2px; margin:10px 0; padding:9px; border:1px solid var(--line); border-radius:8px; background:#111a1e; }
 .admin-listing-preview-details p { margin:3px 0; color:var(--text); font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
@@ -187,7 +182,7 @@ header {
 .admin-member-toolbar { grid-template-columns:minmax(180px,1.5fr) auto repeat(4,minmax(125px,1fr)); }
 .admin-member-filter { min-width:0; width:100%; padding:9px 8px; border:1px solid var(--line); border-radius:9px; background:#0d141a; color:var(--text); font-size:11px; }
 @media(max-width:900px) { .admin-member-toolbar { grid-template-columns:1fr 1fr; } .admin-member-toolbar input { grid-column:1/-1; } }
-.admin-member-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:12px; max-height:none; overflow:visible; }
+.admin-member-list { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); align-items:stretch; gap:10px; max-height:none; overflow:visible; }
 .admin-member-listings { margin-top:9px; padding:9px; border:1px solid #66552b; border-radius:8px; background:#0c1116; display:grid; gap:8px; }
 .admin-member-listing { padding:8px; border-bottom:1px solid var(--line); }
 .admin-member-listing-photo { display:block; width:min(220px,100%); max-height:180px; object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#090908; margin:7px 0; }
@@ -196,35 +191,51 @@ header {
 .admin-member-listing p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
 .admin-member-listing .account-actions { margin-top:7px; }
 
-.admin-member-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; padding-bottom:10px; border-bottom:1px solid rgba(199,162,75,.12); }
+.admin-member-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding-bottom:9px; border-bottom:1px solid rgba(199,162,75,.12); }
 .admin-member-identity { min-width:0; }
 .admin-member-identity span { display:block; margin-top:4px; color:var(--muted); font-size:11px; direction:ltr; text-align:right; }
 .admin-member-state { flex:0 0 auto; border:1px solid var(--line); border-radius:20px; padding:4px 9px; font-size:10px; white-space:nowrap; background:rgba(255,255,255,.025); }
 .admin-member-state.active { color:#70d5a0; border-color:rgba(70,190,125,.4); }
 .admin-member-state.inactive { color:#ff9b9b; border-color:rgba(210,90,90,.4); }
-.admin-member-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin:12px 0; }
+.admin-member-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; margin:9px 0; }
 .admin-member-stat { min-width:0; padding:8px 3px; border:1px solid rgba(199,162,75,.09); border-radius:8px; background:rgba(5,12,17,.58); text-align:center; }
 .admin-member-stat b,.admin-member-stat small { display:block; }
 .admin-member-stat b { color:var(--gold); font-size:13px; }
 .admin-member-stat small { color:var(--muted); font-size:9px; }
 .admin-member-profile { margin-top:12px; padding:13px; border:1px solid rgba(199,162,75,.22); border-radius:11px; background:#0b1319; }
 .admin-member-profile[hidden] { display:none !important; }
-.admin-member-profile.modal-open { display:block !important; position:fixed; inset:3vh 3vw; z-index:120; overflow:auto; margin:0; padding:20px; background:#0d151b; border:1px solid var(--gold); box-shadow:0 20px 80px #000; }
+.admin-member-profile.modal-open { display:block !important; position:fixed; inset:2vh 2vw; z-index:120; overflow:auto; margin:0; padding:20px; background:#0d151b; border:1px solid var(--gold); border-radius:16px; box-shadow:0 20px 80px #000; }
 .admin-modal-lock { overflow:hidden; }
 .admin-member-audit { margin-top:16px; padding-top:12px; border-top:1px solid var(--line); }
 .admin-member-audit-row { display:grid; grid-template-columns:1fr 1fr 2fr; gap:8px; padding:9px; border:1px solid rgba(199,162,75,.14); border-radius:8px; margin:7px 0; background:#111a21; font-size:11px; }
 .admin-member-audit-row small { color:var(--muted); }
 @media(max-width:520px) { .admin-member-audit-row { grid-template-columns:1fr; } }
 @media(max-width:520px) { .admin-member-profile.modal-open { inset:1vh 1vw; padding:12px; } .admin-member-profile-grid { grid-template-columns:1fr; } }
-.admin-member-card .account-actions { align-items:center; gap:7px; margin-top:12px; }
 .admin-member-card .account-action { padding:7px 10px; font-size:10px; border-radius:8px; }
-.admin-member-card .admin-member-role-control { order:5; }
-@media(max-width:1050px) { .admin-member-list { grid-template-columns:1fr; } }
+.admin-member-card-role { margin:7px 0 0 !important; color:var(--gold) !important; font-size:10px !important; }
+.admin-member-open { width:100%; margin-top:5px; }
+.admin-member-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--line); }
+.admin-member-profile-overview { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin:14px 0; }
+.admin-member-profile-stat { padding:10px 6px; border:1px solid rgba(199,162,75,.16); border-radius:9px; background:#111b22; text-align:center; }
+.admin-member-profile-stat b,.admin-member-profile-stat small { display:block; }
+.admin-member-profile-stat b { color:var(--gold); font-size:17px; }
+.admin-member-profile-stat small { color:var(--muted); font-size:9px; }
+.admin-member-profile-section { margin-top:14px; padding:13px; border:1px solid rgba(199,162,75,.16); border-radius:11px; background:#0b1319; }
+.admin-member-profile-section h5 { margin:0 0 10px; color:var(--gold); font-size:12px; }
+.admin-member-profile-actions { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; }
+.admin-member-profile-actions > .account-action { align-self:center; }
+.admin-member-profile-actions .admin-member-role-control { flex:1 1 230px; }
+@media(max-width:1050px) { .admin-member-list { grid-template-columns:repeat(3,minmax(0,1fr)); } .admin-member-profile-overview { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:650px) {
-  .admin-member-card { padding:11px; }
-  .admin-member-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .admin-member-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+  .admin-member-card { padding:9px; }
+  .admin-member-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .admin-member-heading { align-items:flex-start; flex-direction:column; }
-  .admin-member-role-control { min-width:100%; }
+  .admin-member-profile.modal-open { inset:1vh 1vw; padding:12px; }
+  .admin-member-profile-grid { grid-template-columns:1fr; }
+  .admin-member-profile-overview { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .admin-member-modal-head { flex-direction:column; }
+  .admin-member-profile-actions .admin-member-role-control { min-width:100%; }
 }
 .admin-member-role-control { display:flex; flex-direction:column; gap:6px; min-width:min(100%,230px); flex:1 1 230px; padding:9px 11px; border:1px solid rgba(199,162,75,.22); border-radius:10px; background:#0d151c; }
 .admin-member-role-control > small { color:var(--muted); font-size:10px; }
@@ -2241,7 +2252,8 @@ function renderAdminMembers(box, data) {
     box.appendChild(section);
   }
   section.replaceChildren();
-  section.appendChild(makeElement("h4", "admin-members-title", `مدیریت اعضا · ${Number(data.pagination?.total || 0).toLocaleString("fa-IR")} عضو`));
+  const totalMembers = Number(data.pagination?.total || 0);
+  section.appendChild(makeElement("h4", "admin-members-title", `مدیریت اعضا · ${totalMembers.toLocaleString("fa-IR")} عضو`));
   const toolbar = makeElement("div", "admin-member-toolbar");
   const search = document.createElement("input");
   search.type = "search";
@@ -2258,97 +2270,71 @@ function renderAdminMembers(box, data) {
   apply.addEventListener("click", runSearch);
   search.addEventListener("keydown", event => { if (event.key === "Enter") runSearch(); });
   const makeFilter = (items, current, setter) => {
-    const select = document.createElement('select');
-    select.className = 'admin-member-filter';
-    items.forEach(item => { const option=document.createElement('option'); option.value=item[0]; option.textContent=item[1]; select.appendChild(option); });
-    select.value=current;
-    select.addEventListener('change', () => { setter(select.value); adminMembersPage=1; loadAdminMembers(); });
+    const select = document.createElement("select");
+    select.className = "admin-member-filter";
+    items.forEach(item => { const option=document.createElement("option"); option.value=item[0]; option.textContent=item[1]; select.appendChild(option); });
+    select.value = current;
+    select.addEventListener("change", () => { setter(select.value); adminMembersPage=1; loadAdminMembers(); });
     return select;
   };
-  const statusFilter=makeFilter([['all','همه وضعیت‌ها'],['active','فقط فعال'],['inactive','فقط غیرفعال']],adminMembersStatus,v=>adminMembersStatus=v);
-  const roleFilter=makeFilter([['all','همه نقش‌ها'],['user','کاربر عادی'],['listing_manager','مدیر آگهی‌ها'],['member_manager','مدیر اعضا'],['admin','مدیر کل']],adminMembersRole,v=>adminMembersRole=v);
-  const listingFilter=makeFilter([['all','همه اعضا'],['with','دارای آگهی'],['without','بدون آگهی']],adminMembersListings,v=>adminMembersListings=v);
-  const sortFilter=makeFilter([['newest','جدیدترین عضویت'],['oldest','قدیمی‌ترین عضویت'],['most_listings','بیشترین آگهی']],adminMembersSort,v=>adminMembersSort=v);
+  const statusFilter=makeFilter([["all","همه وضعیت‌ها"],["active","فقط فعال"],["inactive","فقط غیرفعال"]],adminMembersStatus,v=>adminMembersStatus=v);
+  const roleFilter=makeFilter([["all","همه نقش‌ها"],["user","کاربر عادی"],["listing_manager","مدیر آگهی‌ها"],["member_manager","مدیر اعضا"],["admin","مدیر کل"]],adminMembersRole,v=>adminMembersRole=v);
+  const listingFilter=makeFilter([["all","همه اعضا"],["with","دارای آگهی"],["without","بدون آگهی"]],adminMembersListings,v=>adminMembersListings=v);
+  const sortFilter=makeFilter([["newest","جدیدترین عضویت"],["oldest","قدیمی‌ترین عضویت"],["most_listings","بیشترین آگهی"]],adminMembersSort,v=>adminMembersSort=v);
   toolbar.append(search,apply,statusFilter,roleFilter,listingFilter,sortFilter);
   section.appendChild(toolbar);
+
   const list = makeElement("div", "admin-member-list");
   if (!data.members?.length) list.appendChild(makeElement("p", "account-empty", "عضوی با این مشخصات پیدا نشد."));
   (data.members || []).forEach(member => {
     const card = makeElement("article", "admin-member-card");
-    const heading = makeElement("div", "admin-member-heading");
-    const identity = makeElement("div", "admin-member-identity");
-    identity.appendChild(makeElement("strong", "", member.full_name || "بدون نام"));
-    identity.appendChild(makeElement("span", "", member.mobile || "شماره تماس ثبت نشده"));
-    heading.appendChild(identity);
     const counts = member.listing_counts || {};
     const roleLabel = ROLE_LABELS[member.role] || ROLE_LABELS.user;
     const statusLabel = member.is_active ? "فعال" : "غیرفعال";
-    heading.appendChild(makeElement("span", member.is_active ? "admin-member-state active" : "admin-member-state inactive", roleLabel + " · " + statusLabel));
-    card.appendChild(heading);
+    const heading = makeElement("div", "admin-member-heading");
+    const identity = makeElement("div", "admin-member-identity");
+    identity.append(makeElement("strong", "", member.full_name || "بدون نام"));
+    identity.append(makeElement("span", "", member.mobile || "شماره تماس ثبت نشده"));
+    heading.append(identity);
+    heading.append(makeElement("span", member.is_active ? "admin-member-state active" : "admin-member-state inactive", statusLabel));
+    card.append(heading);
+    const role = makeElement("p", "admin-member-card-role", roleLabel);
+    card.append(role);
     const stats = makeElement("div", "admin-member-stats");
-    [["کل آگهی‌ها",counts.total],["در انتظار",counts.pending],["منتشرشده",counts.published],["فروخته‌شده",counts.sold],["حذف‌شده",counts.deleted]].forEach(([label,value]) => {
+    [["کل",counts.total],["منتشرشده",counts.published],["در انتظار",counts.pending],["فروخته‌شده",counts.sold]].forEach(([label,value]) => {
       const stat = makeElement("div", "admin-member-stat");
-      stat.appendChild(makeElement("b", "", Number(value || 0).toLocaleString("fa-IR")));
-      stat.appendChild(makeElement("small", "", label));
+      stat.append(makeElement("b", "", Number(value || 0).toLocaleString("fa-IR")), makeElement("small", "", label));
       stats.appendChild(stat);
     });
-    card.appendChild(stats);
-    const actions = makeElement("div", "account-actions");
-    const details = makeElement("button", "account-action", "مشاهده اطلاعات کامل عضو");
-    details.type = "button";
-    details.addEventListener("click", () => {
-      const panel = card.querySelector(".admin-member-profile");
-      const open = !panel.classList.contains("modal-open");
-      panel.classList.toggle("modal-open", open);
-      panel.hidden = !open;
-      document.body.classList.toggle("admin-modal-lock", open);
-      details.textContent = open ? "بستن اطلاعات عضو" : "مشاهده اطلاعات کامل عضو";
-    });
-    actions.appendChild(details);
-    if (isSuperAdmin() && member.role !== "admin" && member.id !== currentAuthSession?.user?.id) {
-      const roleWrap = makeElement("label", "admin-member-role-control");
-      roleWrap.appendChild(makeElement("small", "", "تغییر نقش عضو"));
-      const roleSelect = document.createElement("select");
-      [["user","کاربر عادی"],["listing_manager","مدیر آگهی‌ها"],["member_manager","مدیر اعضا"]].forEach(([value,label]) => {
-        const option = document.createElement("option");
-        option.value = value;
-        option.textContent = label;
-        roleSelect.appendChild(option);
-      });
-      roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
-      const roleSummary = makeElement("p", "admin-member-role-summary", ROLE_DESCRIPTIONS[roleSelect.value]?.summary || ROLE_DESCRIPTIONS.user.summary);
-      roleSelect.addEventListener("change", () => {
-        const nextRole = roleSelect.value;
-        roleSummary.textContent = ROLE_DESCRIPTIONS[nextRole]?.summary || ROLE_DESCRIPTIONS.user.summary;
-        updateAdminMemberRole(member, nextRole);
-      });
-      roleWrap.appendChild(roleSelect);
-      roleWrap.appendChild(roleSummary);
-      actions.appendChild(roleWrap);
-    }
-    const listings = makeElement("button", "account-action", "آگهی‌های این عضو");
-    listings.type = "button";
-    listings.addEventListener("click", () => toggleAdminMemberListings(member, card, listings));
-    actions.appendChild(listings);
-    const edit = makeElement("button", "account-action", "ویرایش نام");
-    edit.type = "button";
-    edit.addEventListener("click", () => editAdminMember(member));
-    actions.appendChild(edit);
-    const active = makeElement("button", member.is_active ? "account-action danger" : "account-action", member.is_active ? "غیرفعال‌کردن" : "فعال‌کردن");
-    active.type = "button";
-    active.addEventListener("click", () => updateAdminMember(member, { full_name: member.full_name, is_active: !member.is_active }));
-    actions.appendChild(active);
-    card.appendChild(actions);
+    card.append(stats);
+
     const profile = makeElement("div", "admin-member-profile");
     profile.hidden = true;
-    profile.appendChild(makeElement("h5", "", "اطلاعات ثبت‌شده عضو"));    const closeProfile = makeElement("button", "account-action", "بستن پنجره");
+    const modalHead = makeElement("div", "admin-member-modal-head");
+    const modalTitle = makeElement("div", "admin-member-identity");
+    modalTitle.append(makeElement("strong", "", "پرونده عضو · " + (member.full_name || "بدون نام")));
+    modalTitle.append(makeElement("span", "", "شناسه عضویت: " + String(member.id || "—")));
+    const closeProfile = makeElement("button", "account-action", "بستن پرونده");
     closeProfile.type = "button";
     closeProfile.addEventListener("click", () => {
-      profile.classList.remove("modal-open"); profile.hidden = true;
+      profile.classList.remove("modal-open");
+      profile.hidden = true;
       document.body.classList.remove("admin-modal-lock");
-      details.textContent = "مشاهده اطلاعات کامل عضو";
+      detailsButton.textContent = "جزئیات عضو";
     });
-    profile.appendChild(closeProfile);
+    modalHead.append(modalTitle, closeProfile);
+    profile.appendChild(modalHead);
+
+    const overview = makeElement("div", "admin-member-profile-overview");
+    [["کل آگهی‌ها",counts.total],["در انتظار بررسی",counts.pending],["منتشرشده",counts.published],["فروخته‌شده",counts.sold],["ردشده",counts.rejected],["حذف‌شده",counts.deleted]].forEach(([label,value]) => {
+      const stat = makeElement("div", "admin-member-profile-stat");
+      stat.append(makeElement("b", "", Number(value || 0).toLocaleString("fa-IR")), makeElement("small", "", label));
+      overview.appendChild(stat);
+    });
+    profile.appendChild(overview);
+
+    const infoSection = makeElement("section", "admin-member-profile-section");
+    infoSection.appendChild(makeElement("h5", "", "اطلاعات شخصی و حساب"));
     const rows = [
       ["نام و نام خانوادگی",member.full_name],
       ["شماره تماس",member.mobile],
@@ -2366,18 +2352,75 @@ function renderAdminMembers(box, data) {
     const grid = makeElement("div", "admin-member-profile-grid");
     rows.forEach(([label,value]) => {
       const item = makeElement("div", "admin-member-profile-field");
-      item.appendChild(makeElement("small", "", label));
-      item.appendChild(makeElement("span", "", value == null || value === "" ? "ثبت نشده" : String(value)));
+      item.append(makeElement("small", "", label), makeElement("span", "", value == null || value === "" ? "ثبت نشده" : String(value)));
       grid.appendChild(item);
     });
-    profile.appendChild(grid);
-    if (isSuperAdmin()) {
-      const audit = makeElement('div','admin-member-audit');
-      audit.appendChild(makeElement('h5','','سوابق مدیریتی'));
-      audit.appendChild(makeElement('p','account-empty','در حال دریافت…'));
-      profile.appendChild(audit);
-      loadAdminMemberAudit(member.id,audit);
+    infoSection.appendChild(grid);
+    profile.appendChild(infoSection);
+
+    const management = makeElement("section", "admin-member-profile-section");
+    management.appendChild(makeElement("h5", "", "مدیریت حساب و دسترسی‌ها"));
+    const actions = makeElement("div", "admin-member-profile-actions");
+    if (isSuperAdmin() && member.role !== "admin" && member.id !== currentAuthSession?.user?.id) {
+      const roleWrap = makeElement("label", "admin-member-role-control");
+      roleWrap.appendChild(makeElement("small", "", "تغییر نقش عضو"));
+      const roleSelect = document.createElement("select");
+      [["user","کاربر عادی"],["listing_manager","مدیر آگهی‌ها"],["member_manager","مدیر اعضا"]].forEach(([value,label]) => {
+        const option = document.createElement("option"); option.value = value; option.textContent = label; roleSelect.appendChild(option);
+      });
+      roleSelect.value = ["user","listing_manager","member_manager"].includes(member.role) ? member.role : "user";
+      const roleSummary = makeElement("p", "admin-member-role-summary", ROLE_DESCRIPTIONS[roleSelect.value]?.summary || ROLE_DESCRIPTIONS.user.summary);
+      roleSelect.addEventListener("change", () => {
+        const nextRole = roleSelect.value;
+        roleSummary.textContent = ROLE_DESCRIPTIONS[nextRole]?.summary || ROLE_DESCRIPTIONS.user.summary;
+        updateAdminMemberRole(member, nextRole);
+      });
+      roleWrap.append(roleSelect, roleSummary);
+      actions.appendChild(roleWrap);
     }
+    const edit = makeElement("button", "account-action", "ویرایش نام عضو");
+    edit.type = "button";
+    edit.addEventListener("click", () => editAdminMember(member));
+    actions.appendChild(edit);
+    const active = makeElement("button", member.is_active ? "account-action danger" : "account-action", member.is_active ? "غیرفعال‌کردن حساب" : "فعال‌کردن حساب");
+    active.type = "button";
+    active.addEventListener("click", () => updateAdminMember(member, { full_name: member.full_name, is_active: !member.is_active }));
+    actions.appendChild(active);
+    const listingsButton = makeElement("button", "account-action", "مشاهده آگهی‌های عضو");
+    listingsButton.type = "button";
+    listingsButton.addEventListener("click", () => toggleAdminMemberListings(member, profile, listingsButton));
+    actions.appendChild(listingsButton);
+    management.appendChild(actions);
+    profile.appendChild(management);
+
+    const listingsSection = makeElement("section", "admin-member-profile-section");
+    listingsSection.appendChild(makeElement("h5", "", "آگهی‌های ثبت‌شده عضو"));
+    profile.appendChild(listingsSection);
+
+    if (isSuperAdmin()) {
+      const audit = makeElement("section", "admin-member-audit admin-member-profile-section");
+      audit.appendChild(makeElement("h5", "", "سوابق مدیریتی"));
+      audit.dataset.loaded = "false";
+      profile.appendChild(audit);
+    }
+
+    const detailsButton = makeElement("button", "account-action admin-member-open", "جزئیات عضو");
+    detailsButton.type = "button";
+    detailsButton.addEventListener("click", () => {
+      profile.hidden = false;
+      profile.classList.add("modal-open");
+      document.body.classList.add("admin-modal-lock");
+      detailsButton.textContent = "پرونده عضو باز است";
+      if (isSuperAdmin()) {
+        const audit = profile.querySelector(".admin-member-audit");
+        if (audit && audit.dataset.loaded !== "true") {
+          audit.dataset.loaded = "true";
+          audit.appendChild(makeElement("p", "account-empty", "در حال دریافت سوابق…"));
+          loadAdminMemberAudit(member.id, audit);
+        }
+      }
+    });
+    card.appendChild(detailsButton);
     card.appendChild(profile);
     list.appendChild(card);
   });
@@ -2392,7 +2435,7 @@ function renderAdminMembers(box, data) {
   const next = makeElement("button", "", "بعدی");
   next.type = "button"; next.disabled = page >= totalPages;
   next.addEventListener("click", () => { adminMembersPage = page + 1; loadAdminMembers(); });
-  nav.append(prev, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")}`), next);
+  nav.append(prev, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")} · ${totalMembers.toLocaleString("fa-IR")} عضو`), next);
   section.appendChild(nav);
 }
 
@@ -2419,17 +2462,18 @@ async function loadAdminMemberAudit(memberId, box) {
     });
   } catch(error) { box.replaceChildren(makeElement('h5','','سوابق مدیریتی'),makeElement('p','account-empty',error.message||'سوابق دریافت نشد.')); }
 }
-async function toggleAdminMemberListings(member, card, button) {
-  const existing = card.querySelector(".admin-member-listings");
+async function toggleAdminMemberListings(member, profile, button) {
+  const existing = profile.querySelector(".admin-member-listings");
   if (existing) {
     existing.remove();
-    button.textContent = "مشاهده آگهی‌ها";
+    button.textContent = "مشاهده آگهی‌های عضو";
     return;
   }
-  button.textContent = "بستن آگهی‌ها";
+  button.textContent = "بستن فهرست آگهی‌ها";
   const panel = makeElement("div", "admin-member-listings");
   panel.appendChild(makeElement("p", "account-empty", "در حال دریافت آگهی‌های عضو..."));
-  card.appendChild(panel);
+  const section = profile.querySelector(".admin-member-profile-section:last-of-type");
+  (section || profile).appendChild(panel);
   await loadAdminMemberListings(member.id, panel);
 }
 
@@ -2618,57 +2662,45 @@ function renderAdminListingTables(box, items, superAdmin = true, listingManager 
     heading.append(makeElement("span", "", group.title));
     heading.append(makeElement("small", "", rows.length.toLocaleString("fa-IR") + " مورد در این صفحه"));
     section.appendChild(heading);
-    const table = document.createElement("table");
-    table.className = "admin-listing-table";
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-    ["شماره","عنوان آگهی","وزن","شهر","جزئیات و عملیات"].forEach(label => headerRow.appendChild(makeElement("th", "", label)));
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-    const tbody = document.createElement("tbody");
+    const grid = makeElement("div", "admin-listing-grid");
     rows.forEach(item => {
       const temp = document.createElement("div");
       renderListingCards(temp, [item], superAdmin, listingManager);
-      const card = temp.firstElementChild;
-      const headingNode = card?.querySelector(".admin-listing-heading");
-      const title = headingNode?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
-      const badge = headingNode?.querySelector(".admin-listing-status");
-      const weight = item.weight == null || item.weight === "" ? "—" : (item.weight + " " + (item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"));
-      const city = [item.city, item.province].filter(Boolean).join("، ") || "—";
-      const detailsButton = card?.querySelector(".admin-listing-toggle");
-      const details = card?.querySelector(".admin-listing-extra");
-      const actions = card?.querySelector(".account-actions");
-      const row = document.createElement("tr");
-      row.appendChild(makeElement("td", "", String(item.id)));
-      const titleCell = makeElement("td", "admin-row-title");
-      titleCell.appendChild(makeElement("span", "", title.replace(/^آگهی #\d+ · /, "")));
-      if (badge) titleCell.appendChild(badge);
-      row.appendChild(titleCell);
-      row.appendChild(makeElement("td", "", weight));
-      row.appendChild(makeElement("td", "", city));
-      const operationCell = document.createElement("td");
-      if (detailsButton) operationCell.appendChild(detailsButton);
-      if (actions) operationCell.appendChild(actions);
-      row.appendChild(operationCell);
-      tbody.appendChild(row);
-      if (details) {
-        const detailRow = document.createElement("tr");
-        detailRow.className = "admin-row-details";
-        detailRow.hidden = true;
-        const detailCell = document.createElement("td");
-        detailCell.colSpan = 5;
-        detailCell.appendChild(details);
-        detailRow.appendChild(detailCell);
-        if (detailsButton) {
-          detailsButton.addEventListener("click", () => {
-            detailRow.hidden = details.hidden;
-          });
-        }
-        tbody.appendChild(detailRow);
+      const sourceCard = temp.firstElementChild;
+      const sourceHeading = sourceCard?.querySelector(".admin-listing-heading");
+      const title = sourceHeading?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
+      const badge = sourceHeading?.querySelector(".admin-listing-status");
+      const detailsButton = sourceCard?.querySelector(".admin-listing-toggle");
+      const details = sourceCard?.querySelector(".admin-listing-extra");
+      const actions = sourceCard?.querySelector(".account-actions");
+      const card = makeElement("article", "admin-listing-grid-card");
+      const photoUrl = String(item.image_url || item.photo_url || "").trim();
+      if (photoUrl && /^https:\/\//i.test(photoUrl)) {
+        const photo = document.createElement("img");
+        photo.className = "admin-listing-grid-photo";
+        photo.alt = "تصویر آگهی";
+        photo.loading = "lazy";
+        photo.src = photoUrl;
+        photo.onerror = () => photo.remove();
+        card.appendChild(photo);
+      } else {
+        const placeholder = makeElement("div", "admin-listing-grid-placeholder");
+        placeholder.appendChild(makeElement("span", "", "بدون تصویر"));
+        card.appendChild(placeholder);
       }
+      const top = makeElement("div", "admin-listing-grid-top");
+      top.append(makeElement("strong", "admin-listing-grid-title", title.replace(/^آگهی #\d+ · /, "")));
+      if (badge) top.appendChild(badge);
+      card.appendChild(top);
+      const weight = item.weight == null || item.weight === "" ? "وزن اعلام نشده" : (item.weight + " " + (item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"));
+      const city = [item.city, item.province].filter(Boolean).join("، ") || "موقعیت نامشخص";
+      card.appendChild(makeElement("p", "admin-listing-grid-summary", `شناسه #${item.id} · ${weight} · ${city}`));
+      if (detailsButton) card.appendChild(detailsButton);
+      if (details) card.appendChild(details);
+      if (actions) card.appendChild(actions);
+      grid.appendChild(card);
     });
-    table.appendChild(tbody);
-    section.appendChild(table);
+    section.appendChild(grid);
     box.appendChild(section);
   });
   if (!box.querySelector(".admin-status-section")) {
