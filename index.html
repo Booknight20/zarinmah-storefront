@@ -2647,65 +2647,50 @@ async function updateAdminMember(member, changes) {
 }
 
 function renderAdminListingTables(box, items, superAdmin = true, listingManager = false) {
-  const groups = [
-    {key:"pending",title:"آگهی‌های در انتظار تأیید"},
-    {key:"published",title:"آگهی‌های منتشرشده"},
-    {key:"sold",title:"آگهی‌های فروخته‌شده"},
-    {key:"rejected",title:"آگهی‌های ردشده"},
-    {key:"deleted",title:"آگهی‌های حذف‌شده"}
-  ];
-  groups.forEach(group => {
-    const rows = items.filter(item => (item.deleted_at ? "deleted" : item.status) === group.key);
-    if (!rows.length) return;
-    const section = makeElement("section", "admin-status-section " + group.key);
-    const heading = makeElement("h3", "admin-status-title");
-    heading.append(makeElement("span", "", group.title));
-    heading.append(makeElement("small", "", rows.length.toLocaleString("fa-IR") + " مورد در این صفحه"));
-    section.appendChild(heading);
-    const grid = makeElement("div", "admin-listing-grid");
-    rows.forEach(item => {
-      const temp = document.createElement("div");
-      renderListingCards(temp, [item], superAdmin, listingManager);
-      const sourceCard = temp.firstElementChild;
-      const sourceHeading = sourceCard?.querySelector(".admin-listing-heading");
-      const title = sourceHeading?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
-      const badge = sourceHeading?.querySelector(".admin-listing-status");
-      const detailsButton = sourceCard?.querySelector(".admin-listing-toggle");
-      const details = sourceCard?.querySelector(".admin-listing-extra");
-      const actions = sourceCard?.querySelector(".account-actions");
-      const card = makeElement("article", "admin-listing-grid-card");
-      const photoUrl = String(item.image_url || item.photo_url || "").trim();
-      if (photoUrl && /^https:\/\//i.test(photoUrl)) {
-        const photo = document.createElement("img");
-        photo.className = "admin-listing-grid-photo";
-        photo.alt = "تصویر آگهی";
-        photo.loading = "lazy";
-        photo.src = photoUrl;
-        photo.onerror = () => photo.remove();
-        card.appendChild(photo);
-      } else {
-        const placeholder = makeElement("div", "admin-listing-grid-placeholder");
-        placeholder.appendChild(makeElement("span", "", "بدون تصویر"));
-        card.appendChild(placeholder);
-      }
-      const top = makeElement("div", "admin-listing-grid-top");
-      top.append(makeElement("strong", "admin-listing-grid-title", title.replace(/^آگهی #\d+ · /, "")));
-      if (badge) top.appendChild(badge);
-      card.appendChild(top);
-      const weight = item.weight == null || item.weight === "" ? "وزن اعلام نشده" : (item.weight + " " + (item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"));
-      const city = [item.city, item.province].filter(Boolean).join("، ") || "موقعیت نامشخص";
-      card.appendChild(makeElement("p", "admin-listing-grid-summary", `شناسه #${item.id} · ${weight} · ${city}`));
-      if (detailsButton) card.appendChild(detailsButton);
-      if (details) card.appendChild(details);
-      if (actions) card.appendChild(actions);
-      grid.appendChild(card);
-    });
-    section.appendChild(grid);
-    box.appendChild(section);
+  const section = makeElement("section", "admin-status-section admin-listings-unified");
+  const heading = makeElement("h3", "admin-status-title");
+  heading.append(makeElement("span", "", "همه آگهی‌ها"));
+  heading.append(makeElement("small", "", items.length.toLocaleString("fa-IR") + " آگهی در این صفحه · حداکثر ۱۶ کارت"));
+  section.appendChild(heading);
+  const grid = makeElement("div", "admin-listing-grid");
+  items.forEach(item => {
+    const temp = document.createElement("div");
+    renderListingCards(temp, [item], superAdmin, listingManager);
+    const sourceCard = temp.firstElementChild;
+    const sourceHeading = sourceCard?.querySelector(".admin-listing-heading");
+    const title = sourceHeading?.querySelector("strong")?.textContent || ("آگهی #" + item.id);
+    const badge = sourceHeading?.querySelector(".admin-listing-status");
+    const detailsButton = sourceCard?.querySelector(".admin-listing-toggle");
+    const details = sourceCard?.querySelector(".admin-listing-extra");
+    const actions = sourceCard?.querySelector(".account-actions");
+    const card = makeElement("article", "admin-listing-grid-card");
+    const photoUrl = String(item.image_url || item.photo_url || "").trim();
+    if (photoUrl && /^https:\/\//i.test(photoUrl)) {
+      const photo = document.createElement("img");
+      photo.className = "admin-listing-grid-photo";
+      photo.alt = "تصویر آگهی";
+      photo.loading = "lazy";
+      photo.src = photoUrl;
+      photo.onerror = () => photo.remove();
+      card.appendChild(photo);
+    } else {
+      card.appendChild(makeElement("div", "admin-listing-grid-placeholder", "بدون تصویر"));
+    }
+    const top = makeElement("div", "admin-listing-grid-top");
+    top.append(makeElement("strong", "admin-listing-grid-title", title.replace(/^آگهی #\d+ · /, "")));
+    if (badge) top.appendChild(badge);
+    card.appendChild(top);
+    const weight = item.weight == null || item.weight === "" ? "وزن اعلام نشده" : (item.weight + " " + (item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"));
+    const city = [item.city, item.province].filter(Boolean).join("، ") || "موقعیت نامشخص";
+    card.appendChild(makeElement("p", "admin-listing-grid-summary", `شناسه #${item.id} · ${weight} · ${city}`));
+    if (detailsButton) card.appendChild(detailsButton);
+    if (details) card.appendChild(details);
+    if (actions) card.appendChild(actions);
+    grid.appendChild(card);
   });
-  if (!box.querySelector(".admin-status-section")) {
-    box.appendChild(makeElement("p", "account-empty", "آگهی‌ای با این وضعیت‌ها در نتایج فعلی پیدا نشد."));
-  }
+  section.appendChild(grid);
+  box.appendChild(section);
+  if (!items.length) box.appendChild(makeElement("p", "account-empty", "آگهی‌ای با این فیلتر پیدا نشد."));
 }
 
 function renderAccountPanel(data) {
@@ -2745,7 +2730,6 @@ function renderAccountPanel(data) {
   if (admin || listingManager) {
     adminBox.appendChild(makeElement("p", "account-summary", `کل آگهی‌ها: ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} · درخواست‌های خرید: ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} · در این صفحه: ${data.listings.filter(item => item.status === "pending" && !item.deleted_at).length.toLocaleString("fa-IR")} آگهی در انتظار بررسی`));
     appendAccountToolbar(adminBox, "listings", listingsPage);
-    adminBox.querySelector(".account-toolbar select")?.remove();
     renderAdminListingTables(adminBox, data.listings, admin, listingManager);
     appendAccountPagination(adminBox, "listings", listingsPage);
   }
