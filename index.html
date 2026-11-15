@@ -184,6 +184,9 @@ header {
 .admin-member-card p { margin:4px 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
 .admin-member-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; margin:12px 0 16px; }
 .admin-member-toolbar input { min-width:0; width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:#0d141a; color:var(--text); font-size:12px; }
+.admin-member-toolbar { grid-template-columns:minmax(180px,1.5fr) auto repeat(4,minmax(125px,1fr)); }
+.admin-member-filter { min-width:0; width:100%; padding:9px 8px; border:1px solid var(--line); border-radius:9px; background:#0d141a; color:var(--text); font-size:11px; }
+@media(max-width:900px) { .admin-member-toolbar { grid-template-columns:1fr 1fr; } .admin-member-toolbar input { grid-column:1/-1; } }
 .admin-member-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:12px; max-height:none; overflow:visible; }
 .admin-member-listings { margin-top:9px; padding:9px; border:1px solid #66552b; border-radius:8px; background:#0c1116; display:grid; gap:8px; }
 .admin-member-listing { padding:8px; border-bottom:1px solid var(--line); }
@@ -2247,7 +2250,19 @@ function renderAdminMembers(box, data) {
   };
   apply.addEventListener("click", runSearch);
   search.addEventListener("keydown", event => { if (event.key === "Enter") runSearch(); });
-  toolbar.append(search, apply);
+  const makeFilter = (items, current, setter) => {
+    const select = document.createElement('select');
+    select.className = 'admin-member-filter';
+    items.forEach(item => { const option=document.createElement('option'); option.value=item[0]; option.textContent=item[1]; select.appendChild(option); });
+    select.value=current;
+    select.addEventListener('change', () => { setter(select.value); adminMembersPage=1; loadAdminMembers(); });
+    return select;
+  };
+  const statusFilter=makeFilter([['all','همه وضعیت‌ها'],['active','فقط فعال'],['inactive','فقط غیرفعال']],adminMembersStatus,v=>adminMembersStatus=v);
+  const roleFilter=makeFilter([['all','همه نقش‌ها'],['user','کاربر عادی'],['listing_manager','مدیر آگهی‌ها'],['member_manager','مدیر اعضا'],['admin','مدیر کل']],adminMembersRole,v=>adminMembersRole=v);
+  const listingFilter=makeFilter([['all','همه اعضا'],['with','دارای آگهی'],['without','بدون آگهی']],adminMembersListings,v=>adminMembersListings=v);
+  const sortFilter=makeFilter([['newest','جدیدترین عضویت'],['oldest','قدیمی‌ترین عضویت'],['most_listings','بیشترین آگهی']],adminMembersSort,v=>adminMembersSort=v);
+  toolbar.append(search,apply,statusFilter,roleFilter,listingFilter,sortFilter);
   section.appendChild(toolbar);
   const list = makeElement("div", "admin-member-list");
   if (!data.members?.length) list.appendChild(makeElement("p", "account-empty", "عضوی با این مشخصات پیدا نشد."));
