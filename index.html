@@ -541,6 +541,58 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   background: #fde8e8;
 }
 
+.product-description { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.product-details-action {
+  width:100%; margin-top:10px; padding:8px 12px; border:1px solid #b18b3d;
+  border-radius:9px; background:#fff; color:#755719; font-size:12px; font-weight:700; cursor:pointer;
+}
+.product-details-action:hover { background:#fbf6e9; }
+.product-detail-modal {
+  position:fixed; inset:0; z-index:10040; display:flex; align-items:center; justify-content:center;
+  padding:22px; background:rgba(4,10,14,.86); backdrop-filter:blur(6px);
+}
+.product-detail-dialog {
+  position:relative; width:min(1040px,100%); max-height:92dvh; overflow:auto; overscroll-behavior:contain;
+  display:grid; grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr); gap:24px;
+  padding:24px; border:1px solid rgba(199,162,75,.45); border-radius:18px;
+  background:linear-gradient(145deg,#17232b,#0b1218); color:var(--text); box-shadow:0 24px 90px rgba(0,0,0,.55);
+}
+.product-detail-close {
+  position:absolute; top:12px; left:12px; z-index:3; width:38px; height:38px; border:1px solid var(--line);
+  border-radius:10px; background:#0b1218; color:var(--text); font-size:24px; cursor:pointer;
+}
+.product-detail-media { min-width:0; align-self:start; }
+.product-detail-main-photo {
+  display:block; width:100%; height:min(58dvh,560px); object-fit:contain; border-radius:13px;
+  background:#f8f6f1; cursor:zoom-in;
+}
+.product-detail-thumbs { display:flex; gap:9px; overflow-x:auto; padding:10px 2px 3px; }
+.product-detail-thumb { flex:0 0 70px; width:70px; height:70px; padding:3px; border:1px solid var(--line); border-radius:9px; background:#101a21; cursor:pointer; }
+.product-detail-thumb.active { border:2px solid var(--gold); }
+.product-detail-thumb img { width:100%; height:100%; object-fit:contain; border-radius:5px; background:#f8f6f1; }
+.product-detail-content { min-width:0; padding:12px 4px 4px; }
+.product-detail-kicker { color:var(--gold); font-size:11px; }
+.product-detail-content h2 { margin:5px 0 10px; font-size:23px; line-height:1.6; }
+.product-detail-price { margin:12px 0; padding:13px 15px; border:1px solid rgba(199,162,75,.3); border-radius:12px; background:rgba(199,162,75,.08); color:#f1d58e; font-size:20px; font-weight:800; }
+.product-detail-status { display:inline-flex; padding:4px 10px; border-radius:20px; background:rgba(70,190,125,.12); color:#83ddb0; font-size:11px; }
+.product-detail-status.sold { background:rgba(210,90,90,.12); color:#ffaaaa; }
+.product-detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin:17px 0; }
+.product-detail-fact { min-width:0; padding:10px 12px; border:1px solid rgba(199,162,75,.14); border-radius:10px; background:rgba(4,11,16,.45); }
+.product-detail-fact small { display:block; color:var(--muted); font-size:10px; }
+.product-detail-fact strong { display:block; margin-top:3px; color:#f5ead0; font-size:12px; overflow-wrap:anywhere; }
+.product-detail-description { margin:15px 0; padding-top:13px; border-top:1px solid var(--line); color:#d3cbbb; font-size:12px; line-height:2; white-space:pre-wrap; overflow-wrap:anywhere; }
+.product-detail-content .purchase-action { margin-top:15px; }
+@media(max-width:700px) {
+  .product-detail-modal { padding:8px; }
+  .product-detail-dialog { grid-template-columns:1fr; gap:12px; padding:12px; max-height:96dvh; }
+  .product-detail-main-photo { height:min(43dvh,380px); }
+  .product-detail-content { padding:4px 2px 8px; }
+  .product-detail-content h2 { font-size:19px; padding-left:38px; }
+  .product-detail-price { font-size:17px; }
+  .product-detail-facts { gap:7px; }
+  .product-detail-thumb { flex-basis:60px; width:60px; height:60px; }
+}
+
 .purchase-action {
   width: 100%;
   margin-top: 12px;
@@ -3371,6 +3423,92 @@ function openListingGallery(item, galleryUrls, initialIndex = 0) {
   close.focus();
 }
 
+function openListingDetails(item, galleryUrls = []) {
+  if (!item) return;
+  const previousOverflow = document.body.style.overflow;
+  let activeIndex = 0;
+  const modal = makeElement('div','product-detail-modal');
+  modal.setAttribute('role','dialog');
+  modal.setAttribute('aria-modal','true');
+  modal.setAttribute('aria-label','جزئیات محصول');
+  const dialog = makeElement('div','product-detail-dialog');
+  const close = makeElement('button','product-detail-close','×');
+  close.type = 'button';
+  close.setAttribute('aria-label','بستن جزئیات محصول');
+  const media = makeElement('div','product-detail-media');
+  const mainPhoto = document.createElement('img');
+  mainPhoto.className = 'product-detail-main-photo';
+  mainPhoto.alt = (item.product_type || item.item_type || 'محصول طلا') + '، تصویر محصول';
+  const thumbs = makeElement('div','product-detail-thumbs');
+  const content = makeElement('div','product-detail-content');
+  const type = item.product_type || item.item_type || 'محصول طلا';
+  const heading = makeElement('div','product-detail-kicker','جزئیات آگهی زرین ماه');
+  const title = makeElement('h2','',type);
+  const isSold = String(item.status || '').toLowerCase() === 'sold';
+  const status = makeElement('span','product-detail-status' + (isSold ? ' sold' : ''),isSold ? 'فروخته شد' : 'آماده فروش');
+  const price = makeElement('div','product-detail-price',item.price || 'قیمت اعلام نشده');
+  const facts = makeElement('div','product-detail-facts');
+  const addFact = (label,value) => {
+    if (value === undefined || value === null || String(value).trim() === '' || String(value).trim() === 'ثبت نشده') return;
+    const fact = makeElement('div','product-detail-fact');
+    fact.append(makeElement('small','',label),makeElement('strong','',value));
+    facts.appendChild(fact);
+  };
+  addFact('وزن',item.weight ? String(item.weight) + ' ' + (item.weight_unit || 'گرم') : '');
+  addFact('عیار',item.purity || item.karat || '');
+  addFact('روش قیمت‌گذاری',({fixed:'قیمت ثابت',percent:'درصد نسبت به تابلو',amount:'مبلغ اضافه/کسر'})[item.pricing_method] || '');
+  addFact('مقدار قیمت‌گذاری',item.pricing_value ? String(item.pricing_value) : '');
+  addFact('استان',item.province || '');
+  addFact('شهر',item.city || '');
+  const description = makeElement('p','product-detail-description',item.description || 'توضیحات بیشتری برای این محصول ثبت نشده است.');
+  const renderPhoto = () => {
+    if (galleryUrls.length) mainPhoto.src = galleryUrls[activeIndex];
+    else mainPhoto.removeAttribute('src');
+    thumbs.querySelectorAll('.product-detail-thumb').forEach((button,index) => button.classList.toggle('active',index === activeIndex));
+  };
+  galleryUrls.forEach((url,index) => {
+    const thumb = makeElement('button','product-detail-thumb' + (index === 0 ? ' active' : ''));
+    thumb.type = 'button';
+    thumb.setAttribute('aria-label','نمایش تصویر ' + (index + 1));
+    const image = document.createElement('img');
+    image.src = url; image.alt = ''; image.loading = 'lazy';
+    thumb.appendChild(image);
+    thumb.addEventListener('click',() => { activeIndex = index; renderPhoto(); });
+    thumbs.appendChild(thumb);
+  });
+  mainPhoto.addEventListener('click',() => { if (galleryUrls.length) openListingGallery(item,galleryUrls,activeIndex); });
+  if (!galleryUrls.length) {
+    mainPhoto.alt = 'تصویری برای این آگهی ثبت نشده است';
+    mainPhoto.style.display = 'none';
+    media.appendChild(makeElement('div','empty-products','تصویری برای این آگهی ثبت نشده است.'));
+  } else {
+    media.append(mainPhoto);
+    if (galleryUrls.length > 1) media.append(thumbs);
+  }
+  content.append(heading,title,status,price,facts,description);
+  if (!isSold) {
+    const purchase = makeElement('button','purchase-action','🛒 ثبت درخواست خرید');
+    purchase.type = 'button';
+    purchase.addEventListener('click',() => { cleanup(); openPurchase(item); });
+    content.appendChild(purchase);
+  }
+  const cleanup = () => {
+    document.removeEventListener('keydown',onKeydown);
+    document.body.style.overflow = previousOverflow;
+    modal.remove();
+  };
+  const onKeydown = event => { if (event.key === 'Escape') cleanup(); };
+  close.addEventListener('click',cleanup);
+  modal.addEventListener('click',event => { if (event.target === modal) cleanup(); });
+  dialog.append(close,media,content);
+  modal.appendChild(dialog);
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown',onKeydown);
+  renderPhoto();
+  close.focus();
+}
+
 function createListingCard(item) {
   const article = makeElement('article', 'product');
   const visual = makeElement('div', 'product-visual');
@@ -3431,6 +3569,10 @@ function createListingCard(item) {
   const isSold = String(item.status || '').toLowerCase() === 'sold';
   const status = makeElement('span', isSold ? 'product-status sold' : 'product-status', isSold ? 'فروخته شد' : 'آماده فروش');
   info.append(title, meta, description, price, status);
+  const detailsButton = makeElement('button','product-details-action','مشاهده جزئیات محصول');
+  detailsButton.type = 'button';
+  detailsButton.addEventListener('click',() => openListingDetails(item,galleryUrls));
+  info.appendChild(detailsButton);
   if (!isSold) {
     const purchaseButton = makeElement('button', 'purchase-action', '🛒 ثبت درخواست خرید');
     purchaseButton.type = 'button';
