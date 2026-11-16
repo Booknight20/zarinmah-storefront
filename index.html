@@ -319,7 +319,13 @@ header {
 .admin-workspace.requests-compact #accountRequests .account-toolbar { flex:0 0 auto; margin:0 0 6px; }
 .admin-workspace.requests-compact #accountRequests > .account-summary { flex:0 0 auto; margin:3px 0 6px; }
 .admin-workspace.requests-compact .admin-request-grid { flex:1 1 0; min-height:0; height:auto; grid-template-columns:repeat(4,minmax(0,1fr)); grid-template-rows:repeat(4,minmax(125px,1fr)); grid-auto-rows:unset; gap:10px; margin:6px 0; overflow:visible; }
-.admin-workspace.requests-compact .admin-request-card { min-height:125px; overflow:visible; gap:6px; padding:10px 12px; }
+.admin-workspace.requests-compact .admin-request-card { box-sizing:border-box; min-width:0; min-height:0; overflow:hidden; gap:5px; padding:9px 10px; }
+.admin-workspace.requests-compact .admin-request-card .account-deadline { position:static; box-sizing:border-box; display:grid; width:100%; max-width:100%; min-width:0; align-self:stretch; flex:0 0 auto; overflow-wrap:anywhere; white-space:normal; }
+.admin-workspace.requests-compact .admin-request-card .account-deadline * { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.admin-workspace.requests-compact #accountRequests > .admin-overview-note { display:none; }
+.admin-workspace.requests-compact .admin-request-grid { grid-template-rows:repeat(4,minmax(0,1fr)); }
+.admin-workspace.requests-compact .account-pagination-requests { flex:0 0 auto; justify-content:space-between; margin-top:4px; padding:5px 4px 0; }
+.admin-workspace.requests-compact .account-pagination-requests button { min-width:150px; padding:8px 14px; font-size:11px; font-weight:700; }
 .admin-workspace.requests-compact .admin-request-card > strong { display:block; overflow-wrap:anywhere; font-size:12px; line-height:1.6; }
 .admin-workspace.requests-compact .admin-request-card > p { display:block; overflow-wrap:anywhere; margin:2px 0; font-size:11px; line-height:1.6; }
 .admin-workspace.requests-compact .admin-request-card .account-summary { display:block; overflow-wrap:anywhere; margin:3px 0; font-size:10px; }
@@ -2434,20 +2440,21 @@ function appendAccountPagination(box, kind, pagination) {
   const pageKey = kind === "listings" ? "listings_page" : "requests_page";
   const totalPages = Math.max(1, Number(pagination.total_pages) || 1);
   const page = Math.min(totalPages, Math.max(1, Number(pagination.page) || 1));
-  const previous = makeElement("button", "", "قبلی");
+  const previous = makeElement("button", "", kind === "requests" ? "۱۶ درخواست قبلی" : "قبلی");
   previous.type = "button";
   previous.disabled = page <= 1;
   previous.addEventListener("click", () => {
     accountQueryState[pageKey] = page - 1;
     loadAccountPanel();
   });
-  const next = makeElement("button", "", "بعدی");
+  const next = makeElement("button", "", kind === "requests" ? "۱۶ درخواست بعدی" : "بعدی");
   next.type = "button";
   next.disabled = page >= totalPages;
   next.addEventListener("click", () => {
     accountQueryState[pageKey] = page + 1;
     loadAccountPanel();
   });
+  nav.classList.toggle("account-pagination-requests", kind === "requests");
   nav.append(previous, makeElement("span", "", `صفحه ${page.toLocaleString("fa-IR")} از ${totalPages.toLocaleString("fa-IR")} · ${(Number(pagination.total) || 0).toLocaleString("fa-IR")} مورد`), next);
   box.appendChild(nav);
 }
