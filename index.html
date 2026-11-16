@@ -411,6 +411,18 @@ header {
   margin:7px 0;
   overflow:visible;
 }
+/* With fewer than four requests, do not reserve the remaining empty grid rows. */
+.admin-workspace.requests-compact .admin-request-grid.has-fewer-requests {
+  flex:0 0 auto;
+  grid-template-rows:none;
+  grid-auto-rows:minmax(220px,auto);
+  align-content:start;
+}
+.admin-workspace.requests-compact .admin-request-grid.has-fewer-requests .admin-request-card {
+  min-height:220px;
+  height:auto;
+  overflow:visible;
+}
 .admin-workspace.requests-compact .admin-request-card {
   box-sizing:border-box;
   min-width:0;
@@ -3539,6 +3551,7 @@ function renderAccountPanel(data) {
   appendAccountToolbar(requestsBox, "requests", requestsPage);
   requestsBox.appendChild(makeElement("p", "account-summary account-request-count", `نمایش ${data.purchase_requests.length.toLocaleString("fa-IR")} درخواست در این صفحه از ${Number(requestsPage.total || 0).toLocaleString("fa-IR")} مورد`));
   const requestGrid = makeElement("div", "admin-request-grid");
+  if (data.purchase_requests.length > 0 && data.purchase_requests.length < 4) requestGrid.classList.add("has-fewer-requests");
   if (!data.purchase_requests.length) requestsBox.appendChild(makeElement("p", "account-empty", "درخواستی با این شرایط پیدا نشد."));
   data.purchase_requests.forEach(item => {
     const card = makeElement("div", "admin-request-card");
