@@ -370,10 +370,15 @@ header {
   flex-direction:column;
 }
 .admin-workspace.requests-compact #adminWorkspaceRequests {
+  /* This is the direct flex child of the workspace content. It must itself
+     be a flex column; otherwise the nested request list cannot receive the
+     available viewport height and its 4x4 grid collapses. */
+  display:flex !important;
   flex:1 1 auto;
+  flex-direction:column;
   min-width:0;
   min-height:0;
-  height:100%;
+  height:auto;
   overflow:hidden;
 }
 .admin-workspace.requests-compact #accountRequests {
@@ -382,7 +387,7 @@ header {
   flex-direction:column;
   min-width:0;
   min-height:0;
-  height:100%;
+  height:auto;
   overflow:hidden;
 }
 .admin-workspace.requests-compact #accountRequests .account-toolbar {
