@@ -3587,11 +3587,12 @@ async function loadAccountPanel() {
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || "دریافت اطلاعات حساب ناموفق بود.");
     if (currentAuthSession?.user?.id !== result.profile?.id) return;
+    const activeAccountTab = document.querySelector(".account-tab.active")?.dataset.accountTab || "profile";
     accountDataCache = result;
     adminMembersLoaded = false;
     renderAccountPanel(result);
     renderAccountProfile();
-    showAccountTab("profile");
+    showAccountTab(activeAccountTab);
   } catch (error) {
     boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
   } finally {
