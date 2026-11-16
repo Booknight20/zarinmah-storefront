@@ -90,6 +90,21 @@ header {
 .auth-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .account-panel { margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+
+.account-notification-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; }
+.account-notification-trigger { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--line); border-radius:9px; background:#101a20; color:var(--text); font-size:12px; cursor:pointer; }
+.account-notification-trigger:hover { border-color:var(--gold); }
+.account-notification-count { display:inline-flex; min-width:20px; height:20px; align-items:center; justify-content:center; padding:0 5px; border-radius:20px; background:#a83d37; color:#fff; font-size:10px; font-weight:700; }
+.account-notification-count[hidden] { display:none !important; }
+.account-notification-readall { border:0; background:transparent; color:var(--gold); font-size:10px; cursor:pointer; }
+.account-notifications { display:grid; gap:7px; margin:0 0 12px; }
+.account-notifications[hidden] { display:none !important; }
+.account-notification-item { display:grid; gap:3px; width:100%; padding:10px 12px; border:1px solid rgba(199,162,75,.15); border-radius:9px; background:#0e171d; color:var(--text); text-align:right; cursor:pointer; }
+.account-notification-item.unread { border-color:rgba(199,162,75,.5); background:rgba(199,162,75,.07); }
+.account-notification-item strong { font-size:11px; }
+.account-notification-item span { color:var(--muted); font-size:10px; line-height:1.8; }
+.account-notification-item small { color:#8f9ba0; font-size:9px; }
+
 .account-panel h3 { color:var(--gold); font-size:15px; margin:0 0 10px; }
 .account-tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
 .account-tab { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:8px; padding:7px 10px; font-size:11px; cursor:pointer; }
@@ -1707,6 +1722,15 @@ body.admin-modal-lock { overflow:hidden !important; }
           <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌ها</button>
           <button class="account-tab" type="button" data-account-tab="support" onclick="showAccountTab('support')">راهنما و پشتیبانی</button>
         </div>
+        <div class="account-notification-bar">
+          <button class="account-notification-trigger" id="notificationBell" type="button" onclick="toggleNotificationPanel()" aria-expanded="false" aria-controls="accountNotifications">
+            <span aria-hidden="true">🔔</span><span>اعلان‌ها</span><span class="account-notification-count" id="notificationBadge" hidden>0</span>
+          </button>
+          <button class="account-notification-readall" id="notificationReadAll" type="button" onclick="markAllNotificationsRead()" style="display:none">خواندن همه اعلان‌ها</button>
+        </div>
+        <div class="account-notifications" id="accountNotifications" hidden aria-live="polite">
+          <p class="account-empty">برای دریافت اعلان‌ها، کمی صبر کنید…</p>
+        </div>
         <div class="account-list account-profile-view" id="accountProfile" style="display:none"></div>
         <div class="account-list account-support-view" id="accountSupport" style="display:none">
           <section class="account-item"><strong>راهنمای استفاده از زرین ماه</strong><p>برای فروش طلا، از بخش «آگهی‌های من» آگهی ثبت کنید. آگهی پس از بررسی مدیر در سایت منتشر می‌شود.</p><p>برای خرید، از صفحه آگهی درخواست بفرستید. پس از تأیید فروشنده، مهلت پرداخت در بخش «درخواست‌ها» نمایش داده می‌شود.</p><p>تا پیش از پرداخت موفق، اطلاعات تماس فروشنده نمایش داده نمی‌شود.</p></section>
@@ -2320,6 +2344,9 @@ document.getElementById('profileForm').addEventListener('submit', saveUserProfil
 let accountDataCache = null;
 let accountLoading = false;
 let editingListingId = null;
+let accountNotificationsCache = [];
+let accountNotificationTimer = null;
+let accountNotificationsLoading = false;
 const accountQueryState = {
   listings_page: 1,
   requests_page: 1,
@@ -2429,6 +2456,108 @@ function closeAdminWorkspace() {
   document.body.style.overflow = "";
   if (currentAuthSession) openAccountDrawer();
   showAccountTab("listings");
+}
+
+function toggleNotificationPanel() {
+  const panel = document.getElementById("accountNotifications");
+  const trigger = document.getElementById("notificationBell");
+  if (!panel || !trigger) return;
+  const opening = panel.hidden;
+  panel.hidden = !opening;
+  trigger.setAttribute("aria-expanded", String(opening));
+  if (opening) loadAccountNotifications();
+}
+
+function renderAccountNotifications(data) {
+  const panel = document.getElementById("accountNotifications");
+  const badge = document.getElementById("notificationBadge");
+  const readAll = document.getElementById("notificationReadAll");
+  if (!panel || !badge || !readAll) return;
+  accountNotificationsCache = Array.isArray(data.notifications) ? data.notifications : [];
+  const unreadCount = Number(data.unread_count || 0);
+  badge.textContent = unreadCount > 99 ? "۹۹+" : unreadCount.toLocaleString("fa-IR");
+  badge.hidden = unreadCount <= 0;
+  readAll.style.display = unreadCount > 0 ? "inline-block" : "none";
+  if (!accountNotificationsCache.length) {
+    panel.replaceChildren(makeElement("p", "account-empty", "هنوز اعلانی برای شما ثبت نشده است."));
+    return;
+  }
+  panel.replaceChildren();
+  accountNotificationsCache.forEach(item => {
+    const button = makeElement("button", "account-notification-item" + (item.read_at ? "" : " unread"));
+    button.type = "button";
+    button.appendChild(makeElement("strong", "", item.title || "اعلان زرین ماه"));
+    button.appendChild(makeElement("span", "", item.message || ""));
+    const created = item.created_at ? new Date(item.created_at).toLocaleString("fa-IR") : "";
+    button.appendChild(makeElement("small", "", created));
+    button.addEventListener("click", () => openNotificationRequest(item));
+    panel.appendChild(button);
+  });
+}
+
+async function loadAccountNotifications() {
+  if (!currentAuthSession?.access_token || accountNotificationsLoading) return;
+  accountNotificationsLoading = true;
+  try {
+    const response = await fetch(LISTINGS_API + "?action=notifications", {
+      cache: "no-store",
+      headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "دریافت اعلان‌ها ناموفق بود.");
+    if (currentAuthSession?.user?.id !== accountDataCache?.profile?.id) return;
+    renderAccountNotifications(result);
+  } catch (error) {
+    const panel = document.getElementById("accountNotifications");
+    if (panel && !panel.hidden) panel.replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اعلان‌ها ناموفق بود."));
+  } finally {
+    accountNotificationsLoading = false;
+  }
+}
+
+async function setNotificationRead(action, notificationId) {
+  if (!currentAuthSession?.access_token) return;
+  const body = new FormData();
+  body.append("action", action);
+  if (notificationId) body.append("notification_id", String(notificationId));
+  const response = await fetch(LISTINGS_API, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${currentAuthSession.access_token}` },
+    body
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.ok) throw new Error(result.error || "به‌روزرسانی اعلان انجام نشد.");
+  await loadAccountNotifications();
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await setNotificationRead("mark_all_notifications_read");
+  } catch (error) {
+    showToast(error.message || "به‌روزرسانی اعلان‌ها ناموفق بود.");
+  }
+}
+
+async function openNotificationRequest(item) {
+  try {
+    if (!item.read_at) await setNotificationRead("mark_notification_read", item.id);
+    const panel = document.getElementById("accountNotifications");
+    const trigger = document.getElementById("notificationBell");
+    if (panel) panel.hidden = true;
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+    showAccountTab("requests");
+    const requests = document.getElementById("accountRequests");
+    if (requests) requests.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    showToast(error.message || "بازکردن اعلان انجام نشد.");
+  }
+}
+
+function startAccountNotificationPolling() {
+  if (accountNotificationTimer) clearInterval(accountNotificationTimer);
+  accountNotificationTimer = setInterval(() => {
+    if (currentAuthSession) loadAccountNotifications();
+  }, 60000);
 }
 
 function showAccountTab(tab) {
@@ -3593,6 +3722,8 @@ async function loadAccountPanel() {
     renderAccountPanel(result);
     renderAccountProfile();
     showAccountTab(activeAccountTab);
+    await loadAccountNotifications();
+    startAccountNotificationPolling();
   } catch (error) {
     boxes[0].replaceChildren(makeElement("p", "account-empty", error.message || "دریافت اطلاعات ناموفق بود."));
   } finally {
