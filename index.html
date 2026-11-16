@@ -294,6 +294,9 @@ header {
 .admin-request-card { min-width:0; display:flex; flex-direction:column; gap:5px; padding:9px; border:1px solid rgba(199,162,75,.2); border-radius:10px; background:linear-gradient(145deg,#121d25,#0b1218); }
 .admin-request-card > strong { font-size:11px; line-height:1.65; overflow-wrap:anywhere; }
 .admin-request-card > p { margin:1px 0; font-size:10px; line-height:1.65; overflow-wrap:anywhere; }
+.admin-request-meta { display:flex; align-items:center; gap:5px; color:#c7c0b3; font-size:10px !important; }
+.admin-request-meta::before { content:"◷"; color:var(--gold); font-size:12px; }
+.admin-request-card .account-deadline-approved { color:#d8c58e; }
 .admin-request-card .account-summary { font-size:9px; margin:2px 0; }
 .admin-request-card .account-deadline { gap:0; margin:3px 0; padding:5px 7px; }
 .admin-request-card .account-deadline strong { font-size:11px; }
@@ -2316,10 +2319,22 @@ function accountStatusLabel(status) {
 let accountServerTimeOffsetMs = 0;
 let accountDeadlineTimer = null;
 
+function formatRequestDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", dateStyle: "short", timeStyle: "short"
+  }).format(date);
+}
+
 function renderRequestDeadline(item) {
   const box = makeElement("div", "account-deadline");
+  box.appendChild(makeElement("small", "", "مهلت پرداخت"));
+  if (item.seller_approved_at) {
+    box.appendChild(makeElement("span", "account-deadline-approved", "تأیید فروشنده: " + formatRequestDateTime(item.seller_approved_at) + " · تهران"));
+  }
   if (!item.expires_at) {
-    box.appendChild(makeElement("small", "", "مهلت پرداخت"));
     box.appendChild(makeElement("strong", "", "۶ ساعت پس از تأیید فروشنده"));
     return box;
   }
@@ -2327,12 +2342,8 @@ function renderRequestDeadline(item) {
   if (Number.isNaN(expiry.getTime())) return box;
   box.dataset.requestDeadline = "true";
   box.dataset.expiresAt = expiry.toISOString();
-  box.appendChild(makeElement("small", "", "زمان باقی‌مانده برای پرداخت"));
   box.appendChild(makeElement("strong", "account-deadline-countdown", "در حال محاسبه…"));
-  const endTime = new Intl.DateTimeFormat("fa-IR", {
-    timeZone: "Asia/Tehran", dateStyle: "short", timeStyle: "short"
-  }).format(expiry);
-  box.appendChild(makeElement("span", "", "پایان مهلت: " + endTime + " · به وقت تهران"));
+  box.appendChild(makeElement("span", "", "پرداخت تا: " + formatRequestDateTime(expiry) + " · به وقت تهران"));
   return box;
 }
 
@@ -3351,7 +3362,8 @@ function renderAccountPanel(data) {
   data.purchase_requests.forEach(item => {
     const card = makeElement("div", "admin-request-card");
     card.appendChild(makeElement("strong", "", `${item.is_seller_request ? "درخواست برای آگهی شما" : "درخواست خرید"} · ${item.listing_title || "آگهی شماره " + item.listing_id}`));
-    card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)} · تاریخ: ${item.created_at ? new Date(item.created_at).toLocaleDateString("fa-IR") : "—"}`));
+    card.appendChild(makeElement("p", "", `وضعیت: ${accountStatusLabel(item.status)}`));
+    card.appendChild(makeElement("p", "admin-request-meta", "نمایش درخواست از: " + formatRequestDateTime(item.created_at) + " · به وقت تهران"));
     if (item.is_seller_request) {
       card.appendChild(makeElement("p", "", `نام خریدار: ${item.buyer_name || "—"}`));
       if (item.message) card.appendChild(makeElement("p", "", `پیام: ${item.message}`));
