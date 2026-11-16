@@ -2070,6 +2070,11 @@ async function verifyAuthOtp() {
 }
 
 async function signOutAuth() {
+  if (accountNotificationTimer) {
+    clearInterval(accountNotificationTimer);
+    accountNotificationTimer = null;
+  }
+  accountNotificationsCache = [];
   const { error } = await supabaseClient.auth.signOut();
   if (error) {
     showToast('خروج از حساب انجام نشد. دوباره تلاش کنید.');
