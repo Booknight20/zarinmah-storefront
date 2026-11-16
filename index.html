@@ -1838,10 +1838,15 @@ function normalizeIranPhone(value) {
 }
 
 const isAccountPage = location.pathname.replace(/\/+$/, '') === '/account';
+if (isAccountPage) document.body.classList.add('account-page-open');
 
 function openAccountDrawer() {
-  document.body.classList.add('account-drawer-open');
-  if (isAccountPage) document.body.classList.add('account-page-open');
+  if (!isAccountPage) {
+    window.location.assign('/account');
+    return;
+  }
+  document.body.classList.remove('account-drawer-open');
+  document.body.classList.add('account-page-open');
   const modal = document.getElementById('authModal');
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
@@ -1857,8 +1862,8 @@ function openAccount() {
     openAccountDrawer();
     return;
   }
-  // Open the member workspace in a separate browser tab; Supabase restores the shared session.
-  window.open(new URL('/account', window.location.origin).href, '_blank', 'noopener');
+  // Keep the member workspace in the current tab as a dedicated page.
+  window.location.assign('/account');
 }
 
 function openAuthModal() {
@@ -2047,6 +2052,10 @@ async function signOutAuth() {
     return;
   }
   updateAuthUI(null);
+  if (isAccountPage) {
+    window.location.replace('/');
+    return;
+  }
   closeModal('authModal');
   showToast('از حساب کاربری خارج شدید.');
 }
