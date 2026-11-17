@@ -6,6 +6,9 @@ html
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>زرین ماه | طلای کم‌اجرت</title>
 <link rel="icon" type="image/webp" href="/logo-zarinmah.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -1261,6 +1264,149 @@ body.admin-modal-lock { overflow:hidden !important; }
  }
 }
 
+
+/* Premium visual refinement */
+:root {
+  --gold:#d8b45b;
+  --gold-soft:#f0d994;
+  --dark:#07131b;
+  --panel:#101b22;
+  --line:rgba(216,180,91,.24);
+}
+body {
+  font-family:'Vazirmatn',Tahoma,Arial,sans-serif;
+  background:
+    radial-gradient(ellipse at 12% 8%,rgba(30,62,76,.22),transparent 34%),
+    radial-gradient(ellipse at 88% 34%,rgba(128,91,28,.10),transparent 30%),
+    #080d11;
+  letter-spacing:-.12px;
+}
+button,input,select,textarea { font-family:inherit; }
+header {
+  background:rgba(5,16,23,.88);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+  box-shadow:0 8px 28px rgba(0,0,0,.16);
+}
+.brand-name { letter-spacing:-.5px; }
+.hero {
+  position:relative;
+  padding:82px 0;
+  border-bottom:1px solid rgba(216,180,91,.12);
+  background:
+    radial-gradient(ellipse at 78% 42%,rgba(216,180,91,.20),transparent 42%),
+    radial-gradient(ellipse at 8% 85%,rgba(30,85,103,.22),transparent 38%),
+    linear-gradient(115deg,#030a0e 0%,#0b1921 58%,#17130c 100%);
+}
+.hero h1 {
+  margin:12px 0;
+  font-size:clamp(34px,4.2vw,58px);
+  line-height:1.45;
+  letter-spacing:-1.6px;
+  font-weight:900;
+}
+.hero h1 em { color:var(--gold-soft); font-style:normal; }
+.hero p { max-width:590px; line-height:2.25; }
+.hero-art {
+  position:relative;
+  min-height:360px;
+  border:1px solid rgba(216,180,91,.3);
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.34),inset 0 0 55px rgba(216,180,91,.08);
+  background:
+    radial-gradient(circle at 50% 50%,rgba(239,205,119,.24) 0 2%,transparent 2.5%),
+    radial-gradient(ellipse at 50% 45%,rgba(216,180,91,.28),transparent 45%),
+    radial-gradient(ellipse at 50% 50%,transparent 38%,rgba(216,180,91,.12) 39%,transparent 40%),
+    linear-gradient(135deg,#15130f,#071923 58%,#241b0c);
+}
+.hero-art::before,.hero-art::after {
+  content:"";
+  position:absolute;
+  width:230px;height:230px;
+  left:50%;top:50%;
+  border:1px solid rgba(240,217,148,.28);
+  border-radius:50%;
+  transform:translate(-50%,-50%) rotate(28deg) scaleX(.72);
+  box-shadow:0 0 45px rgba(216,180,91,.10);
+}
+.hero-art::after { width:300px;height:300px; transform:translate(-50%,-50%) rotate(-28deg) scaleX(.72); border-color:rgba(240,217,148,.15); }
+.section { padding:58px 0; }
+.section-head h2 { font-size:clamp(22px,2.4vw,31px); font-weight:800; letter-spacing:-.6px; }
+.section-desc { line-height:2.1; }
+.market-item {
+  border-color:rgba(216,180,91,.23);
+  background:linear-gradient(145deg,rgba(22,34,41,.96),rgba(13,19,23,.96));
+  border-radius:16px;
+  box-shadow:0 10px 28px rgba(0,0,0,.15);
+  transition:transform .22s,border-color .22s,box-shadow .22s;
+}
+.market-item:hover { transform:translateY(-3px);border-color:rgba(216,180,91,.55);box-shadow:0 16px 34px rgba(0,0,0,.23); }
+.filters { gap:9px; }
+.filter { padding:9px 17px;border-radius:999px;transition:all .2s; }
+.filter:hover { border-color:var(--gold);color:var(--gold-soft);transform:translateY(-1px); }
+.filter.active { box-shadow:0 6px 18px rgba(216,180,91,.18); }
+.product {
+  border:1px solid rgba(216,180,91,.16);
+  border-radius:19px;
+  box-shadow:0 12px 34px rgba(0,0,0,.20);
+  transition:transform .24s,border-color .24s,box-shadow .24s;
+}
+.product:hover { transform:translateY(-5px);border-color:rgba(180,139,51,.55);box-shadow:0 20px 42px rgba(0,0,0,.28); }
+.product-visual { padding:11px;background:linear-gradient(145deg,#fffefa,#eee9de); }
+.product-hero-frame { border-radius:13px;background:#f8f6f1; }
+.product-info { padding:17px; }
+.product-info h3 { font-size:15px;font-weight:800;line-height:1.8;color:#17212a; }
+.product-meta { line-height:2.1; }
+.product-description { line-height:2.05; }
+.product-price { font-size:16px; }
+.purchase-action,.product-details-action {
+  border-radius:11px;
+  min-height:42px;
+  font-family:inherit;
+  transition:transform .18s,filter .18s,box-shadow .18s;
+}
+.purchase-action:hover,.product-details-action:hover { transform:translateY(-2px);box-shadow:0 8px 18px rgba(180,139,51,.18); }
+.store-location-bar {
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:-5px 0 19px;padding:13px 16px;
+  border:1px solid rgba(216,180,91,.2);border-radius:15px;
+  background:linear-gradient(110deg,rgba(19,34,42,.92),rgba(22,20,15,.92));
+}
+.store-location-copy { display:grid;gap:2px; }
+.store-location-copy strong { color:var(--gold-soft);font-size:13px; }
+.store-location-copy small { color:var(--muted);font-size:10px; }
+.store-city-control { display:flex;align-items:center;gap:9px;color:#e5dccb;font-size:11px; }
+.store-city-control select {
+  min-width:175px;max-width:260px;padding:8px 11px;
+  border:1px solid rgba(216,180,91,.32);border-radius:9px;
+  background:#0c171e;color:var(--text);outline:none;
+}
+.store-city-control select:focus { border-color:var(--gold); }
+.product-local-badge {
+  display:inline-flex;align-items:center;width:max-content;
+  margin:0 0 7px;padding:3px 9px;border-radius:999px;
+  color:#76591b;background:#f6e8bc;border:1px solid rgba(160,119,37,.2);
+  font-size:10px;font-weight:800;
+}
+.cta {
+  border-color:rgba(216,180,91,.3);
+  background:linear-gradient(120deg,rgba(20,34,41,.95),rgba(25,21,13,.95));
+  box-shadow:0 16px 40px rgba(0,0,0,.16);
+}
+.benefit { padding:19px;border:1px solid rgba(216,180,91,.14);border-radius:15px;background:rgba(17,28,34,.55); }
+footer { border-top:1px solid rgba(216,180,91,.14); }
+.btn { border-radius:11px;transition:transform .18s,box-shadow .18s,filter .18s; }
+.btn:hover { transform:translateY(-2px);box-shadow:0 8px 20px rgba(216,180,91,.17); }
+@media(max-width:650px) {
+  .hero { padding:44px 0; }
+  .hero-art { min-height:220px; }
+  .store-location-bar { align-items:stretch;flex-direction:column; }
+  .store-city-control { align-items:stretch;flex-direction:column; }
+  .store-city-control select { width:100%;max-width:none; }
+  .product-info { padding:12px; }
+}
+
 </style>
 </head>
 
@@ -1342,6 +1488,18 @@ body.admin-modal-lock { overflow:hidden !important; }
       <button class="filter" data-filter="ring">انگشتر</button>
       <button class="filter" data-filter="bracelet">دستبند و النگو</button>
       <button class="filter" data-filter="coin">سکه</button>
+    </div>
+    <div class="store-location-bar">
+      <div class="store-location-copy">
+        <strong>ویترین نزدیک شما</strong>
+        <small id="storeCityHint">ابتدا آگهی‌های شهر محل سکونت نمایش داده می‌شوند.</small>
+      </div>
+      <label class="store-city-control" for="storeCitySelect">
+        <span>اولویت نمایش شهر</span>
+        <select id="storeCitySelect" aria-label="اولویت نمایش آگهی‌ها بر اساس شهر">
+          <option value="">همه شهرها</option>
+        </select>
+      </label>
     </div>
     <div class="products" id="productsGrid" aria-live="polite">
       <p class="empty-products">در حال دریافت آگهی‌ها…</p>
@@ -2207,6 +2365,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
     if (requestId !== profileRequestId || currentAuthSession?.user?.id !== session.user.id) return;
     currentUserProfile = result.profile || null;
     currentUserRole = result.role || 'user';
+    syncStoreCitySelector();
+    renderProducts(currentFilter);
     const roleBadge = document.getElementById('authRoleLabel');
     roleBadge.textContent = 'نقش حساب: ' + (ROLE_LABELS[currentUserRole] || ROLE_LABELS.user);
     roleBadge.dataset.role = currentUserRole;
@@ -3906,6 +4066,7 @@ async function initializeAuth() {
 
 let liveListings = [];
 let currentFilter = 'all';
+let storeCityOverride; // undefined = use the signed-in user's profile city; empty = all cities.
 let previewUrl = null;
 let listingsLoading = false;
 let selectedPurchaseListingId = null;
@@ -4347,6 +4508,9 @@ function createListingCard(item) {
   setHeroPhoto(0);
 
   const info = makeElement('div', 'product-info');
+  if (isListingInPreferredCity(item)) {
+    info.appendChild(makeElement('span', 'product-local-badge', 'آگهی شهر شما'));
+  }
   const title = makeElement('h3', '', item.product_type || item.item_type || 'محصول طلا');
   const details = [];
   if (item.weight) details.push(`وزن: ${item.weight} ${item.weight_unit || 'گرم'}`);
@@ -4373,16 +4537,32 @@ function createListingCard(item) {
   return article;
 }
 
+function getPreferredStoreLocationKey() {
+  if (storeCityOverride !== undefined) return storeCityOverride;
+  if (currentUserProfile?.province && currentUserProfile?.city) {
+    return currentUserProfile.province + '|' + currentUserProfile.city;
+  }
+  try { return localStorage.getItem('zarinmah_store_location') || ''; }
+  catch (_) { return ''; }
+}
+
+function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationKey()) {
+  if (!locationKey) return false;
+  const [province, city] = locationKey.split('|');
+  return Boolean(city && item.city === city && (!province || item.province === province));
+}
+
 function renderProducts(filter = currentFilter) {
   currentFilter = filter;
 
   const grid = document.getElementById('productsGrid');
   grid.replaceChildren();
 
+  const preferredLocation = getPreferredStoreLocationKey();
   const filtered = liveListings.filter(item => {
     if (filter === 'all') return true;
     return getListingType(item) === filter;
-  });
+  }).sort((a, b) => Number(isListingInPreferredCity(b, preferredLocation)) - Number(isListingInPreferredCity(a, preferredLocation)));
 
   if (!filtered.length) {
     grid.appendChild(makeElement(
@@ -4495,6 +4675,52 @@ const majorCitiesByProvince = {
   'همدان': ['همدان', 'ملایر', 'نهاوند', 'تویسرکان', 'اسدآباد'],
   'یزد': ['یزد', 'میبد', 'اردکان', 'بافق', 'مهریز']
 };
+
+function syncStoreCitySelector() {
+  const select = document.getElementById('storeCitySelect');
+  const hint = document.getElementById('storeCityHint');
+  if (!select) return;
+  if (select.options.length <= 1) {
+    Object.entries(majorCitiesByProvince).forEach(([province, cities]) => {
+      cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = province + '|' + city;
+        option.textContent = city + '، ' + province;
+        select.appendChild(option);
+      });
+    });
+  }
+  const key = getPreferredStoreLocationKey();
+  select.value = key;
+  if (hint) {
+    const profileLocation = currentUserProfile?.city
+      ? currentUserProfile.city + '، ' + (currentUserProfile.province || '')
+      : '';
+    const selectedOption = select.selectedOptions[0];
+    const label = selectedOption && selectedOption.value
+      ? selectedOption.textContent
+      : (profileLocation || 'همه شهرها');
+    hint.textContent = key
+      ? 'آگهی‌های ' + label + ' ابتدا نمایش داده می‌شوند؛ سایر شهرها هم در ادامه قابل مشاهده‌اند.'
+      : 'همه شهرها نمایش داده می‌شوند. برای اولویت‌بندی، شهر موردنظر را انتخاب کنید.';
+  }
+}
+
+const storeCitySelect = document.getElementById('storeCitySelect');
+if (storeCitySelect) {
+  storeCitySelect.addEventListener('change', () => {
+    storeCityOverride = storeCitySelect.value;
+    if (!currentAuthSession) {
+      try {
+        if (storeCityOverride) localStorage.setItem('zarinmah_store_location', storeCityOverride);
+        else localStorage.removeItem('zarinmah_store_location');
+      } catch (_) {}
+    }
+    syncStoreCitySelector();
+    renderProducts(currentFilter);
+  });
+}
+syncStoreCitySelector();
 
 const provinceSelect = document.getElementById('province');
 const citySelect = document.getElementById('city');
