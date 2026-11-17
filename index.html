@@ -1265,6 +1265,7 @@ body.admin-modal-lock { overflow:hidden !important; }
 }
 
 
+html, body, body *, body *::before, body *::after { font-family:'Vazirmatn',Tahoma,Arial,sans-serif !important; }
 /* Premium visual refinement */
 :root {
   --gold:#d8b45b;
@@ -1308,18 +1309,17 @@ header {
 .hero h1 em { color:var(--gold-soft); font-style:normal; }
 .hero p { max-width:590px; line-height:2.25; }
 .hero-art {
-  position:relative;
+  position:relative;display:grid;place-items:center;isolation:isolate;
   min-height:360px;
   border:1px solid rgba(216,180,91,.3);
   border-radius:28px;
   overflow:hidden;
   box-shadow:0 24px 70px rgba(0,0,0,.34),inset 0 0 55px rgba(216,180,91,.08);
-  background:
-    radial-gradient(circle at 50% 50%,rgba(239,205,119,.24) 0 2%,transparent 2.5%),
-    radial-gradient(ellipse at 50% 45%,rgba(216,180,91,.28),transparent 45%),
-    radial-gradient(ellipse at 50% 50%,transparent 38%,rgba(216,180,91,.12) 39%,transparent 40%),
-    linear-gradient(135deg,#15130f,#071923 58%,#241b0c);
+  background:radial-gradient(ellipse at 50% 58%,rgba(216,180,91,.18),transparent 48%),radial-gradient(ellipse at 16% 18%,rgba(48,104,120,.28),transparent 42%),linear-gradient(145deg,#101e25,#07131a 58%,#211a0e);
 }
+.hero-art-glow { position:absolute;inset:12%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(225,183,82,.17),transparent 68%);filter:blur(12px); }
+.hero-jewelry { width:min(100%,520px);height:auto;max-height:350px;filter:drop-shadow(0 20px 28px rgba(0,0,0,.38)); }
+.hero-art-caption { position:absolute;bottom:18px;right:22px;left:22px;text-align:center;color:#f2d98e;font-size:12px;letter-spacing:.3px;text-shadow:0 2px 12px #000; }
 .hero-art::before,.hero-art::after {
   content:"";
   position:absolute;
@@ -1353,10 +1353,10 @@ header {
   transition:transform .24s,border-color .24s,box-shadow .24s;
 }
 .product:hover { transform:translateY(-5px);border-color:rgba(180,139,51,.55);box-shadow:0 20px 42px rgba(0,0,0,.28); }
-.product-visual { padding:11px;background:linear-gradient(145deg,#fffefa,#eee9de); }
-.product-hero-frame { border-radius:13px;background:#f8f6f1; }
-.product-info { padding:17px; }
-.product-info h3 { font-size:15px;font-weight:800;line-height:1.8;color:#17212a; }
+.product-visual { padding:9px;background:linear-gradient(145deg,#fffefa,#eee9de); }
+.product-hero-frame { border-radius:12px;background:#f8f6f1;aspect-ratio:1.08 / 1; }
+.product-info { padding:14px; }
+.product-info h3 { font-size:14px;font-weight:800;line-height:1.8;color:#17212a; }
 .product-meta { line-height:2.1; }
 .product-description { line-height:2.05; }
 .product-price { font-size:16px; }
@@ -1376,13 +1376,15 @@ header {
 .store-location-copy { display:grid;gap:2px; }
 .store-location-copy strong { color:var(--gold-soft);font-size:13px; }
 .store-location-copy small { color:var(--muted);font-size:10px; }
-.store-city-control { display:flex;align-items:center;gap:9px;color:#e5dccb;font-size:11px; }
-.store-city-control select {
-  min-width:175px;max-width:260px;padding:8px 11px;
-  border:1px solid rgba(216,180,91,.32);border-radius:9px;
-  background:#0c171e;color:var(--text);outline:none;
-}
-.store-city-control select:focus { border-color:var(--gold); }
+.store-city-control { display:flex;align-items:end;gap:10px;color:#e5dccb;font-size:11px;flex-wrap:wrap; }
+.store-city-control label { display:grid;gap:5px;min-width:150px; }
+.store-city-control label span { color:#e5dccb;font-size:11px; }
+.store-city-control select { width:100%;min-width:155px;max-width:230px;padding:9px 12px;border:1px solid rgba(216,180,91,.32);border-radius:10px;background:#0c171e;color:var(--text);outline:none; }
+.store-city-control select:focus { border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,180,91,.1); }
+.store-city-control select:disabled { opacity:.55;cursor:not-allowed; }
+.store-location-reset { min-height:39px;padding:8px 13px;border:1px solid rgba(216,180,91,.4);border-radius:10px;background:rgba(216,180,91,.09);color:var(--gold-soft);font-size:11px;cursor:pointer; }
+.store-location-reset:hover { background:rgba(216,180,91,.17); }
+.store-location-reset[hidden] { display:none !important; }
 .product-local-badge {
   display:inline-flex;align-items:center;width:max-content;
   margin:0 0 7px;padding:3px 9px;border-radius:999px;
@@ -1403,7 +1405,9 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
   .hero-art { min-height:220px; }
   .store-location-bar { align-items:stretch;flex-direction:column; }
   .store-city-control { align-items:stretch;flex-direction:column; }
+  .store-city-control label { width:100%; }
   .store-city-control select { width:100%;max-width:none; }
+  .hero-jewelry { max-height:220px; }
   .product-info { padding:12px; }
 }
 
@@ -1463,7 +1467,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <a class="btn btn-outline" href="#sell">قصد فروش طلا داری؟</a>
       </div>
     </div>
-    <div class="hero-art" aria-label="تصویر زیورآلات طلا"></div>
+    <div class="hero-art" role="img" aria-label="تصویر گرافیکی گردنبند طلای ظریف"><span class="hero-art-glow"></span><svg class="hero-jewelry" viewBox="0 0 560 430" aria-hidden="true" focusable="false"><defs><linearGradient id="goldChain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset=".38" stop-color="#c99835"/><stop offset=".7" stop-color="#f8dc85"/><stop offset="1" stop-color="#8f641e"/></linearGradient><radialGradient id="goldPendant" cx=".32" cy=".2" r=".85"><stop offset="0" stop-color="#fff3bd"/><stop offset=".35" stop-color="#e4bd5c"/><stop offset=".72" stop-color="#a87524"/><stop offset="1" stop-color="#f5d77d"/></radialGradient><filter id="jewelShadow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8"/></filter></defs><ellipse cx="280" cy="365" rx="118" ry="18" fill="#d9ad50" opacity=".18" filter="url(#jewelShadow)"/><path d="M91 74 C112 213 174 284 280 301 C386 284 448 213 469 74" fill="none" stroke="#6f501d" stroke-width="13" opacity=".34"/><path d="M91 70 C112 209 174 280 280 297 C386 280 448 209 469 70" fill="none" stroke="url(#goldChain)" stroke-width="7" stroke-linecap="round"/><path d="M103 111 C132 223 193 270 280 285 C367 270 428 223 457 111" fill="none" stroke="#fff0b0" stroke-width="1.5" opacity=".8"/><g transform="translate(280 307)"><path d="M0 -8 L38 27 L0 83 L-38 27 Z" fill="#704d18" opacity=".42" transform="translate(0 7)"/><path d="M0 -12 L37 23 L0 78 L-37 23 Z" fill="url(#goldPendant)" stroke="#ffedaa" stroke-width="2"/><path d="M0 -2 L25 23 L0 62 L-25 23 Z" fill="none" stroke="#fff0b4" stroke-width="2" opacity=".8"/><path d="M0 -12 L0 78 M-37 23 L37 23" stroke="#fff0b4" stroke-width="1" opacity=".55"/><circle cx="0" cy="-13" r="8" fill="url(#goldPendant)" stroke="#fff0b4" stroke-width="2"/></g><g fill="#f8dfa0"><circle cx="92" cy="72" r="4"/><circle cx="468" cy="72" r="4"/><circle cx="280" cy="296" r="3"/></g><g fill="none" stroke="#e7c66f" opacity=".4"><circle cx="280" cy="210" r="164"/><circle cx="280" cy="210" r="185"/></g></svg><span class="hero-art-caption">ظرافت در انتخاب · اطمینان در معامله</span></div>
   </div>
 </section>
 
@@ -1503,12 +1507,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <strong>ویترین نزدیک شما</strong>
         <small id="storeCityHint">ابتدا آگهی‌های شهر محل سکونت نمایش داده می‌شوند.</small>
       </div>
-      <label class="store-city-control" for="storeCitySelect">
-        <span>اولویت نمایش شهر</span>
-        <select id="storeCitySelect" aria-label="اولویت نمایش آگهی‌ها بر اساس شهر">
-          <option value="">همه شهرها</option>
-        </select>
-      </label>
+      <div class="store-city-control"><label><span>استان</span><select id="storeProvinceSelect" aria-label="انتخاب استان"><option value="">انتخاب استان</option></select></label><label><span>شهر</span><select id="storeCitySelect" aria-label="انتخاب شهر" disabled><option value="">ابتدا استان را انتخاب کنید</option></select></label><button class="store-location-reset" id="storeMyCityButton" type="button" hidden>بازگشت به شهر من</button></div>
     </div>
     <div class="products" id="productsGrid" aria-live="polite">
       <p class="empty-products">در حال دریافت آگهی‌ها…</p>
@@ -4565,7 +4564,7 @@ function createListingCard(item) {
 
   const info = makeElement('div', 'product-info');
   if (isListingInPreferredCity(item)) {
-    info.appendChild(makeElement('span', 'product-local-badge', 'آگهی شهر شما'));
+    info.appendChild(makeElement('span', 'product-local-badge', 'آگهی همین شهر'));
   }
   const title = makeElement('h3', '', item.product_type || item.item_type || 'محصول طلا');
   const details = [];
@@ -4595,188 +4594,48 @@ function createListingCard(item) {
 
 function getPreferredStoreLocationKey() {
   if (storeCityOverride !== undefined) return storeCityOverride;
-  if (currentUserProfile?.province && currentUserProfile?.city) {
-    return currentUserProfile.province + '|' + currentUserProfile.city;
-  }
-  try { return localStorage.getItem('zarinmah_store_location') || ''; }
-  catch (_) { return ''; }
+  if (currentUserProfile?.province && currentUserProfile?.city) return currentUserProfile.province + '|' + currentUserProfile.city;
+  try { return localStorage.getItem('zarinmah_store_location') || ''; } catch (_) { return ''; }
 }
-
 function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationKey()) {
   if (!locationKey) return false;
   const [province, city] = locationKey.split('|');
-  return Boolean(city && item.city === city && (!province || item.province === province));
+  return Boolean(province && city && item.province === province && item.city === city);
 }
+function syncStoreCitySelector() {
+  const provinceSelect=document.getElementById('storeProvinceSelect'), citySelect=document.getElementById('storeCitySelect'), hint=document.getElementById('storeCityHint'), myCityButton=document.getElementById('storeMyCityButton');
+  if(!provinceSelect||!citySelect)return;
+  if(provinceSelect.options.length<=1)Object.keys(majorCitiesByProvince).forEach(province=>{const o=document.createElement('option');o.value=province;o.textContent=province;provinceSelect.appendChild(o);});
+  const key=getPreferredStoreLocationKey(), [province='',city='']=key?key.split('|'):[];
+  provinceSelect.value=province;citySelect.replaceChildren();
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=province?'انتخاب شهر':'ابتدا استان را انتخاب کنید';citySelect.appendChild(placeholder);
+  const cities=majorCitiesByProvince[province]||[];cities.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;citySelect.appendChild(o);});
+  citySelect.disabled=!cities.length;citySelect.value=cities.includes(city)?city:'';
+  const profileKey=currentUserProfile?.province&&currentUserProfile?.city?currentUserProfile.province+'|'+currentUserProfile.city:'';
+  if(myCityButton)myCityButton.hidden=!profileKey||key===profileKey;
+  if(hint)hint.textContent=key?'فقط آگهی‌های '+city+'، '+province+' نمایش داده می‌شوند.':'برای دیدن آگهی‌ها، ابتدا استان و سپس شهر را انتخاب کنید.';
+}
+function saveStoreLocationPreference(key) { try { if(key)localStorage.setItem('zarinmah_store_location',key);else localStorage.removeItem('zarinmah_store_location'); } catch (_) {} }
+const storeProvinceSelect=document.getElementById('storeProvinceSelect'), storeCitySelect=document.getElementById('storeCitySelect');
+if(storeProvinceSelect)storeProvinceSelect.addEventListener('change',()=>{storeCityOverride='';saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
+if(storeCitySelect)storeCitySelect.addEventListener('change',()=>{const province=storeProvinceSelect?.value||'';storeCityOverride=province&&storeCitySelect.value?province+'|'+storeCitySelect.value:'';saveStoreLocationPreference(storeCityOverride);syncStoreCitySelector();renderProducts(currentFilter);});
+const storeMyCityButton=document.getElementById('storeMyCityButton');
+if(storeMyCityButton)storeMyCityButton.addEventListener('click',()=>{storeCityOverride=undefined;saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
+syncStoreCitySelector();
 
 function renderProducts(filter = currentFilter) {
-  currentFilter = filter;
-
-  const grid = document.getElementById('productsGrid');
-  grid.replaceChildren();
-
-  const preferredLocation = getPreferredStoreLocationKey();
-  const filtered = liveListings.filter(item => {
-    if (filter === 'all') return true;
-    return getListingType(item) === filter;
-  }).sort((a, b) => Number(isListingInPreferredCity(b, preferredLocation)) - Number(isListingInPreferredCity(a, preferredLocation)));
-
-  if (!filtered.length) {
-    grid.appendChild(makeElement(
-      'div',
-      'empty-products',
-      liveListings.length
-        ? 'در این دسته‌بندی هنوز آگهی‌ای وجود ندارد.'
-        : 'هنوز آگهی تأییدشده‌ای برای نمایش وجود ندارد.'
-    ));
-    return;
+  currentFilter=filter;
+  const grid=document.getElementById('productsGrid');grid.replaceChildren();
+  const preferredLocation=getPreferredStoreLocationKey();
+  const [preferredProvince='',preferredCity='']=preferredLocation?preferredLocation.split('|'):[];
+  const categoryListings=liveListings.filter(item=>filter==='all'||getListingType(item)===filter);
+  const filtered=preferredLocation?categoryListings.filter(item=>isListingInPreferredCity(item,preferredLocation)):[];
+  if(!filtered.length){
+    const message=!preferredLocation?'برای مشاهده آگهی‌های شهر موردنظر، استان و شهر را از بالای ویترین انتخاب کنید.':categoryListings.length?'در '+preferredCity+'، '+preferredProvince+' آگهی تأییدشده‌ای در این دسته‌بندی وجود ندارد.':'هنوز آگهی تأییدشده‌ای در '+preferredCity+'، '+preferredProvince+' ثبت نشده است.';
+    grid.appendChild(makeElement('div','empty-products',message));return;
   }
-
-  filtered.forEach(item => {
-    grid.appendChild(createListingCard(item));
-  });
+  filtered.forEach(item=>grid.appendChild(createListingCard(item)));
 }
-
-async function loadListings() {
-  if (listingsLoading) return;
-  listingsLoading = true;
-
-  try {
-    const response = await fetch(LISTINGS_API, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`خطای سرور: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data || data.ok !== true || !Array.isArray(data.listings)) {
-      throw new Error('ساختار پاسخ آگهی‌ها معتبر نیست.');
-    }
-
-    liveListings = data.listings.filter(item => {
-      const status = String(item.status || '').toLowerCase();
-      return status === 'published' || status === 'sold';
-    });
-
-    renderProducts(currentFilter);
-
-    console.log('ZarinMah listings:', liveListings.length);
-
-  } catch (error) {
-    console.error('Listings API error:', error);
-
-    const grid = document.getElementById('productsGrid');
-    grid.replaceChildren();
-
-    grid.appendChild(makeElement(
-      'div',
-      'empty-products',
-      'دریافت آگهی‌ها با مشکل مواجه شد. لطفاً کمی بعد دوباره تلاش کنید.'
-    ));
-
-  } finally {
-    listingsLoading = false;
-  }
-}
-
-document.querySelectorAll('.filter').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.filter').forEach(item => {
-      item.classList.remove('active');
-    });
-
-    button.classList.add('active');
-    renderProducts(button.dataset.filter);
-  });
-});
-
-const itemSelect = document.getElementById('sellerItem');
-const pricingSelect = document.getElementById('pricingMethod');
-
-// فهرست کوتاه شهرهای اصلی برای جلوگیری از شلوغ‌شدن فرم
-const majorCitiesByProvince = {
-  'آذربایجان شرقی': ['تبریز', 'مراغه', 'مرند', 'میانه', 'اهر'],
-  'آذربایجان غربی': ['ارومیه', 'خوی', 'مهاباد', 'بوکان', 'میاندوآب'],
-  'اردبیل': ['اردبیل', 'پارس‌آباد', 'مشگین‌شهر', 'خلخال'],
-  'اصفهان': ['اصفهان', 'کاشان', 'خمینی‌شهر', 'نجف‌آباد', 'شاهین‌شهر'],
-  'البرز': ['کرج', 'فردیس', 'نظرآباد', 'محمدشهر'],
-  'ایلام': ['ایلام', 'دهلران', 'آبدانان', 'ایوان'],
-  'بوشهر': ['بوشهر', 'برازجان', 'گناوه', 'کنگان'],
-  'تهران': ['تهران', 'اسلام‌شهر', 'شهریار', 'قدس', 'ورامین'],
-  'چهارمحال و بختیاری': ['شهرکرد', 'بروجن', 'فارسان', 'لردگان'],
-  'خراسان جنوبی': ['بیرجند', 'قائن', 'طبس', 'فردوس'],
-  'خراسان رضوی': ['مشهد', 'نیشابور', 'سبزوار', 'تربت حیدریه', 'کاشمر'],
-  'خراسان شمالی': ['بجنورد', 'شیروان', 'اسفراین', 'جاجرم'],
-  'خوزستان': ['اهواز', 'دزفول', 'آبادان', 'ماهشهر', 'خرمشهر'],
-  'زنجان': ['زنجان', 'ابهر', 'خرمدره', 'قیدار'],
-  'سمنان': ['سمنان', 'شاهرود', 'دامغان', 'گرمسار'],
-  'سیستان و بلوچستان': ['زاهدان', 'چابهار', 'ایرانشهر', 'زابل', 'خاش'],
-  'فارس': ['شیراز', 'مرودشت', 'جهرم', 'فسا', 'کازرون'],
-  'قزوین': ['قزوین', 'تاکستان', 'الوند', 'آبیک'],
-  'قم': ['قم', 'جعفریه', 'کهک'],
-  'کردستان': ['سنندج', 'سقز', 'مریوان', 'بانه', 'قروه'],
-  'کرمان': ['کرمان', 'سیرجان', 'رفسنجان', 'جیرفت', 'بم'],
-  'کرمانشاه': ['کرمانشاه', 'اسلام‌آباد غرب', 'کنگاور', 'هرسین', 'پاوه'],
-  'کهگیلویه و بویراحمد': ['یاسوج', 'دوگنبدان', 'دهدشت', 'لیکک'],
-  'گلستان': ['گرگان', 'گنبدکاووس', 'علی‌آباد کتول', 'آق‌قلا'],
-  'گیلان': ['رشت', 'بندر انزلی', 'لاهیجان', 'لنگرود', 'آستارا'],
-  'لرستان': ['خرم‌آباد', 'بروجرد', 'دورود', 'الیگودرز', 'کوهدشت'],
-  'مازندران': ['ساری', 'بابل', 'آمل', 'قائم‌شهر', 'نوشهر'],
-  'مرکزی': ['اراک', 'ساوه', 'خمین', 'محلات', 'دلیجان'],
-  'هرمزگان': ['بندرعباس', 'میناب', 'قشم', 'بندر لنگه', 'جاسک'],
-  'همدان': ['همدان', 'ملایر', 'نهاوند', 'تویسرکان', 'اسدآباد'],
-  'یزد': ['یزد', 'میبد', 'اردکان', 'بافق', 'مهریز']
-};
-
-function syncStoreCitySelector() {
-  const select = document.getElementById('storeCitySelect');
-  const hint = document.getElementById('storeCityHint');
-  if (!select) return;
-  if (select.options.length <= 1) {
-    Object.entries(majorCitiesByProvince).forEach(([province, cities]) => {
-      cities.forEach(city => {
-        const option = document.createElement('option');
-        option.value = province + '|' + city;
-        option.textContent = city + '، ' + province;
-        select.appendChild(option);
-      });
-    });
-  }
-  const key = getPreferredStoreLocationKey();
-  select.value = key;
-  if (hint) {
-    const profileLocation = currentUserProfile?.city
-      ? currentUserProfile.city + '، ' + (currentUserProfile.province || '')
-      : '';
-    const selectedOption = select.selectedOptions[0];
-    const label = selectedOption && selectedOption.value
-      ? selectedOption.textContent
-      : (profileLocation || 'همه شهرها');
-    hint.textContent = key
-      ? 'آگهی‌های ' + label + ' ابتدا نمایش داده می‌شوند؛ سایر شهرها هم در ادامه قابل مشاهده‌اند.'
-      : 'همه شهرها نمایش داده می‌شوند. برای اولویت‌بندی، شهر موردنظر را انتخاب کنید.';
-  }
-}
-
-const storeCitySelect = document.getElementById('storeCitySelect');
-if (storeCitySelect) {
-  storeCitySelect.addEventListener('change', () => {
-    storeCityOverride = storeCitySelect.value;
-    if (!currentAuthSession) {
-      try {
-        if (storeCityOverride) localStorage.setItem('zarinmah_store_location', storeCityOverride);
-        else localStorage.removeItem('zarinmah_store_location');
-      } catch (_) {}
-    }
-    syncStoreCitySelector();
-    renderProducts(currentFilter);
-  });
-}
-syncStoreCitySelector();
 
 const provinceSelect = document.getElementById('province');
 const citySelect = document.getElementById('city');
