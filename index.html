@@ -81,7 +81,7 @@ header {
 .nav-notification-menu .account-empty { margin:8px 2px; }
 .nav-notification-menu .account-notification-count { position:absolute; top:-5px; right:-5px; }
 @media (max-width:700px) { .nav { gap:8px; } .nav-actions { gap:6px; } .nav-notification-trigger { width:38px; height:38px; } .nav-notification-menu { left:auto; right:0; } }
-@media (prefers-reduced-motion:reduce) { .nav-notification-trigger.has-unread svg { animation:none; } }
+@media (prefers-reduced-motion:reduce) { .nav-notification-trigger.has-unread svg,.account-notification-trigger.has-unread > span:first-child { animation:none; } }
 .btn {
   display: inline-block;
   border: 1px solid var(--gold);
@@ -112,6 +112,8 @@ header {
 .account-notification-bar { display:flex; align-items:center; gap:10px; margin:0; }
 .account-notification-trigger { position:relative; display:inline-flex; align-items:center; gap:9px; min-height:42px; padding:7px 13px; border:1px solid rgba(199,162,75,.42); border-radius:11px; background:linear-gradient(135deg,rgba(199,162,75,.19),rgba(199,162,75,.06)); color:var(--text); font-size:12px; font-weight:700; cursor:pointer; transition:background .2s,border-color .2s,transform .2s; }
 .account-notification-trigger:hover { border-color:var(--gold); background:rgba(199,162,75,.2); transform:translateY(-1px); }
+.account-notification-trigger.has-unread > span:first-child { animation:account-notification-pulse 1.35s ease-in-out infinite; }
+@keyframes account-notification-pulse { 0%,100% { transform:rotate(0) scale(1); } 20%,50% { transform:rotate(-12deg) scale(1.06); } 35%,65% { transform:rotate(12deg) scale(1.06); } }
 .account-notification-trigger > span:first-child { display:grid; place-items:center; width:27px; height:27px; border-radius:8px; background:rgba(199,162,75,.17); color:var(--gold); font-size:17px; }
 .account-notification-count { display:inline-flex; min-width:20px; height:20px; align-items:center; justify-content:center; padding:0 5px; border-radius:20px; background:#a83d37; color:#fff; font-size:10px; font-weight:700; box-shadow:0 0 0 2px #11191d; }
 .account-notification-count[hidden] { display:none !important; }
