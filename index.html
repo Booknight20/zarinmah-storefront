@@ -1708,11 +1708,11 @@ body.admin-modal-lock { overflow:hidden !important; }
       <div id="authEmailMode" style="display:none">
         <div class="field" id="authEmailGroup">
           <label for="authEmail">ایمیل</label>
-          <input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
+          <input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithEmail();}">
         </div>
         <div class="field" id="authPasswordGroup" style="margin-top:12px">
           <label for="authPassword">رمز عبور</label>
-          <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه">
+          <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithEmail();}">
         </div>
         <div class="auth-actions" style="margin-top:14px">
           <button class="btn" id="authEmailSignInButton" type="button" onclick="signInWithEmail()">ورود با ایمیل</button>
