@@ -1420,6 +1420,12 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 .listing-rejection-notice strong { color:#e8bd79;font-size:12px; }
 .listing-rejection-notice p { margin:0;line-height:1.9;font-size:12px; }
 
+.hero-banner{position:relative;min-height:310px;height:100%;overflow:hidden;border:1px solid rgba(199,162,75,.35);border-radius:20px;background:#111}
+.hero-banner-track,.hero-banner-slide{position:absolute;inset:0}.hero-banner-slide{opacity:0;visibility:hidden;transition:opacity .7s}.hero-banner-slide.active{opacity:1;visibility:visible}
+.hero-banner-slide img{width:100%;height:100%;min-height:310px;object-fit:cover}.hero-banner-caption{position:absolute;right:24px;bottom:45px;color:#f3d78c;font-size:24px;text-shadow:0 2px 12px #000;z-index:2}
+.hero-banner-arrow{position:absolute;z-index:4;top:50%;width:36px;height:36px;border-radius:50%;background:#0009;color:white;border:1px solid #fff6}.hero-banner-arrow.prev{left:12px}.hero-banner-arrow.next{right:12px}
+.hero-banner-dots{position:absolute;z-index:4;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:8px}.hero-banner-dots button{width:9px;height:9px;border:0;border-radius:10px;background:#fff8}.hero-banner-dots button.active{width:22px;background:#d8b45c}
+.admin-banner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#15130f}.admin-banner-form label{display:flex;flex-direction:column;gap:5px;color:var(--muted)}.admin-banner-form input,.admin-banner-form select{padding:9px;background:#0b1115;color:var(--text);border:1px solid var(--line);border-radius:8px}.admin-banner-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.admin-banner-card{border:1px solid var(--line);border-radius:12px;overflow:hidden}.admin-banner-card img{width:100%;height:130px;object-fit:cover}.admin-banner-card .body{padding:10px}@media(max-width:760px){.hero-banner{min-height:240px}.hero-banner-slide img{min-height:240px}.admin-banner-form{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -1467,7 +1473,11 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <a class="btn btn-outline" href="#sell">قصد فروش طلا داری؟</a>
       </div>
     </div>
-    <div class="hero-art" role="img" aria-label="تصویر گرافیکی گردنبند طلای ظریف"><span class="hero-art-glow"></span><svg class="hero-jewelry" viewBox="0 0 560 430" aria-hidden="true" focusable="false"><defs><linearGradient id="goldChain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset=".38" stop-color="#c99835"/><stop offset=".7" stop-color="#f8dc85"/><stop offset="1" stop-color="#8f641e"/></linearGradient><radialGradient id="goldPendant" cx=".32" cy=".2" r=".85"><stop offset="0" stop-color="#fff3bd"/><stop offset=".35" stop-color="#e4bd5c"/><stop offset=".72" stop-color="#a87524"/><stop offset="1" stop-color="#f5d77d"/></radialGradient><filter id="jewelShadow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8"/></filter></defs><ellipse cx="280" cy="365" rx="118" ry="18" fill="#d9ad50" opacity=".18" filter="url(#jewelShadow)"/><path d="M91 74 C112 213 174 284 280 301 C386 284 448 213 469 74" fill="none" stroke="#6f501d" stroke-width="13" opacity=".34"/><path d="M91 70 C112 209 174 280 280 297 C386 280 448 209 469 70" fill="none" stroke="url(#goldChain)" stroke-width="7" stroke-linecap="round"/><path d="M103 111 C132 223 193 270 280 285 C367 270 428 223 457 111" fill="none" stroke="#fff0b0" stroke-width="1.5" opacity=".8"/><g transform="translate(280 307)"><path d="M0 -8 L38 27 L0 83 L-38 27 Z" fill="#704d18" opacity=".42" transform="translate(0 7)"/><path d="M0 -12 L37 23 L0 78 L-37 23 Z" fill="url(#goldPendant)" stroke="#ffedaa" stroke-width="2"/><path d="M0 -2 L25 23 L0 62 L-25 23 Z" fill="none" stroke="#fff0b4" stroke-width="2" opacity=".8"/><path d="M0 -12 L0 78 M-37 23 L37 23" stroke="#fff0b4" stroke-width="1" opacity=".55"/><circle cx="0" cy="-13" r="8" fill="url(#goldPendant)" stroke="#fff0b4" stroke-width="2"/></g><g fill="#f8dfa0"><circle cx="92" cy="72" r="4"/><circle cx="468" cy="72" r="4"/><circle cx="280" cy="296" r="3"/></g><g fill="none" stroke="#e7c66f" opacity=".4"><circle cx="280" cy="210" r="164"/><circle cx="280" cy="210" r="185"/></g></svg><span class="hero-art-caption">ظرافت در انتخاب · اطمینان در معامله</span></div>
+    <div class="hero-banner" id="heroBanner"><div class="hero-banner-track" id="heroBannerTrack">
+<a class="hero-banner-slide active" href="#products"><img src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=85" alt="زیورآلات طلا"><span class="hero-banner-caption">درخشش اصیل طلا</span></a>
+<a class="hero-banner-slide" href="#products"><img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=85" alt="زیورآلات لوکس"><span class="hero-banner-caption">زیبایی و اصالت</span></a>
+<a class="hero-banner-slide" href="#sell"><img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=1200&q=85" alt="دستبند طلا"><span class="hero-banner-caption">خرید و فروش در زرین ماه</span></a>
+</div><button class="hero-banner-arrow prev" onclick="changeHeroBanner(-1)" aria-label="قبلی">‹</button><button class="hero-banner-arrow next" onclick="changeHeroBanner(1)" aria-label="بعدی">›</button><div class="hero-banner-dots" id="heroBannerDots"></div></div>
   </div>
 </section>
 
@@ -1948,6 +1958,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
     <div class="admin-workspace-layout">
       <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
         <button type="button" data-admin-workspace-tab="overview" onclick="showAdminWorkspaceTab('overview')">داشبورد</button>
+<button type="button" data-admin-workspace-tab="banners" onclick="showAdminWorkspaceTab('banners')">مدیریت بنرها</button>
         <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
         <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">مدیریت آگهی‌ها</button>
         <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
@@ -1960,7 +1971,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <button type="button" data-admin-workspace-tab="storage" onclick="showAdminWorkspaceTab('storage')">مدیریت فضا</button>
       </div>
       <div class="admin-workspace-content">
-        <div id="adminWorkspaceOverview"></div>
+        <div id="adminWorkspaceOverview"></div><div id="adminWorkspaceBanners" style="display:none"></div>
         <div id="adminWorkspaceListings"></div>
         <div id="adminWorkspaceRequests"></div>
         <div id="adminWorkspaceMembers"></div>
@@ -2663,6 +2674,18 @@ async function openAdminWorkspace() {
   if (canManageMembers()) loadAdminMembers();
 }
 
+
+let heroBannerIndex=0,heroBannerTimer=null;
+function showHeroBanner(n){const a=[...document.querySelectorAll("#heroBannerTrack .hero-banner-slide")];if(!a.length)return;heroBannerIndex=(n+a.length)%a.length;a.forEach((x,i)=>x.classList.toggle("active",i===heroBannerIndex));document.querySelectorAll("#heroBannerDots button").forEach((x,i)=>x.classList.toggle("active",i===heroBannerIndex));}
+function changeHeroBanner(n){showHeroBanner(heroBannerIndex+n);if(heroBannerTimer)clearInterval(heroBannerTimer);heroBannerTimer=setInterval(()=>showHeroBanner(heroBannerIndex+1),5000);}
+async function loadPublicBanners(){try{const r=await fetch(LISTINGS_API+"?action=banners");const d=await r.json();if(!d.ok||!d.banners?.length)return;const esc=x=>String(x||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));document.getElementById("heroBannerTrack").innerHTML=d.banners.map((b,i)=>'<a class="hero-banner-slide '+(i===0?'active':'')+'" href="'+(String(b.target_url||"#products").startsWith("http")||String(b.target_url||"").startsWith("#")?esc(b.target_url):"#products")+'"><img src="'+esc(b.image_url)+'" alt="'+esc(b.title)+'"><span class="hero-banner-caption">'+esc(b.title)+'</span></a>').join("");document.getElementById("heroBannerDots").innerHTML=d.banners.map((b,i)=>'<button class="'+(i===0?'active':'')+'" onclick="showHeroBanner('+i+')"></button>').join("");heroBannerIndex=0;if(heroBannerTimer)clearInterval(heroBannerTimer);heroBannerTimer=setInterval(()=>showHeroBanner(heroBannerIndex+1),5000);}catch(e){console.warn(e);}}
+async function loadAdminBanners(){const box=document.getElementById("adminWorkspaceBanners");box.innerHTML='<h3>مدیریت بنرها</h3><p>در حال دریافت…</p>';try{const r=await fetch(LISTINGS_API+"?action=admin_banners",{headers:{Authorization:"Bearer "+currentAuthSession.access_token}});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"دریافت ناموفق");window.adminBannerCache=d.banners||[];box.innerHTML='<h3>مدیریت بنرهای صفحه اصلی</h3><form id="adminBannerForm" class="admin-banner-form" onsubmit="saveAdminBanner(event)"><input type="hidden" name="banner_id"><label>عنوان<input name="title" required></label><label>لینک مقصد<input name="target_url" placeholder="#products"></label><label>تصویر<input type="file" name="banner_image" accept="image/jpeg,image/png,image/webp"></label><label>ترتیب<input type="number" name="sort_order" value="0"></label><label>وضعیت<select name="is_active"><option value="true">فعال</option><option value="false">غیرفعال</option></select></label><div><button>ذخیره بنر</button> <button type="button" onclick="resetAdminBannerForm()">فرم جدید</button><span id="adminBannerFeedback"></span></div></form><div class="admin-banner-list">'+window.adminBannerCache.map(b=>'<article class="admin-banner-card"><img src="'+b.image_url+'"><div class="body"><b>'+b.title+'</b><p>'+(b.is_active?'فعال':'غیرفعال')+' · '+b.sort_order+'</p><button type="button" onclick="editAdminBanner('+b.id+')">ویرایش</button> <button type="button" onclick="deleteAdminBanner('+b.id+')">حذف</button></div></article>').join("")+'</div>';}catch(e){box.textContent=e.message||"خطا";}}
+function resetAdminBannerForm(){document.getElementById("adminBannerForm")?.reset();document.querySelector('#adminBannerForm [name="banner_id"]').value="";}
+function editAdminBanner(id){const b=window.adminBannerCache.find(x=>String(x.id)===String(id)),f=document.getElementById("adminBannerForm");if(!b||!f)return;f.elements.banner_id.value=b.id;f.elements.title.value=b.title;f.elements.target_url.value=b.target_url||"";f.elements.sort_order.value=b.sort_order;f.elements.is_active.value=String(!!b.is_active);}
+async function saveAdminBanner(e){e.preventDefault();const f=e.currentTarget,fd=new FormData(f);fd.set("action","admin_banner_save");const msg=document.getElementById("adminBannerFeedback");msg.textContent="در حال ذخیره…";try{const r=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd}),d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"ذخیره ناموفق");await loadAdminBanners();await loadPublicBanners();}catch(x){msg.textContent=x.message||"خطا";}}
+async function deleteAdminBanner(id){if(!confirm("این بنر حذف شود؟"))return;const fd=new FormData();fd.set("action","admin_banner_delete");fd.set("banner_id",id);try{const r=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd}),d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"حذف ناموفق");await loadAdminBanners();await loadPublicBanners();}catch(e){showToast(e.message||"خطا");}}
+document.addEventListener("DOMContentLoaded",()=>{const d=document.getElementById("heroBannerDots");d.innerHTML=Array.from(document.querySelectorAll("#heroBannerTrack .hero-banner-slide")).map((x,i)=>'<button class="'+(i===0?'active':'')+'" onclick="showHeroBanner('+i+')"></button>').join("");heroBannerTimer=setInterval(()=>showHeroBanner(heroBannerIndex+1),5000);loadPublicBanners();});
+
 async function showAdminWorkspaceTab(tab) {
   if (!canOpenAdminWorkspace()) return;
   const listingTab = ["all","pending","published","sold","rejected","deleted"].includes(tab);
@@ -2672,8 +2695,9 @@ async function showAdminWorkspaceTab(tab) {
   if (tab === "members" && !canManageMembers()) return;
   if (tab === "storage" && !isSuperAdmin()) return;
   if (tab === "overview" && !isSuperAdmin()) return;
+  if (tab === "banners" && !isSuperAdmin()) return;
   const listingTabs = ["all","pending","published","sold","rejected","deleted","archive"];
-  const panels = ["overview","listings","requests","members","storage"];
+  const panels = ["overview","listings","requests","members","storage","banners"];
   panels.forEach(name => {
     const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
     if(panel) panel.style.display = (name === "listings" && listingTabs.includes(tab)) || name === tab ? "block" : "none";
@@ -2705,7 +2729,7 @@ async function showAdminWorkspaceTab(tab) {
   } else if (tab === "storage") {
     const box = document.getElementById("adminWorkspaceStorage");
     await loadAdminStorageUsage(box);
-  }
+  } else if (tab === "banners") { await loadAdminBanners(); }
 }
 
 function closeAdminWorkspace() {
