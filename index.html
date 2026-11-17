@@ -3760,6 +3760,11 @@ function renderAccountPanel(data) {
         card.appendChild(pay);
         card.appendChild(renderRequestDeadline(item));
       }
+      if (item.status === "rejected") {
+        if (item.rejection_reason_label) card.appendChild(makeElement("p", "account-summary", "علت رد درخواست: " + item.rejection_reason_label));
+        if (item.rejection_reason_text) card.appendChild(makeElement("p", "account-summary", "توضیح فروشنده: " + item.rejection_reason_text));
+        if (!item.rejection_reason_label && !item.rejection_reason_text) card.appendChild(makeElement("p", "account-summary", "فروشنده بدون ذکر علت، درخواست را رد کرده است."));
+      }
       if (item.status === "paid") {
         card.appendChild(makeElement("p", "account-summary", item.seller_contact ? `شماره تماس فروشنده: ${item.seller_contact}` : "پرداخت ثبت شده است؛ برای دریافت اطلاعات تماس با پشتیبانی تماس بگیرید."));
       }
@@ -3813,12 +3818,42 @@ async function runAccountAction(kind, action, id) {
     publish: "آگهی منتشر شود؟", reject: "آگهی رد شود؟", sold: "وضعیت آگهی به فروخته‌شده تغییر کند؟",
     delete: "آگهی به‌صورت نرم‌افزاری حذف شود؟", restore: "آگهی بازیابی و برای بررسی مجدد به حالت انتظار برگردد؟",
     forward: "درخواست خرید به‌عنوان بررسی‌شده علامت‌گذاری شود؟",
-    approve: "درخواست خرید را تأیید می‌کنید؟",
-    reject: "این درخواست خرید رد شود؟"
+    approve: "درخواست خرید را تأیید می‌کنید؟"
   };
-  if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) return;
+  let rejectionReasonCode = "";
+  let rejectionReasonLabel = "";
+  let rejectionReasonText = "";
+  if (kind === "request" && action === "reject") {
+    const choices = [
+      ["sold_to_other", "کالا قبلاً به خریدار دیگری فروخته شده است"],
+      ["other_request_accepted", "درخواست خریدار دیگری زودتر تأیید شده است"],
+      ["unavailable", "کالا دیگر موجود نیست"],
+      ["terms_changed", "قیمت یا شرایط فروش تغییر کرده است"],
+      ["seller_withdrew", "فعلاً از فروش کالا منصرف شده‌ام"],
+      ["unable_to_complete", "در حال حاضر امکان انجام معامله وجود ندارد"],
+      ["other", "سایر موارد"]
+    ];
+    const menu = "علت رد درخواست (اختیاری)؛ شماره گزینه را وارد کن یا خالی بگذار:\n\n" +
+      choices.map((item, index) => (index + 1) + ". " + item[1]).join("\n");
+    const selected = window.prompt(menu, "");
+    if (selected === null) return;
+    const choiceNumber = Number(selected.trim());
+    if (selected.trim() && (!Number.isInteger(choiceNumber) || choiceNumber < 1 || choiceNumber > choices.length)) {
+      showToast("شماره گزینه معتبر نیست؛ دوباره تلاش کن.");
+      return;
+    }
+    if (choiceNumber) {
+      rejectionReasonCode = choices[choiceNumber - 1][0];
+      rejectionReasonLabel = choices[choiceNumber - 1][1];
+      const detail = window.prompt("اگر توضیح تکمیلی داری بنویس (اختیاری):", "");
+      if (detail === null) return;
+      rejectionReasonText = detail.trim().slice(0, 500);
+    }
+  } else if (!window.confirm(descriptions[action] || "این عملیات انجام شود؟")) {
+    return;
+  }
   const payload = kind === "request"
-    ? { action: action === "approve" || action === "reject" ? "seller_purchase_action" : "admin_purchase_action", request_id: id, request_action: action }
+    ? { action: action === "approve" || action === "reject" ? "seller_purchase_action" : "admin_purchase_action", request_id: id, request_action: action, rejection_reason_code: rejectionReasonCode, rejection_reason_label: rejectionReasonLabel, rejection_reason_text: rejectionReasonText }
     : { action: canManageListings() ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
   try {
     const response = await fetch(LISTINGS_API, {
