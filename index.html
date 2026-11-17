@@ -104,6 +104,10 @@ header {
 .auth-message { min-height: 24px; color: var(--gold); font-size: 12px; margin: 10px 0; }
 .auth-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
+.account-session-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:12px 0 8px; padding:10px 12px; border:1px solid rgba(199,162,75,.2); border-radius:12px; background:linear-gradient(110deg,rgba(199,162,75,.08),rgba(12,21,27,.92)); }
+.account-session-toolbar .account-notification-bar { margin-right:auto; }
+.account-session-notifications { margin:0 0 12px; padding:0 2px; }
+@media(max-width:560px) { .account-session-toolbar { gap:7px; } .account-session-toolbar .btn { flex:1 1 auto; padding:8px 10px; font-size:11px; } .account-session-toolbar .account-notification-bar { width:auto; margin-right:0; } .account-session-toolbar .account-notification-trigger { min-height:38px; padding:5px 9px; } }
 .account-panel { margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
 
 .account-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 14px; padding:12px 14px; border:1px solid rgba(199,162,75,.24); border-radius:13px; background:linear-gradient(115deg,rgba(199,162,75,.12),rgba(16,26,32,.96) 58%); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
@@ -1744,9 +1748,15 @@ body.admin-modal-lock { overflow:hidden !important; }
     <div id="authLoggedIn" style="display:none">
       <p class="auth-status" id="authUserLabel"></p>
       <p class="account-role-badge" id="authRoleLabel" style="display:none" aria-live="polite">در حال بررسی نقش حساب…</p>
-      <a class="btn btn-outline" href="/" style="margin-left:8px">بازگشت به فروشگاه</a><button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button><button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
+      <div class="account-session-toolbar">
+        <a class="btn btn-outline" href="/">بازگشت به فروشگاه</a>
+        <button class="btn btn-outline" type="button" onclick="editUserProfile()">ویرایش اطلاعات</button>
+        <button class="btn btn-outline" type="button" onclick="signOutAuth()">خروج از حساب</button>
+        <div class="account-notification-bar"><button class="account-notification-trigger" id="accountNotificationTrigger" type="button" onclick="toggleAccountPanelNotifications()" aria-expanded="false" aria-controls="accountPanelNotifications"><span aria-hidden="true">♧</span> اعلان‌ها <span class="account-notification-count" id="accountNotificationBadge" hidden>0</span></button></div>
+      </div>
+      <div class="account-notifications account-session-notifications" id="accountPanelNotifications" hidden aria-live="polite"><div class="nav-notification-menu-head"><strong>اعلان‌های شما</strong><button class="account-notification-readall" id="accountPanelNotificationReadAll" type="button" onclick="markAllNotificationsRead()" style="display:none">خواندن همه</button></div><p class="account-empty">برای دریافت اعلان‌ها، کمی صبر کنید…</p></div>
       <div class="account-panel">
-        <div class="account-panel-heading"><h3>پنل حساب کاربری</h3><div class="account-notification-bar"><button class="account-notification-trigger" id="accountNotificationTrigger" type="button" onclick="toggleAccountPanelNotifications()" aria-expanded="false" aria-controls="accountPanelNotifications"><span aria-hidden="true">♧</span> اعلان‌ها <span class="account-notification-count" id="accountNotificationBadge" hidden>0</span></button></div></div><div class="account-notifications" id="accountPanelNotifications" hidden aria-live="polite"><div class="nav-notification-menu-head"><strong>اعلان‌های شما</strong><button class="account-notification-readall" id="accountPanelNotificationReadAll" type="button" onclick="markAllNotificationsRead()" style="display:none">خواندن همه</button></div><p class="account-empty">برای دریافت اعلان‌ها، کمی صبر کنید…</p></div>
+        <div class="account-panel-heading"><h3>پنل حساب کاربری</h3></div>
         <div class="account-tabs" role="tablist" aria-label="بخش‌های حساب کاربری">
           <button class="account-tab active" type="button" data-account-tab="profile" onclick="showAccountTab('profile')">اطلاعات کاربر</button>
           <button class="account-tab" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
