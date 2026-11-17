@@ -4812,6 +4812,9 @@ function setSubfield(id, show) {
   });
 }
 
+const itemSelect = document.getElementById('sellerItem');
+const pricingSelect = document.getElementById('pricingMethod');
+
 function updateItemFields() {
   const type = itemSelect.value;
   setSubfield('jewelryTypeField', type === 'jewelry');
