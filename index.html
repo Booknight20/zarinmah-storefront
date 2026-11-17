@@ -1407,6 +1407,15 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
   .product-info { padding:12px; }
 }
 
+
+.listing-rejection-notice {
+  display:grid;gap:5px;margin:10px 0;padding:12px 14px;
+  border:1px solid rgba(190,119,61,.28);border-right:3px solid #c18b48;
+  border-radius:11px;background:rgba(193,139,72,.09);color:inherit;
+}
+.listing-rejection-notice strong { color:#e8bd79;font-size:12px; }
+.listing-rejection-notice p { margin:0;line-height:1.9;font-size:12px; }
+
 </style>
 </head>
 
@@ -2987,6 +2996,13 @@ function renderListingCards(box, items, admin, listingManager = false) {
     } else {
       card.append(title);
       card.appendChild(makeElement("p", "", `وضعیت: ${statusLabel} · ${weightSummary}${placeSummary ? " · " + placeSummary : ""}`));
+      if (item.status === "rejected" && (item.rejection_reason_label || item.rejection_reason_text)) {
+        const rejectionBox = makeElement("div", "account-summary listing-rejection-notice");
+        rejectionBox.appendChild(makeElement("strong", "", "دلیل رد آگهی"));
+        if (item.rejection_reason_label) rejectionBox.appendChild(makeElement("p", "", item.rejection_reason_label));
+        if (item.rejection_reason_text) rejectionBox.appendChild(makeElement("p", "", "توضیح مدیر: " + item.rejection_reason_text));
+        card.appendChild(rejectionBox);
+      }
     }
 
     const photoUrls = [item.image_url || item.photo_url, item.image_url_2 || item.photo_url_2]
@@ -3029,6 +3045,13 @@ function renderListingCards(box, items, admin, listingManager = false) {
       }
 
       const details = makeElement("div", "admin-listing-preview-details");
+      if (item.status === "rejected" && (item.rejection_reason_label || item.rejection_reason_text)) {
+        const rejectionBox = makeElement("div", "account-summary listing-rejection-notice");
+        rejectionBox.appendChild(makeElement("strong", "", "دلیل ثبت‌شده برای رد آگهی"));
+        if (item.rejection_reason_label) rejectionBox.appendChild(makeElement("p", "", item.rejection_reason_label));
+        if (item.rejection_reason_text) rejectionBox.appendChild(makeElement("p", "", "توضیح مدیر: " + item.rejection_reason_text));
+        details.appendChild(rejectionBox);
+      }
       const weightText = item.weight == null || item.weight === ""
         ? "اعلام نشده"
         : `${item.weight} ${item.weight_unit === "soot" || item.weight_unit === "سوت" ? "سوت" : "گرم"}`;
@@ -3983,7 +4006,40 @@ async function runAccountAction(kind, action, id) {
   let rejectionReasonCode = "";
   let rejectionReasonLabel = "";
   let rejectionReasonText = "";
-  if (kind === "request" && action === "reject") {
+  if (kind === "listing" && action === "reject" && canManageListings()) {
+    const choices = [
+      ["multiple_items", "در هر آگهی فقط یک کالای طلا مجاز است؛ چند کالا را در آگهی‌های جداگانه ثبت کنید."],
+      ["unclear_photos", "تصاویر آگهی واضح یا کافی نیستند؛ لطفاً تصاویر روشن و واقعی بارگذاری کنید."],
+      ["missing_invoice", "فاکتور یا مدرک لازم برای این کالا ارائه نشده است."],
+      ["missing_details", "اطلاعات ضروری مانند وزن، عیار یا مشخصات کالا ناقص است."],
+      ["incorrect_information", "اطلاعات آگهی با تصاویر یا مشخصات کالا مطابقت ندارد."],
+      ["prohibited_content", "محتوای آگهی با قوانین انتشار زرین ماه مغایرت دارد."],
+      ["other", "سایر موارد"]
+    ];
+    const menu = "دلیل رد آگهی را انتخاب کنید (شماره گزینه):\n\n" +
+      choices.map((item, index) => (index + 1) + ". " + item[1]).join("\n");
+    const selected = window.prompt(menu, "");
+    if (selected === null) return;
+    const choiceNumber = Number(selected.trim());
+    if (!Number.isInteger(choiceNumber) || choiceNumber < 1 || choiceNumber > choices.length) {
+      showToast("برای رد آگهی باید یکی از دلایل را انتخاب کنید.");
+      return;
+    }
+    rejectionReasonCode = choices[choiceNumber - 1][0];
+    rejectionReasonLabel = choices[choiceNumber - 1][1];
+    const detail = window.prompt(
+      choiceNumber === choices.length
+        ? "لطفاً دلیل رد را توضیح دهید (الزامی):"
+        : "توضیح تکمیلی برای فروشنده (اختیاری):",
+      ""
+    );
+    if (detail === null) return;
+    rejectionReasonText = detail.trim().slice(0, 500);
+    if (choiceNumber === choices.length && !rejectionReasonText) {
+      showToast("برای گزینه سایر موارد، نوشتن توضیح الزامی است.");
+      return;
+    }
+  } else if (kind === "request" && action === "reject") {
     const choices = [
       ["sold_to_other", "کالا قبلاً به خریدار دیگری فروخته شده است"],
       ["other_request_accepted", "درخواست خریدار دیگری زودتر تأیید شده است"],
@@ -4014,7 +4070,7 @@ async function runAccountAction(kind, action, id) {
   }
   const payload = kind === "request"
     ? { action: action === "approve" || action === "reject" ? "seller_purchase_action" : "admin_purchase_action", request_id: id, request_action: action, rejection_reason_code: rejectionReasonCode, rejection_reason_label: rejectionReasonLabel, rejection_reason_text: rejectionReasonText }
-    : { action: canManageListings() ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action };
+    : { action: canManageListings() ? "admin_listing_action" : "owner_listing_action", listing_id: id, listing_action: action, rejection_reason_code: rejectionReasonCode, rejection_reason_label: rejectionReasonLabel, rejection_reason_text: rejectionReasonText };
   try {
     const response = await fetch(LISTINGS_API, {
       method: "POST", cache: "no-store",
