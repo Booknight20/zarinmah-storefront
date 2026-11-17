@@ -1977,6 +1977,43 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 const LISTINGS_API = '/api/listings-gateway';
 const MARKET_API = '/api/market';
 
+// Canonical province/city choices shared by seller, profile and storefront selectors.
+// Include every provincial capital plus the commonly used major cities.
+const majorCitiesByProvince = {
+  'آذربایجان شرقی':['تبریز','مراغه','مرند','میانه','اهر','بناب','سراب','شبستر'],
+  'آذربایجان غربی':['ارومیه','خوی','مهاباد','بوکان','میاندوآب','سلماس','نقده','پیرانشهر'],
+  'اردبیل':['اردبیل','مشگین‌شهر','پارس‌آباد','خلخال','گرمی','نمین'],
+  'اصفهان':['اصفهان','کاشان','خمینی‌شهر','نجف‌آباد','شاهین‌شهر','فلاورجان','گلپایگان','نائین'],
+  'البرز':['کرج','فردیس','نظرآباد','هشتگرد','محمدشهر','اشتهارد'],
+  'ایلام':['ایلام','دهلران','آبدانان','ایوان','مهران','دره‌شهر'],
+  'بوشهر':['بوشهر','برازجان','گناوه','کنگان','جم','دیر','عسلویه'],
+  'تهران':['تهران','شهریار','اسلامشهر','قدس','ملارد','ورامین','پاکدشت','دماوند','ری'],
+  'چهارمحال و بختیاری':['شهرکرد','بروجن','فارسان','لردگان','اردل','فرخ‌شهر'],
+  'خراسان جنوبی':['بیرجند','قائن','فردوس','طبس','نهبندان','سربیشه'],
+  'خراسان رضوی':['مشهد','نیشابور','سبزوار','تربت‌حیدریه','کاشمر','قوچان','تربت‌جام','گناباد'],
+  'خراسان شمالی':['بجنورد','شیروان','اسفراین','جاجرم','آشخانه','فاروج'],
+  'خوزستان':['اهواز','دزفول','آبادان','خرمشهر','ماهشهر','اندیمشک','شوشتر','بهبهان'],
+  'زنجان':['زنجان','ابهر','خرمدره','قیدار','سلطانیه'],
+  'سمنان':['سمنان','شاهرود','دامغان','گرمسار','مهدی‌شهر'],
+  'سیستان و بلوچستان':['زاهدان','چابهار','ایرانشهر','زابل','سراوان','خاش','کنارک'],
+  'فارس':['شیراز','مرودشت','کازرون','جهرم','فسا','لار','داراب','آباده'],
+  'قزوین':['قزوین','تاکستان','الوند','آبیک','بوئین‌زهرا'],
+  'قم':['قم','جعفریه','کهک','سلفچگان'],
+  'کردستان':['سنندج','سقز','مریوان','بانه','قروه','بیجار','کامیاران'],
+  'کرمان':['کرمان','رفسنجان','سیرجان','جیرفت','بم','زرند','شهربابک','کهنوج'],
+  'کرمانشاه':['کرمانشاه','اسلام‌آباد غرب','کنگاور','هرسین','سنقر','جوانرود','پاوه'],
+  'کهگیلویه و بویراحمد':['یاسوج','دوگنبدان','دهدشت','لیکک','چرام'],
+  'گلستان':['گرگان','گنبدکاووس','علی‌آباد کتول','آق‌قلا','بندرترکمن','مینودشت'],
+  'گیلان':['رشت','بندر انزلی','لاهیجان','لنگرود','تالش','آستارا','رودسر','صومعه‌سرا'],
+  'لرستان':['خرم‌آباد','بروجرد','دورود','الیگودرز','ازنا','کوهدشت','نورآباد','الشتر'],
+  'مازندران':['ساری','بابل','آمل','قائم‌شهر','چالوس','نوشهر','تنکابن','بابلسر','بهشهر'],
+  'مرکزی':['اراک','ساوه','خمین','محلات','دلیجان','تفرش','شازند'],
+  'هرمزگان':['بندرعباس','میناب','قشم','کیش','بندرلنگه','جاسک','حاجی‌آباد'],
+  'همدان':['همدان','ملایر','نهاوند','تویسرکان','کبودرآهنگ','اسدآباد'],
+  'یزد':['یزد','میبد','اردکان','بافق','مهریز','ابرکوه']
+};
+
+
 const SUPABASE_URL = 'https://qijahxokldkaqmjinfvy.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_gxessMO-YfOyBbvSb-cuYw_UvTTG23s';
 const IS_ZARINMAH_STAGING = SUPABASE_URL === 'https://qijahxokldkaqmjinfvy.supabase.co';
@@ -4593,11 +4630,44 @@ function createListingCard(item) {
   return article;
 }
 
+async function loadListings() {
+  if (listingsLoading) return;
+  listingsLoading = true;
+  try {
+    const response = await fetch(LISTINGS_API, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok || !Array.isArray(result.listings)) {
+      throw new Error(result.error || 'دریافت آگهی‌ها ناموفق بود.');
+    }
+    liveListings = result.listings.filter(item =>
+      ['published', 'sold'].includes(String(item.status || '').toLowerCase()) && !item.deleted_at
+    );
+    syncStoreCitySelector();
+    renderProducts(currentFilter);
+  } catch (error) {
+    console.error('Public listings error:', error);
+    if (!liveListings.length) {
+      const grid = document.getElementById('productsGrid');
+      if (grid) grid.replaceChildren(makeElement('div', 'empty-products', 'دریافت آگهی‌ها با مشکل روبه‌رو شد؛ لطفاً کمی بعد دوباره تلاش کنید.'));
+    }
+  } finally {
+    listingsLoading = false;
+  }
+}
+
 function getPreferredStoreLocationKey() {
   if (storeCityOverride !== undefined) return storeCityOverride;
-  try { const saved = localStorage.getItem('zarinmah_store_location'); if (saved) return saved; } catch (_) {}
-  if (currentUserProfile?.province && currentUserProfile?.city) return currentUserProfile.province + '|' + currentUserProfile.city;
-  return '';
+  // A signed-in member always defaults to their saved profile city, never a guest's old choice.
+  if (currentAuthSession) {
+    return currentUserProfile?.province && currentUserProfile?.city
+      ? currentUserProfile.province + '|' + currentUserProfile.city
+      : '';
+  }
+  try { return localStorage.getItem('zarinmah_store_location') || ''; } catch (_) { return ''; }
 }
 function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationKey()) {
   if (!locationKey) return false;
@@ -4632,9 +4702,12 @@ function renderProducts(filter = currentFilter) {
   const preferredLocation=getPreferredStoreLocationKey();
   const [preferredProvince='',preferredCity='']=preferredLocation?preferredLocation.split('|'):[];
   const categoryListings=liveListings.filter(item=>filter==='all'||getListingType(item)===filter);
-  const filtered=preferredLocation?categoryListings.filter(item=>isListingInPreferredCity(item,preferredLocation)):[];
+  // Guests see the complete public catalog; authenticated users default to their profile city.
+  const filtered=preferredLocation?categoryListings.filter(item=>isListingInPreferredCity(item,preferredLocation)):categoryListings;
   if(!filtered.length){
-    const message=!preferredLocation?'برای مشاهده آگهی‌های شهر موردنظر، استان و شهر را از بالای ویترین انتخاب کنید.':categoryListings.length?'در '+preferredCity+'، '+preferredProvince+' آگهی تأییدشده‌ای در این دسته‌بندی وجود ندارد.':'هنوز آگهی تأییدشده‌ای در '+preferredCity+'، '+preferredProvince+' ثبت نشده است.';
+    const message=preferredLocation
+      ? (categoryListings.length?'در '+preferredCity+'، '+preferredProvince+' آگهی تأییدشده‌ای در این دسته‌بندی وجود ندارد.':'هنوز آگهی تأییدشده‌ای در '+preferredCity+'، '+preferredProvince+' ثبت نشده است.')
+      : 'هنوز آگهی تأییدشده‌ای برای نمایش وجود ندارد.';
     grid.appendChild(makeElement('div','empty-products',message));return;
   }
   filtered.forEach(item=>grid.appendChild(createListingCard(item)));
