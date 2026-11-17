@@ -2017,7 +2017,30 @@ const majorCitiesByProvince = {
 const SUPABASE_URL = 'https://qijahxokldkaqmjinfvy.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_gxessMO-YfOyBbvSb-cuYw_UvTTG23s';
 const IS_ZARINMAH_STAGING = SUPABASE_URL === 'https://qijahxokldkaqmjinfvy.supabase.co';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Public storefront data must remain usable even if the optional auth CDN is blocked.
+const supabaseReady = (async () => {
+  if (!window.supabase?.createClient) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Supabase authentication library could not be loaded.'));
+      document.head.appendChild(script);
+    });
+  }
+  if (!window.supabase?.createClient) {
+    throw new Error('Supabase authentication library is unavailable.');
+  }
+  return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+})();
+const supabaseClient = {
+  auth: new Proxy({}, {
+    get(_target, method) {
+      return (...args) => supabaseReady.then(client => client.auth[method](...args));
+    }
+  })
+};
 let authPhoneE164 = '';
 let authResendTimer = null;
 let currentAuthSession = null;
@@ -4149,10 +4172,17 @@ async function startPurchasePayment(requestId) {
 }
 
 async function initializeAuth() {
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) console.error('Could not restore auth session:', error);
-  updateAuthUI(data?.session || null);
-  supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+  try {
+    const client = await supabaseReady;
+    const { data, error } = await client.auth.getSession();
+    if (error) console.error('Could not restore auth session:', error);
+    updateAuthUI(data?.session || null);
+    client.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+  } catch (error) {
+    // Authentication is optional for public browsing; never let its CDN block prices or listings.
+    console.error('Supabase authentication initialization failed:', error);
+    updateAuthUI(null);
+  }
 }
 
 
@@ -4667,12 +4697,19 @@ function getPreferredStoreLocationKey() {
       ? currentUserProfile.province + '|' + currentUserProfile.city
       : '';
   }
-  try { return localStorage.getItem('zarinmah_store_location') || ''; } catch (_) { return ''; }
+  // Guests always start with the full public catalog; only an explicit current-page choice filters it.
+  return '';
 }
 function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationKey()) {
   if (!locationKey) return false;
   const [province, city] = locationKey.split('|');
-  return Boolean(province && city && item.province === province && item.city === city);
+  const normalize = value => String(value || '').normalize('NFKC')
+    .replace(/[ي]/g, 'ی').replace(/[ك]/g, 'ک')
+    .replace(/[\\u200c\\u200e\\u200f\\u0640]/g, '')
+    .replace(/\\s+/g, ' ').trim();
+  return Boolean(province && city &&
+    normalize(item.province) === normalize(province) &&
+    normalize(item.city) === normalize(city));
 }
 function syncStoreCitySelector() {
   const provinceSelect=document.getElementById('storeProvinceSelect'), citySelect=document.getElementById('storeCitySelect'), hint=document.getElementById('storeCityHint'), myCityButton=document.getElementById('storeMyCityButton');
