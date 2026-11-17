@@ -4121,7 +4121,8 @@ async function initializeAuth() {
 
 let liveListings = [];
 let currentFilter = 'all';
-let storeCityOverride; // undefined = use the signed-in user's profile city; empty = all cities.
+let storeCityOverride; // undefined = use saved/profile location; empty = no city selected.
+let storeProvinceDraft = '';
 let previewUrl = null;
 let listingsLoading = false;
 let selectedPurchaseListingId = null;
@@ -4594,8 +4595,9 @@ function createListingCard(item) {
 
 function getPreferredStoreLocationKey() {
   if (storeCityOverride !== undefined) return storeCityOverride;
+  try { const saved = localStorage.getItem('zarinmah_store_location'); if (saved) return saved; } catch (_) {}
   if (currentUserProfile?.province && currentUserProfile?.city) return currentUserProfile.province + '|' + currentUserProfile.city;
-  try { return localStorage.getItem('zarinmah_store_location') || ''; } catch (_) { return ''; }
+  return '';
 }
 function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationKey()) {
   if (!locationKey) return false;
@@ -4606,21 +4608,22 @@ function syncStoreCitySelector() {
   const provinceSelect=document.getElementById('storeProvinceSelect'), citySelect=document.getElementById('storeCitySelect'), hint=document.getElementById('storeCityHint'), myCityButton=document.getElementById('storeMyCityButton');
   if(!provinceSelect||!citySelect)return;
   if(provinceSelect.options.length<=1)Object.keys(majorCitiesByProvince).forEach(province=>{const o=document.createElement('option');o.value=province;o.textContent=province;provinceSelect.appendChild(o);});
-  const key=getPreferredStoreLocationKey(), [province='',city='']=key?key.split('|'):[];
+  const key=getPreferredStoreLocationKey(), [keyProvince='',city='']=key?key.split('|'):[];
+  const province=keyProvince||storeProvinceDraft;
   provinceSelect.value=province;citySelect.replaceChildren();
   const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=province?'انتخاب شهر':'ابتدا استان را انتخاب کنید';citySelect.appendChild(placeholder);
   const cities=majorCitiesByProvince[province]||[];cities.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;citySelect.appendChild(o);});
   citySelect.disabled=!cities.length;citySelect.value=cities.includes(city)?city:'';
   const profileKey=currentUserProfile?.province&&currentUserProfile?.city?currentUserProfile.province+'|'+currentUserProfile.city:'';
-  if(myCityButton)myCityButton.hidden=!profileKey||key===profileKey;
-  if(hint)hint.textContent=key?'فقط آگهی‌های '+city+'، '+province+' نمایش داده می‌شوند.':'برای دیدن آگهی‌ها، ابتدا استان و سپس شهر را انتخاب کنید.';
+  if(myCityButton)myCityButton.hidden=!profileKey||(key===profileKey&&!storeProvinceDraft);
+  if(hint)hint.textContent=key?'فقط آگهی‌های '+city+'، '+province+' نمایش داده می‌شوند.':province?'استان '+province+' انتخاب شد؛ حالا شهر را انتخاب کنید.':'برای دیدن آگهی‌ها، ابتدا استان و سپس شهر را انتخاب کنید.';
 }
 function saveStoreLocationPreference(key) { try { if(key)localStorage.setItem('zarinmah_store_location',key);else localStorage.removeItem('zarinmah_store_location'); } catch (_) {} }
 const storeProvinceSelect=document.getElementById('storeProvinceSelect'), storeCitySelect=document.getElementById('storeCitySelect');
-if(storeProvinceSelect)storeProvinceSelect.addEventListener('change',()=>{storeCityOverride='';saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
-if(storeCitySelect)storeCitySelect.addEventListener('change',()=>{const province=storeProvinceSelect?.value||'';storeCityOverride=province&&storeCitySelect.value?province+'|'+storeCitySelect.value:'';saveStoreLocationPreference(storeCityOverride);syncStoreCitySelector();renderProducts(currentFilter);});
+if(storeProvinceSelect)storeProvinceSelect.addEventListener('change',()=>{storeProvinceDraft=storeProvinceSelect.value||'';storeCityOverride='';saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
+if(storeCitySelect)storeCitySelect.addEventListener('change',()=>{const province=storeProvinceSelect?.value||'';storeProvinceDraft=province;storeCityOverride=province&&storeCitySelect.value?province+'|'+storeCitySelect.value:'';saveStoreLocationPreference(storeCityOverride);syncStoreCitySelector();renderProducts(currentFilter);});
 const storeMyCityButton=document.getElementById('storeMyCityButton');
-if(storeMyCityButton)storeMyCityButton.addEventListener('click',()=>{storeCityOverride=undefined;saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
+if(storeMyCityButton)storeMyCityButton.addEventListener('click',()=>{storeCityOverride=undefined;storeProvinceDraft='';saveStoreLocationPreference('');syncStoreCitySelector();renderProducts(currentFilter);});
 syncStoreCitySelector();
 
 function renderProducts(filter = currentFilter) {
