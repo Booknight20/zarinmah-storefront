@@ -611,21 +611,18 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 
 
 /* Analyst panel and compact gold-price sparkline */
-.gold-insights-panel{
-  position:relative;isolation:isolate;overflow:hidden;margin-top:18px;padding:clamp(12px,1.5vw,17px);
-  border:1px solid rgba(211,174,91,.28);border-radius:17px;
-  background:radial-gradient(ellipse at 12% 0%,rgba(207,169,83,.085),transparent 38%),linear-gradient(135deg,#101a20 0%,#0b1419 58%,#17140e 100%);
-  box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025);
-  animation:gold-panel-glow 8s ease-in-out infinite;
-}
-.gold-insights-panel:before{content:"";position:absolute;inset:0 18% auto;height:1px;background:linear-gradient(90deg,transparent,rgba(225,190,111,.52),transparent);pointer-events:none}
-.gold-insights-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.gold-insights-panel{margin-top:20px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none;overflow:visible}
+.gold-insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .gold-insights-title{display:flex;align-items:center;gap:10px;min-width:0}
-.gold-insights-mark{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border:1px solid rgba(218,183,103,.28);border-radius:11px;color:#e5c77f;background:rgba(211,174,91,.08);box-shadow:0 0 18px rgba(211,174,91,.07)}
-.gold-insights-title strong{display:block;color:#f0dfb5;font-size:15px}
-.gold-insights-title small{display:block;margin-top:2px;color:#929b9c;font-size:10px}
-.gold-insights-live{display:inline-flex;align-items:center;gap:6px;color:#a9c9b4;font-size:10px;white-space:nowrap}
-.gold-insights-live:before{content:"";width:6px;height:6px;border-radius:50%;background:#75bd91;box-shadow:0 0 8px #75bd9180}
+.gold-insights-mark{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(218,183,103,.28);border-radius:11px;color:#e5c77f;background:rgba(211,174,91,.08)}
+.gold-insights-title strong{display:block;color:#f0dfb5;font-size:18px;font-weight:800;line-height:1.6}
+.gold-insights-title small{display:block;margin-top:2px;color:#aeb7b7;font-size:13px;line-height:1.7}
+.gold-insights-live{display:inline-flex;align-items:center;gap:6px;color:#a9c9b4;font-size:12px;white-space:nowrap}
+.gold-insights-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#75bd91;box-shadow:0 0 8px #75bd9180}
+.gold-insight-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid rgba(211,174,91,.17)}
+.gold-insight-tab{border:1px solid rgba(211,174,91,.24);border-radius:9px;background:rgba(255,255,255,.025);color:#d9d2c3;padding:8px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.gold-insight-tab:hover{border-color:rgba(211,174,91,.55);color:#f5dfa3}
+.gold-insight-tab.active{border-color:rgba(211,174,91,.7);background:rgba(211,174,91,.14);color:#f0d58e}
 .gold-insights-grid{display:block}
 .gold-analysis-card{min-width:0;border:1px solid rgba(255,255,255,.065);border-radius:13px;background:rgba(255,255,255,.025);padding:13px}
 .gold18-mini-trend{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(216,180,91,.12)}
@@ -634,18 +631,18 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold18-mini-trend small{color:#879394;font-size:9px;white-space:nowrap}
 .gold18-mini-trend .up{color:#75c69a}.gold18-mini-trend .down{color:#e58c83}.gold18-mini-trend .same{color:#b9b3a5}
 .gold-analysis-card{display:flex;flex-direction:column;gap:6px;min-height:170px;position:relative}
-.gold-analysis-label{color:#d8b96e;font-size:10px;font-weight:700}
-.gold-analysis-title{margin:0;color:#f0e6ce;font-size:14px;line-height:1.8}
-.gold-analysis-meta{color:#879394;font-size:10px}
-.gold-analysis-summary{margin:0;color:#b8c1bf;font-size:10px;line-height:1.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:0}
+.gold-analysis-label{color:#d8b96e;font-size:12px;font-weight:700}
+.gold-analysis-title{margin:0;color:#f0e6ce;font-size:16px;line-height:1.9}
+.gold-analysis-meta{color:#9ca8a7;font-size:12px}
+.gold-analysis-summary{margin:0;color:#c5cecb;font-size:13px;line-height:2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:0}
 .gold-analysis-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:3px}
-.gold-analysis-detail,.gold-analysis-step{border:1px solid rgba(211,174,91,.28);border-radius:8px;background:rgba(211,174,91,.07);color:#e4c77e;padding:5px 9px;font:inherit;font-size:10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.gold-analysis-detail,.gold-analysis-step{border:1px solid rgba(211,174,91,.28);border-radius:8px;background:rgba(211,174,91,.07);color:#e4c77e;padding:7px 11px;font:inherit;font-size:12px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .gold-analysis-detail:hover,.gold-analysis-step:hover{border-color:rgba(220,185,105,.6);background:rgba(211,174,91,.14);color:#fff0bb}
 .gold-analysis-controls{display:flex;align-items:center;gap:5px}
-.gold-analysis-count{color:#879394;font-size:9px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-analysis-count{color:#9ca8a7;font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .gold-analysis-nav{display:flex;gap:4px;direction:ltr}
 .gold-analysis-step{width:25px;height:25px;padding:0;display:grid;place-items:center;font-size:13px;line-height:1}
-.gold-analysis-empty{margin:auto 0;color:#aeb7b7;font-size:10px;line-height:1.9}
+.gold-analysis-empty{margin:auto 0;color:#c1c9c7;font-size:13px;line-height:2}
 .gold-analysis-dialog{width:min(620px,calc(100% - 28px));max-height:min(78vh,720px);padding:0;border:1px solid rgba(211,174,91,.35);border-radius:16px;background:#0d171d;color:#f8f2e3;box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .gold-analysis-dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(4px)}
 .gold-analysis-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(211,174,91,.18)}
@@ -661,12 +658,12 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold-analysis-card.is-changing{animation:gold-analysis-fade .35s ease}
 @keyframes gold-analysis-fade{from{opacity:.25;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .gold-analysis-empty{margin:auto 0;color:#aeb7b7;font-size:11px;line-height:2}
-.gold-insights-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;color:#758284;font-size:9px}
-.gold-insights-more{border:0;padding:0;background:transparent;color:#d5b66e;font:inherit;font-size:9px;cursor:pointer;white-space:nowrap}
+.gold-insights-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:10px;color:#9aa5a4;font-size:11px}
+.gold-insights-more{border:0;padding:0;background:transparent;color:#d5b66e;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
 .gold-insights-more:hover{color:#f5dfa3}
 @keyframes gold-panel-glow{0%,100%{box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025)}50%{box-shadow:0 14px 38px rgba(0,0,0,.22),0 0 22px rgba(211,174,91,.055),inset 0 1px rgba(255,255,255,.035)}}
-@media(max-width:760px){.gold-insights-panel{margin-top:16px;padding:12px}.gold-analysis-card{min-height:130px;padding:11px}}
-@media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-analysis-card.is-changing{animation:none}}
+@media(max-width:760px){.gold-insights-panel{margin-top:16px}.gold-insights-title strong{font-size:17px}.gold-insights-title small{font-size:12px}.gold-insight-tab{padding:8px 12px;font-size:12px}.gold-analysis-card{min-height:130px;padding:12px}.gold-analysis-summary{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.gold-analysis-card.is-changing{animation:none}}
 
 .market-strip {
   display: grid;
@@ -1676,13 +1673,18 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
     </div>
     <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
 
-    <div class="gold-insights-panel" id="goldInsightsPanel" aria-label="تحلیل‌های منتخب تحلیلگران">
+    <div class="gold-insights-panel" id="goldInsightsPanel" aria-label="رصد و تحلیل بازار">
       <div class="gold-insights-head">
         <div class="gold-insights-title">
           <span class="gold-insights-mark" aria-hidden="true">✦</span>
-          <div><strong>تحلیل‌های منتخب تحلیلگران</strong><small>دیدگاه‌ها و بررسی‌های مرتبط با بازار طلا</small></div>
+          <div><strong>رصد و تحلیل بازار</strong><small>تحلیل‌ها، نبض صندوق‌ها و قدرت خرید</small></div>
         </div>
         <span class="gold-insights-live">به‌روزرسانی خودکار</span>
+      </div>
+      <div class="gold-insight-tabs" role="tablist" aria-label="دسته‌بندی محتوای بازار">
+        <button class="gold-insight-tab active" type="button" role="tab" aria-selected="true" data-insight-tab="analysis">تحلیل‌ها</button>
+        <button class="gold-insight-tab" type="button" role="tab" aria-selected="false" data-insight-tab="funds">نبض صندوق‌ها</button>
+        <button class="gold-insight-tab" type="button" role="tab" aria-selected="false" data-insight-tab="comparison">قدرت خرید</button>
       </div>
       <div class="gold-insights-grid">
         <article class="gold-analysis-card" id="goldAnalysisCard" aria-live="polite">
@@ -1691,7 +1693,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         </article>
       </div>
       <div class="gold-insights-foot">
-        <span>تحلیل‌ها پس از انتشار و تأیید محتوایی در این بخش نمایش داده می‌شوند.</span>
+        <span id="goldInsightsFootnote">تحلیل‌های مستدل و مرتبط با بازار طلا</span>
         <button class="gold-insights-more" id="goldAnalysisMore" type="button">آرشیو تحلیل‌ها ←</button>
       </div>
     </div>
