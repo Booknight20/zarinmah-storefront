@@ -1,4 +1,4 @@
-const { list, put } = require("@vercel/blob");
+const { list, put, get } = require("@vercel/blob");
 
 const SOURCE_URL = "https://t.me/s/navasanchannel";
 const BLOB_PATH = "market/market-daily.json";
@@ -188,6 +188,25 @@ function validPrices(prices) {
   );
 }
 
+// Use the most recent stored trading day before the requested date.
+// This keeps comparisons working across weekends and market holidays,
+// without ever comparing a price against another price from the same day.
+function getPreviousEntry(state, dateString) {
+  const dates = Object.keys(state?.days || {})
+    .filter(date => /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && date < dateString)
+    .sort()
+    .reverse();
+
+  for (const date of dates) {
+    const entry = state.days[date];
+    if (validPrices(entry?.prices)) {
+      return { date, prices: entry.prices };
+    }
+  }
+
+  return null;
+}
+
 
 // =========================================================
 // ذخیره‌سازی قیمت‌ها در Vercel Blob
@@ -207,16 +226,37 @@ async function readState() {
     return JSON.parse(JSON.stringify(INITIAL_STATE));
   }
 
-  const response = await fetch(blob.url, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(10000)
-  });
+  // The connected Blob store may be private. Read through the SDK so
+  // private stores are authenticated instead of fetching the URL directly.
+  let state = null;
+  let lastReadError = null;
 
-  if (!response.ok) {
-    throw new Error(`Blob read failed: ${response.status}`);
+  for (const access of ["private", "public"]) {
+    try {
+      const result = await get(blob.pathname, {
+        access,
+        abortSignal: AbortSignal.timeout(10000)
+      });
+
+      if (result?.statusCode === 200 && result.stream) {
+        const body = await new Response(result.stream).text();
+        state = JSON.parse(body);
+        break;
+      }
+
+      if (result === null) {
+        state = null;
+        break;
+      }
+    } catch (error) {
+      lastReadError = error;
+    }
   }
 
-  const state = await response.json();
+  if (!state) {
+    if (lastReadError) throw lastReadError;
+    throw new Error("Blob history file could not be read");
+  }
 
   if (
     !state ||
@@ -231,17 +271,27 @@ async function readState() {
 }
 
 async function writeState(state) {
-  await put(
-    BLOB_PATH,
-    Buffer.from(JSON.stringify(state, null, 2), "utf8"),
-    {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "application/json",
-      cacheControlMaxAge: 60
+  const body = Buffer.from(JSON.stringify(state, null, 2), "utf8");
+  let lastWriteError = null;
+
+  // Store access is fixed when the Blob store is created. Try private first,
+  // then public, so the same code works with either existing store type.
+  for (const access of ["private", "public"]) {
+    try {
+      await put(BLOB_PATH, body, {
+        access,
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: "application/json",
+        cacheControlMaxAge: 60
+      });
+      return;
+    } catch (error) {
+      lastWriteError = error;
     }
-  );
+  }
+
+  throw lastWriteError || new Error("Could not write market history to Blob");
 }
 
 
@@ -309,8 +359,8 @@ function buildCachedResponse(state, marketOpen, message) {
     };
   }
 
-  const previousDate = getPreviousDate(latest.date);
-  const previousPrices = state?.days?.[previousDate]?.prices || null;
+  const previousEntry = getPreviousEntry(state, latest.date);
+  const previousDate = previousEntry?.date || getPreviousDate(latest.date);
 
   return {
     ok: true,
@@ -323,7 +373,7 @@ function buildCachedResponse(state, marketOpen, message) {
     previousDate,
     dailyChanges: calculateChanges(
       latest.prices,
-      previousPrices
+      previousEntry?.prices || null
     ),
     historySaved: true,
     cached: true,
@@ -341,8 +391,7 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const state = await readState();
 
-    const previousDate = getPreviousDate(dateString);
-    const previous = state.days[previousDate] || null;
+    const previousEntry = getPreviousEntry(state, dateString);
 
     state.days[dateString] = {
       prices,
@@ -370,8 +419,8 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
       await writeState(state);
 
       return {
-        previousDate,
-        previousPrices: previous?.prices || null,
+        previousDate: previousEntry?.date || getPreviousDate(dateString),
+        previousPrices: previousEntry?.prices || null,
         saved: true
       };
 
@@ -510,8 +559,9 @@ module.exports = async function handler(req, res) {
     const prices = await fetchSourcePrices();
     const updatedAt = new Date().toISOString();
 
-    let previousPrices =
-      state.days?.[getPreviousDate(dateString)]?.prices || null;
+    let previousEntry = getPreviousEntry(state, dateString);
+    let previousPrices = previousEntry?.prices || null;
+    let comparisonDate = previousEntry?.date || getPreviousDate(dateString);
 
     let historySaved = false;
 
@@ -523,6 +573,7 @@ module.exports = async function handler(req, res) {
       );
 
       previousPrices = history.previousPrices;
+      comparisonDate = history.previousDate;
       historySaved = history.saved;
 
     } catch (error) {
@@ -540,7 +591,7 @@ module.exports = async function handler(req, res) {
       updatedAt,
       timezone: TIMEZONE,
       prices,
-      previousDate: getPreviousDate(dateString),
+      previousDate: comparisonDate,
       dailyChanges: calculateChanges(
         prices,
         previousPrices
