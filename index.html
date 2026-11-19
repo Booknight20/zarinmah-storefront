@@ -674,12 +674,12 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 @keyframes gold-analysis-fade{from{opacity:.25;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .gold-analysis-empty{margin:auto 0;color:#aeb7b7;font-size:11px;line-height:2}
 .gold-insights-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;color:#758284;font-size:9px}
-.gold-insights-more{color:#d5b66e;text-decoration:none;white-space:nowrap}
+.gold-insights-more{border:0;padding:0;background:transparent;color:#d5b66e;font:inherit;font-size:9px;cursor:pointer;white-space:nowrap}
 .gold-insights-more:hover{color:#f5dfa3}
 @keyframes gold-panel-glow{0%,100%{box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025)}50%{box-shadow:0 14px 38px rgba(0,0,0,.22),0 0 22px rgba(211,174,91,.055),inset 0 1px rgba(255,255,255,.035)}}
 @keyframes gold-trend-draw{to{stroke-dashoffset:0}}
 @media(max-width:760px){.gold-insights-grid{grid-template-columns:1fr}.gold-insights-panel{margin-top:16px;padding:12px}.gold-analysis-card{min-height:160px}.gold-trend-card,.gold-analysis-card{padding:11px}}
-@media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-trend-line{animation:none}.gold-trend-line{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-trend-line,.gold-analysis-card.is-changing{animation:none}.gold-trend-line{stroke-dashoffset:0}}
 
 .market-strip {
   display: grid;
