@@ -5751,7 +5751,9 @@ trackSiteVisit();
 initializeAuth();
 loadListings();
 loadMarketPrices();
-loadMarketNews();\nsetInterval(() => { if (marketNewsItems.length > 1) { marketNewsIndex = (marketNewsIndex + 1) % marketNewsItems.length; renderMarketNewsItem(); } }, 7000);\nsetInterval(loadMarketNews, 300000);
+loadMarketNews();
+setInterval(() => { if (marketNewsItems.length > 1) { marketNewsIndex = (marketNewsIndex + 1) % marketNewsItems.length; renderMarketNewsItem(); } }, 7000);
+setInterval(loadMarketNews, 300000);
 
 setInterval(loadListings, 60000);
 setInterval(loadMarketPrices, 60000);
