@@ -612,22 +612,22 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 
 /* Gold trend + analyst panel: restrained gold accents and low-motion polish */
 .gold-insights-panel{
-  position:relative;isolation:isolate;overflow:hidden;margin-top:24px;padding:clamp(16px,2.2vw,24px);
-  border:1px solid rgba(211,174,91,.28);border-radius:20px;
+  position:relative;isolation:isolate;overflow:hidden;margin-top:18px;padding:clamp(12px,1.5vw,17px);
+  border:1px solid rgba(211,174,91,.28);border-radius:17px;
   background:radial-gradient(ellipse at 12% 0%,rgba(207,169,83,.085),transparent 38%),linear-gradient(135deg,#101a20 0%,#0b1419 58%,#17140e 100%);
   box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025);
   animation:gold-panel-glow 8s ease-in-out infinite;
 }
 .gold-insights-panel:before{content:"";position:absolute;inset:0 18% auto;height:1px;background:linear-gradient(90deg,transparent,rgba(225,190,111,.52),transparent);pointer-events:none}
-.gold-insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.gold-insights-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .gold-insights-title{display:flex;align-items:center;gap:10px;min-width:0}
 .gold-insights-mark{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border:1px solid rgba(218,183,103,.28);border-radius:11px;color:#e5c77f;background:rgba(211,174,91,.08);box-shadow:0 0 18px rgba(211,174,91,.07)}
 .gold-insights-title strong{display:block;color:#f0dfb5;font-size:15px}
 .gold-insights-title small{display:block;margin-top:2px;color:#929b9c;font-size:10px}
 .gold-insights-live{display:inline-flex;align-items:center;gap:6px;color:#a9c9b4;font-size:10px;white-space:nowrap}
 .gold-insights-live:before{content:"";width:6px;height:6px;border-radius:50%;background:#75bd91;box-shadow:0 0 8px #75bd9180}
-.gold-insights-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(250px,.85fr);gap:14px;align-items:stretch}
-.gold-trend-card,.gold-analysis-card{min-width:0;border:1px solid rgba(255,255,255,.065);border-radius:15px;background:rgba(255,255,255,.025);padding:15px}
+.gold-insights-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:stretch}
+.gold-trend-card,.gold-analysis-card{min-width:0;border:1px solid rgba(255,255,255,.065);border-radius:13px;background:rgba(255,255,255,.025);padding:11px}
 .gold-trend-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .gold-trend-label{color:#aeb7b7;font-size:11px}
 .gold-trend-price{margin-top:5px;color:#f2d995;font-size:clamp(19px,2.2vw,25px);font-weight:800;letter-spacing:-.4px}
@@ -637,28 +637,48 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold-trend-ranges{display:flex;gap:5px;flex:0 0 auto}
 .gold-trend-ranges button{padding:5px 9px;border:1px solid rgba(211,174,91,.17);border-radius:8px;background:transparent;color:#aeb7b7;font:inherit;font-size:10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .gold-trend-ranges button:hover,.gold-trend-ranges button.active{border-color:rgba(220,185,105,.48);background:rgba(211,174,91,.11);color:#f0d797}
-.gold-trend-chart{position:relative;margin-top:12px;min-height:122px}
-.gold-trend-chart svg{display:block;width:100%;height:122px;overflow:visible}
+.gold-trend-chart{position:relative;margin-top:8px;min-height:94px}
+.gold-trend-chart svg{display:block;width:100%;height:94px;overflow:visible}
 .gold-trend-gridline{stroke:rgba(255,255,255,.07);stroke-width:1;stroke-dasharray:3 6}
 .gold-trend-area{fill:url(#goldTrendFill)}
 .gold-trend-line{fill:none;stroke:#d8b665;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(216,182,101,.25));stroke-dasharray:1000;stroke-dashoffset:1000;animation:gold-trend-draw 1.15s ease forwards}
 .gold-trend-dot{fill:#f4d88e;stroke:#151a1b;stroke-width:3}
 .gold-trend-axis{display:flex;justify-content:space-between;color:#778486;font-size:9px;margin-top:1px}
-.gold-trend-empty{display:grid;place-items:center;min-height:122px;color:#9da7a7;font-size:11px;text-align:center;line-height:1.9}
-.gold-analysis-card{display:flex;flex-direction:column;gap:9px}
+.gold-trend-empty{display:grid;place-items:center;min-height:94px;color:#9da7a7;font-size:10px;text-align:center;line-height:1.8}
+.gold-analysis-card{display:flex;flex-direction:column;gap:6px;min-height:170px;position:relative}
 .gold-analysis-label{color:#d8b96e;font-size:10px;font-weight:700}
 .gold-analysis-title{margin:0;color:#f0e6ce;font-size:14px;line-height:1.8}
 .gold-analysis-meta{color:#879394;font-size:10px}
-.gold-analysis-summary{margin:0;color:#b8c1bf;font-size:11px;line-height:2;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-.gold-analysis-link{align-self:flex-start;margin-top:auto;padding-top:3px;color:#e4c77e;font-size:10px;text-decoration:none;transition:color .2s}
-.gold-analysis-link:hover{color:#fff0bb}
+.gold-analysis-summary{margin:0;color:#b8c1bf;font-size:10px;line-height:1.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:0}
+.gold-analysis-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:3px}
+.gold-analysis-detail,.gold-analysis-step{border:1px solid rgba(211,174,91,.28);border-radius:8px;background:rgba(211,174,91,.07);color:#e4c77e;padding:5px 9px;font:inherit;font-size:10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.gold-analysis-detail:hover,.gold-analysis-step:hover{border-color:rgba(220,185,105,.6);background:rgba(211,174,91,.14);color:#fff0bb}
+.gold-analysis-controls{display:flex;align-items:center;gap:5px}
+.gold-analysis-count{color:#879394;font-size:9px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-analysis-nav{display:flex;gap:4px;direction:ltr}
+.gold-analysis-step{width:25px;height:25px;padding:0;display:grid;place-items:center;font-size:13px;line-height:1}
+.gold-analysis-empty{margin:auto 0;color:#aeb7b7;font-size:10px;line-height:1.9}
+.gold-analysis-dialog{width:min(620px,calc(100% - 28px));max-height:min(78vh,720px);padding:0;border:1px solid rgba(211,174,91,.35);border-radius:16px;background:#0d171d;color:#f8f2e3;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.gold-analysis-dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(4px)}
+.gold-analysis-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(211,174,91,.18)}
+.gold-analysis-dialog-head strong{color:#e8cf91;font-size:13px}
+.gold-analysis-dialog-close{border:0;background:transparent;color:#c9c1ae;font-size:22px;cursor:pointer;line-height:1}
+.gold-analysis-dialog-body{max-height:calc(78vh - 110px);overflow:auto;padding:16px;font-size:12px;line-height:2;white-space:pre-wrap;overflow-wrap:anywhere;color:#d5d9d6}
+.gold-analysis-dialog-meta{display:block;margin-bottom:10px;color:#9ca8a7;font-size:10px}
+.gold-analysis-dialog-source{display:inline-flex;margin:0 16px 15px;color:#e4c77e;font-size:11px;text-decoration:none}
+.gold-analysis-archive-list{display:grid;gap:8px}
+.gold-analysis-archive-item{display:grid;gap:4px;width:100%;padding:10px;border:1px solid rgba(211,174,91,.18);border-radius:10px;background:rgba(255,255,255,.025);color:#f1e7d0;text-align:right;cursor:pointer}
+.gold-analysis-archive-item small{color:#929e9e;font-size:9px}
+.gold-analysis-archive-item span{font-size:11px;line-height:1.8}
+.gold-analysis-card.is-changing{animation:gold-analysis-fade .35s ease}
+@keyframes gold-analysis-fade{from{opacity:.25;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .gold-analysis-empty{margin:auto 0;color:#aeb7b7;font-size:11px;line-height:2}
 .gold-insights-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;color:#758284;font-size:9px}
 .gold-insights-more{color:#d5b66e;text-decoration:none;white-space:nowrap}
 .gold-insights-more:hover{color:#f5dfa3}
 @keyframes gold-panel-glow{0%,100%{box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025)}50%{box-shadow:0 14px 38px rgba(0,0,0,.22),0 0 22px rgba(211,174,91,.055),inset 0 1px rgba(255,255,255,.035)}}
 @keyframes gold-trend-draw{to{stroke-dashoffset:0}}
-@media(max-width:760px){.gold-insights-grid{grid-template-columns:1fr}.gold-insights-panel{margin-top:18px;padding:14px}.gold-analysis-card{min-height:0}.gold-trend-card,.gold-analysis-card{padding:13px}}
+@media(max-width:760px){.gold-insights-grid{grid-template-columns:1fr}.gold-insights-panel{margin-top:16px;padding:12px}.gold-analysis-card{min-height:160px}.gold-trend-card,.gold-analysis-card{padding:11px}}
 @media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-trend-line{animation:none}.gold-trend-line{stroke-dashoffset:0}}
 
 .market-strip {
@@ -1677,6 +1697,10 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <span class="gold-insights-live">به‌روزرسانی خودکار</span>
       </div>
       <div class="gold-insights-grid">
+        <article class="gold-analysis-card" id="goldAnalysisCard" aria-live="polite">
+          <span class="gold-analysis-label">تحلیل منتخب از GitHub</span>
+          <p class="gold-analysis-empty">در حال دریافت تحلیل‌های مرتبط با طلا…</p>
+        </article>
         <div class="gold-trend-card">
           <div class="gold-trend-top">
             <div>
@@ -1694,16 +1718,20 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
           </div>
           <div class="gold-trend-axis" id="goldTrendAxis"><span>—</span><span>—</span></div>
         </div>
-        <article class="gold-analysis-card" id="goldAnalysisCard" aria-live="polite">
-          <span class="gold-analysis-label">تحلیل منتخب از GitHub</span>
-          <p class="gold-analysis-empty">در حال دریافت تحلیل‌های مرتبط با طلا…</p>
-        </article>
       </div>
       <div class="gold-insights-foot">
         <span id="goldTrendUpdated">روند براساس سوابق ثبت‌شده قیمت محاسبه می‌شود.</span>
-        <a class="gold-insights-more" id="goldAnalysisMore" href="https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json" target="_blank" rel="noopener">همه تحلیل‌ها ←</a>
+        <button class="gold-insights-more" id="goldAnalysisMore" type="button">همه تحلیل‌ها ←</button>
       </div>
     </div>
+    <dialog class="gold-analysis-dialog" id="goldAnalysisDialog" aria-labelledby="goldAnalysisDialogTitle">
+      <div class="gold-analysis-dialog-head">
+        <strong id="goldAnalysisDialogTitle">تحلیل بازار طلا</strong>
+        <button class="gold-analysis-dialog-close" id="goldAnalysisDialogClose" type="button" aria-label="بستن">×</button>
+      </div>
+      <div class="gold-analysis-dialog-body" id="goldAnalysisDialogBody"></div>
+      <a class="gold-analysis-dialog-source" id="goldAnalysisDialogSource" href="https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json" target="_blank" rel="noopener noreferrer">مشاهده منبع اصلی در GitHub ↗</a>
+    </dialog>
 
   </div>
 </section>
@@ -5822,6 +5850,114 @@ function setGoldTrendRange(range) {
   if (latestGoldMarketData) renderGoldTrend(latestGoldMarketData);
 }
 
+let goldAnalysisItems = [];
+let goldAnalysisIndex = 0;
+let goldAnalysisPaused = false;
+let goldAnalysisTimer = null;
+
+function goldAnalysisDate(item) {
+  const stamp = item?.collected_at ? new Date(item.collected_at) : null;
+  return stamp && !Number.isNaN(stamp.getTime())
+    ? new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', dateStyle:'medium', timeStyle:'short' }).format(stamp)
+    : 'زمان انتشار نامشخص';
+}
+
+function openGoldAnalysisDetails(index) {
+  const item = goldAnalysisItems[index];
+  const dialog = document.getElementById('goldAnalysisDialog');
+  const title = document.getElementById('goldAnalysisDialogTitle');
+  const body = document.getElementById('goldAnalysisDialogBody');
+  const source = document.getElementById('goldAnalysisDialogSource');
+  if (!item || !dialog || !title || !body || !source) return;
+  title.textContent = String(item.title || 'تحلیل بازار طلا');
+  const meta = document.createElement('span');
+  meta.className = 'gold-analysis-dialog-meta';
+  meta.textContent = String(item.analyst || item.source || 'تحلیل‌گر بازار') + ' · ' + goldAnalysisDate(item);
+  body.replaceChildren(meta, document.createTextNode(String(item.full_text || item.summary || 'متن کامل این تحلیل موجود نیست.').trim()));
+  source.href = 'https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json';
+  if (!dialog.open) dialog.showModal();
+}
+
+function renderGoldAnalysis(index, animate = true) {
+  const card = document.getElementById('goldAnalysisCard');
+  if (!card) return;
+  if (!goldAnalysisItems.length) {
+    card.innerHTML = '<span class="gold-analysis-label">تحلیل منتخب از GitHub</span><p class="gold-analysis-empty">هنوز تحلیل مستدل و مشخصی درباره بازار طلا برای نمایش ثبت نشده است. به‌محض انتشار تحلیل معتبر، این بخش به‌روزرسانی می‌شود.</p>';
+    return;
+  }
+  goldAnalysisIndex = (index + goldAnalysisItems.length) % goldAnalysisItems.length;
+  const item = goldAnalysisItems[goldAnalysisIndex];
+  const title = document.createElement('h3');
+  title.className = 'gold-analysis-title';
+  title.textContent = String(item.title || 'تحلیل بازار طلا');
+  const meta = document.createElement('div');
+  meta.className = 'gold-analysis-meta';
+  meta.textContent = String(item.analyst || item.source || 'تحلیل‌گر بازار') + ' · ' + goldAnalysisDate(item);
+  const summary = document.createElement('p');
+  summary.className = 'gold-analysis-summary';
+  summary.textContent = String(item.summary || item.full_text || '').replace(/https?:\/\/t\.me\/\S+/g, '').trim();
+  const label = document.createElement('span');
+  label.className = 'gold-analysis-label';
+  label.textContent = 'تحلیل منتخب از GitHub';
+  const actions = document.createElement('div');
+  actions.className = 'gold-analysis-actions';
+  const detail = document.createElement('button');
+  detail.type = 'button';
+  detail.className = 'gold-analysis-detail';
+  detail.textContent = 'جزئیات تحلیل';
+  detail.addEventListener('click', () => openGoldAnalysisDetails(goldAnalysisIndex));
+  const controls = document.createElement('div');
+  controls.className = 'gold-analysis-controls';
+  const count = document.createElement('span');
+  count.className = 'gold-analysis-count';
+  count.textContent = (goldAnalysisIndex + 1).toLocaleString('fa-IR') + ' از ' + goldAnalysisItems.length.toLocaleString('fa-IR');
+  const nav = document.createElement('div');
+  nav.className = 'gold-analysis-nav';
+  const previous = document.createElement('button');
+  previous.type = 'button'; previous.className = 'gold-analysis-step'; previous.setAttribute('aria-label','تحلیل قبلی'); previous.textContent = '‹';
+  previous.addEventListener('click', () => renderGoldAnalysis(goldAnalysisIndex - 1));
+  const next = document.createElement('button');
+  next.type = 'button'; next.className = 'gold-analysis-step'; next.setAttribute('aria-label','تحلیل بعدی'); next.textContent = '›';
+  next.addEventListener('click', () => renderGoldAnalysis(goldAnalysisIndex + 1));
+  previous.disabled = next.disabled = goldAnalysisItems.length < 2;
+  nav.append(previous, next);
+  controls.append(count, nav);
+  actions.append(detail, controls);
+  card.replaceChildren(label, title, meta, summary, actions);
+  card.classList.remove('is-changing');
+  if (animate) requestAnimationFrame(() => card.classList.add('is-changing'));
+}
+
+function showGoldAnalysisArchive() {
+  const dialog = document.getElementById('goldAnalysisDialog');
+  const title = document.getElementById('goldAnalysisDialogTitle');
+  const body = document.getElementById('goldAnalysisDialogBody');
+  const source = document.getElementById('goldAnalysisDialogSource');
+  if (!dialog || !title || !body || !source) return;
+  title.textContent = 'آرشیو تحلیل‌های بازار طلا';
+  source.hidden = false;
+  const list = document.createElement('div');
+  list.className = 'gold-analysis-archive-list';
+  if (!goldAnalysisItems.length) {
+    list.textContent = 'در حال حاضر تحلیل مستدل و مرتبطی برای نمایش در آرشیو وجود ندارد.';
+  } else {
+    goldAnalysisItems.forEach((item,index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'gold-analysis-archive-item';
+      const heading = document.createElement('span');
+      heading.textContent = String(item.title || 'تحلیل بازار طلا');
+      const meta = document.createElement('small');
+      meta.textContent = String(item.analyst || item.source || 'تحلیل‌گر بازار') + ' · ' + goldAnalysisDate(item);
+      button.append(heading,meta);
+      button.addEventListener('click', () => openGoldAnalysisDetails(index));
+      list.appendChild(button);
+    });
+  }
+  body.replaceChildren(list);
+  if (!dialog.open) dialog.showModal();
+}
+
 async function loadGoldMarketAnalysis() {
   const card = document.getElementById('goldAnalysisCard');
   if (!card) return;
@@ -5832,59 +5968,55 @@ async function loadGoldMarketAnalysis() {
     const items = await response.json();
     if (!Array.isArray(items)) throw new Error('ساختار فایل تحلیل معتبر نیست');
 
-    const relevant = items.filter(item => {
+    goldAnalysisItems = items.filter(item => {
       const groups = Array.isArray(item.market_groups) ? item.market_groups : [];
       const matches = Array.isArray(item.market_matches) ? item.market_matches : [];
       const reasons = Array.isArray(item.analysis_reasons) ? item.analysis_reasons : [];
+      const analysisMatches = Array.isArray(item.analysis_matches) ? item.analysis_matches : [];
+      const rawText = String(item.summary || item.full_text || '').replace(/اگر در بازارهای مالی و طلا فعال هستی[\s\S]*/i, '');
+      const coreText = (String(item.title || '') + ' ' + rawText).replace(/https?:\/\/t\.me\/\S+/g, '').trim();
       const hasGold = groups.includes('gold') || matches.some(value => /طلا|سکه|اونس|gold/i.test(String(value)));
-      const hasAnalysis = reasons.includes('دارای استدلال') || reasons.includes('دارای توضیح') ||
-        (Array.isArray(item.analysis_matches) && item.analysis_matches.some(value => !/^قیمت$/.test(String(value))));
-      return hasGold && hasAnalysis && String(item.summary || item.full_text || '').trim().length >= 100;
+      const hasReasonedAnalysis = reasons.includes('دارای استدلال') || reasons.includes('دارای توضیح') ||
+        analysisMatches.some(value => !/^قیمت$/.test(String(value)));
+      const discussesGoldInBody = /طلا|سکه|اونس|انس جهانی|حباب|عیار|حمایت|مقاومت|بازار طلا|gold/i.test(coreText);
+      return hasGold && hasReasonedAnalysis && discussesGoldInBody && coreText.length >= 100;
     }).sort((a,b) => {
       const score = Number(b.analysis_score || 0) - Number(a.analysis_score || 0);
       if (score) return score;
       return String(b.collected_at || '').localeCompare(String(a.collected_at || ''));
     });
 
-    const item = relevant[0];
-    if (!item) {
-      card.innerHTML = '<span class="gold-analysis-label">تحلیل منتخب از GitHub</span><p class="gold-analysis-empty">در حال حاضر تحلیل کامل و مرتبط با طلا برای نمایش موجود نیست.</p>';
-      return;
-    }
-
-    const title = String(item.title || 'تحلیل بازار طلا').trim();
-    const summary = String(item.summary || item.full_text || '').replace(/https?:\/\/t\.me\/\S+/g, '').trim();
-    const analyst = String(item.analyst || item.source || 'تحلیل‌گر بازار');
-    const stamp = item.collected_at ? new Date(item.collected_at) : null;
-    const dateText = stamp && !Number.isNaN(stamp.getTime())
-      ? new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', dateStyle:'medium', timeStyle:'short' }).format(stamp)
-      : 'زمان انتشار نامشخص';
-    const articleUrl = /^https:\/\/t\.me\//i.test(String(item.link || '')) ? String(item.link) : 'https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json';
-
-    const titleNode = document.createElement('h3');
-    titleNode.className = 'gold-analysis-title';
-    titleNode.textContent = title;
-    const metaNode = document.createElement('div');
-    metaNode.className = 'gold-analysis-meta';
-    metaNode.textContent = analyst + ' · ' + dateText;
-    const summaryNode = document.createElement('p');
-    summaryNode.className = 'gold-analysis-summary';
-    summaryNode.textContent = summary;
-    const label = document.createElement('span');
-    label.className = 'gold-analysis-label';
-    label.textContent = 'تحلیل منتخب از GitHub';
-    const link = document.createElement('a');
-    link.className = 'gold-analysis-link';
-    link.href = articleUrl;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.textContent = 'مشاهده تحلیل کامل ←';
-    card.replaceChildren(label, titleNode, metaNode, summaryNode, link);
+    goldAnalysisIndex = 0;
+    renderGoldAnalysis(0, false);
+    if (goldAnalysisTimer) clearInterval(goldAnalysisTimer);
+    goldAnalysisTimer = setInterval(() => {
+      if (!goldAnalysisPaused && goldAnalysisItems.length > 1 && !document.getElementById('goldAnalysisDialog')?.open) {
+        renderGoldAnalysis(goldAnalysisIndex + 1);
+      }
+    }, 10000);
   } catch (error) {
     console.warn('Gold analysis unavailable:', error.message);
     card.innerHTML = '<span class="gold-analysis-label">تحلیل منتخب از GitHub</span><p class="gold-analysis-empty">دریافت تحلیل‌ها موقتاً ممکن نیست؛ کمی بعد دوباره تلاش می‌کنیم.</p>';
   }
 }
+
+const goldAnalysisCardNode = document.getElementById('goldAnalysisCard');
+if (goldAnalysisCardNode) {
+  goldAnalysisCardNode.addEventListener('mouseenter', () => { goldAnalysisPaused = true; });
+  goldAnalysisCardNode.addEventListener('mouseleave', () => { goldAnalysisPaused = false; });
+  goldAnalysisCardNode.addEventListener('focusin', () => { goldAnalysisPaused = true; });
+  goldAnalysisCardNode.addEventListener('focusout', event => {
+    if (!goldAnalysisCardNode.contains(event.relatedTarget)) goldAnalysisPaused = false;
+  });
+}
+const goldAnalysisDialog = document.getElementById('goldAnalysisDialog');
+const goldAnalysisDialogClose = document.getElementById('goldAnalysisDialogClose');
+if (goldAnalysisDialogClose && goldAnalysisDialog) goldAnalysisDialogClose.addEventListener('click', () => goldAnalysisDialog.close());
+if (goldAnalysisDialog) goldAnalysisDialog.addEventListener('click', event => {
+  if (event.target === goldAnalysisDialog) goldAnalysisDialog.close();
+});
+const goldAnalysisMore = document.getElementById('goldAnalysisMore');
+if (goldAnalysisMore) goldAnalysisMore.addEventListener('click', showGoldAnalysisArchive);
 
 document.querySelectorAll('[data-gold-range]').forEach(button => {
   button.addEventListener('click', () => setGoldTrendRange(button.dataset.goldRange));
