@@ -5701,7 +5701,7 @@ function renderMarketNewsItem() {
   ticker.hidden = false;
   const item = marketNewsItems[marketNewsIndex % marketNewsItems.length];
   text.textContent = item.title;
-  if (item.link && /^https?:\\/\\//i.test(item.link)) {
+  if (typeof item.link === "string" && (item.link.startsWith("https://") || item.link.startsWith("http://"))) {
     text.href = item.link;
     text.target = '_blank';
     text.rel = 'noopener noreferrer';
