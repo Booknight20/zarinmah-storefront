@@ -627,6 +627,26 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .market-change.down { color: #ff6868; }
 .market-change.same { color: #b9b1a2; }
 .market-disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; }
+.market-news-ticker {
+  display:flex; align-items:center; gap:12px; min-height:42px; margin-top:13px;
+  padding:8px 13px; overflow:hidden; border:1px solid rgba(199,162,75,.18);
+  border-radius:10px; background:rgba(199,162,75,.045);
+}
+.market-news-label {
+  display:inline-flex; flex:0 0 auto; align-items:center; gap:6px;
+  color:#e2c477; font-size:11px; font-weight:700; white-space:nowrap;
+}
+.market-news-label::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+.market-news-content { min-width:0; flex:1; overflow:hidden; color:#d8d1c2; font-size:11px; line-height:1.8; }
+.market-news-track { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.market-news-track a { color:inherit; }
+.market-news-time { flex:0 0 auto; color:#8f887b; font-size:9px; white-space:nowrap; }
+@media(max-width:560px) {
+  .market-news-ticker { gap:8px; min-height:40px; padding:7px 9px; }
+  .market-news-label { font-size:10px; }
+  .market-news-content { font-size:10px; }
+  .market-news-time { display:none; }
+}
 
 .products {
   display: grid;
@@ -1579,6 +1599,13 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
     </div>
     <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
+    <div class="market-news-ticker" id="marketNewsTicker" role="region" aria-label="اخبار مهم بازار">
+      <span class="market-news-label">اخبار مهم</span>
+      <div class="market-news-content" aria-live="polite">
+        <span class="market-news-track" id="marketNewsText">در حال حاضر خبر مهمی برای نمایش ثبت نشده است.</span>
+      </div>
+      <span class="market-news-time" id="marketNewsTime">زرین ماه</span>
+    </div>
   </div>
 </section>
 
@@ -5651,6 +5678,30 @@ async function loadMarketPrices() {
   }
 }
 
+// News items are intentionally left empty until a verified news source is connected.
+// Never show fabricated or stale headlines in the market ticker.
+const MARKET_NEWS = [];
+
+function renderMarketNews() {
+  const text = document.getElementById('marketNewsText');
+  const time = document.getElementById('marketNewsTime');
+  if (!text || !time) return;
+
+  const items = MARKET_NEWS.filter(item =>
+    item && typeof item.title === 'string' && item.title.trim()
+  );
+
+  if (!items.length) {
+    text.textContent = 'در حال حاضر خبر مهمی برای نمایش ثبت نشده است.';
+    time.textContent = 'زرین ماه';
+    return;
+  }
+
+  const item = items[0];
+  text.textContent = item.title.trim();
+  time.textContent = item.time || 'خبر بازار';
+}
+
 function trackSiteVisit() {
   try {
     if (!window.crypto?.randomUUID) return;
@@ -5679,6 +5730,7 @@ trackSiteVisit();
 initializeAuth();
 loadListings();
 loadMarketPrices();
+renderMarketNews();
 
 setInterval(loadListings, 60000);
 setInterval(loadMarketPrices, 60000);
