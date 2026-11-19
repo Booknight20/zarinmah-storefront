@@ -33,11 +33,66 @@ a { color: inherit; text-decoration: none; }
 .wrap { width: min(1160px, calc(100% - 32px)); margin: auto; }
 
 .topline {
-  background: #030b10;
-  color: var(--gold);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 38px;
+  overflow: hidden;
+  padding: 6px 16px;
+  background:
+    radial-gradient(ellipse at center, rgba(199,162,75,.10), transparent 58%),
+    linear-gradient(90deg, #03090d 0%, #101713 50%, #03090d 100%);
+  color: #e8c977;
+  border-bottom: 1px solid rgba(199,162,75,.18);
   text-align: center;
-  padding: 7px;
+  font-family: Vazirmatn, Tahoma, Arial, sans-serif;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05px;
+}
+.topline::before,
+.topline::after {
+  content: "";
+  display: block;
+  width: min(12vw, 112px);
+  height: 1px;
+  flex: 0 1 112px;
+  background: linear-gradient(90deg, transparent, rgba(199,162,75,.72), #e8c977);
+  opacity: .78;
+  animation: topline-glow 4.8s ease-in-out infinite;
+}
+.topline::after {
+  transform: scaleX(-1);
+  animation-delay: 2.4s;
+}
+.topline span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 14px rgba(220,180,85,.22);
+  white-space: nowrap;
+}
+.topline span::before {
+  content: "✦";
+  color: #f2d58a;
+  font-size: 11px;
+  text-shadow: 0 0 9px rgba(242,213,138,.45);
+}
+@keyframes topline-glow {
+  0%, 100% { opacity: .48; filter: brightness(.85); }
+  50% { opacity: 1; filter: brightness(1.35); }
+}
+@media(max-width:560px) {
+  .topline { min-height: 34px; gap: 8px; padding: 5px 9px; font-size: 10px; }
+  .topline::before, .topline::after { width: min(7vw, 28px); flex-basis: 28px; }
+  .topline span { gap: 5px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .topline::before, .topline::after { animation: none; }
 }
 header {
   position: sticky;
@@ -1437,7 +1492,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 </head>
 
 <body>
-<div class="topline">زرین ماه؛ انتخابی درخشان برای خرید و فروش طلا</div>
+<div class="topline"><span>زرین ماه؛ انتخابی درخشان برای خرید و فروش طلا</span></div>
 
 <header>
   <div class="wrap nav">
