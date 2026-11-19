@@ -5972,7 +5972,7 @@ function renderMarketInsightCategory(tab) {
   meta.textContent = String(item.analyst || item.source || 'منبع بازار') + ' · ' + goldAnalysisDate(item);
   const summary = document.createElement('p');
   summary.className = 'gold-analysis-summary';
-  summary.textContent = String(item.summary || item.full_text || item.text || '').replace(/https?:\\/\\/t\\.me\\/\\S+/g, '').trim();
+  summary.textContent = String(item.summary || item.full_text || item.text || '').replace(/https?:\/\/t\.me\/\S+/g, '').trim();
   const actions = document.createElement('div');
   actions.className = 'gold-analysis-actions';
   const detail = document.createElement('button');
