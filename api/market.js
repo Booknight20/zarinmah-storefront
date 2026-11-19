@@ -299,6 +299,37 @@ async function writeState(state) {
 // آخرین قیمت ذخیره‌شده
 // =========================================================
 
+
+// تاریخچه محدود قیمت برای نمودار روند
+function getGoldTrendHistory(state, latestOverride = null) {
+  const entries = Object.entries(state?.days || {})
+    .filter(([date, entry]) =>
+      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+      Number.isFinite(entry?.prices?.gold18) &&
+      entry.prices.gold18 > 0
+    )
+    .map(([date, entry]) => ({
+      date,
+      price: entry.prices.gold18,
+      updatedAt: entry.updatedAt || null
+    }));
+
+  if (latestOverride?.date && Number.isFinite(latestOverride?.prices?.gold18)) {
+    const existing = entries.findIndex(item => item.date === latestOverride.date);
+    const latestItem = {
+      date: latestOverride.date,
+      price: latestOverride.prices.gold18,
+      updatedAt: latestOverride.updatedAt || null
+    };
+    if (existing >= 0) entries[existing] = latestItem;
+    else entries.push(latestItem);
+  }
+
+  return entries
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-14);
+}
+
 function getLatestSaved(state) {
   if (
     state?.latest &&
@@ -591,6 +622,11 @@ module.exports = async function handler(req, res) {
       updatedAt,
       timezone: TIMEZONE,
       prices,
+      history: getGoldTrendHistory(state, {
+        date: dateString,
+        prices,
+        updatedAt
+      }),
       previousDate: comparisonDate,
       dailyChanges: calculateChanges(
         prices,
