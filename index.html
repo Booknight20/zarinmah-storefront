@@ -627,8 +627,9 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .market-change.down { color: #ff6868; }
 .market-change.same { color: #b9b1a2; }
 .market-disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; }
+.market-news-wrap { padding-top:0; padding-bottom:0; }
 .market-news-ticker {
-  display:flex; align-items:center; gap:12px; min-height:42px; margin-top:13px;
+  display:flex; align-items:center; gap:12px; min-height:42px; margin:0;
   padding:8px 13px; overflow:hidden; border:1px solid rgba(199,162,75,.18);
   border-radius:10px; background:rgba(199,162,75,.045);
 }
@@ -637,9 +638,10 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   color:#e2c477; font-size:11px; font-weight:700; white-space:nowrap;
 }
 .market-news-label::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--gold); }
-.market-news-content { min-width:0; flex:1; overflow:hidden; color:#d8d1c2; font-size:11px; line-height:1.8; }
-.market-news-track { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.market-news-track a { color:inherit; }
+.market-news-content { min-width:0; flex:1; overflow:hidden; color:#d8d1c2; font-size:11px; line-height:1.8; direction:ltr; text-align:left; }
+.market-news-track { display:block; width:max-content; max-width:none; white-space:nowrap; color:inherit; text-decoration:none; will-change:transform; animation:market-news-left-to-right 7s linear infinite; }
+.market-news-track[href] { cursor:pointer; }
+@keyframes market-news-left-to-right { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
 .market-news-time { flex:0 0 auto; color:#8f887b; font-size:9px; white-space:nowrap; }
 @media(max-width:560px) {
   .market-news-ticker { gap:8px; min-height:40px; padding:7px 9px; }
@@ -647,6 +649,7 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
   .market-news-content { font-size:10px; }
   .market-news-time { display:none; }
 }
+@media(prefers-reduced-motion:reduce) { .market-news-track { animation:none; width:auto; white-space:normal; } }
 
 .products {
   display: grid;
@@ -1585,6 +1588,16 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
   </div>
 </section>
 
+<div class="wrap market-news-wrap">
+  <div class="market-news-ticker" id="marketNewsTicker" hidden role="region" aria-label="اخبار مهم بازار">
+    <span class="market-news-label">اخبار مهم</span>
+    <div class="market-news-content" aria-live="polite">
+      <a class="market-news-track" id="marketNewsText">در حال حاضر خبر مهمی برای نمایش ثبت نشده است.</a>
+    </div>
+    <span class="market-news-time" id="marketNewsTime">زرین ماه</span>
+  </div>
+</div>
+
 <section class="section">
   <div class="wrap">
     <div class="section-head">
@@ -1599,13 +1612,6 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
     </div>
     <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
-    <div class="market-news-ticker" id="marketNewsTicker" hidden role="region" aria-label="اخبار مهم بازار">
-      <span class="market-news-label">اخبار مهم</span>
-      <div class="market-news-content" aria-live="polite">
-        <span class="market-news-track" id="marketNewsText">در حال حاضر خبر مهمی برای نمایش ثبت نشده است.</span>
-      </div>
-      <span class="market-news-time" id="marketNewsTime">زرین ماه</span>
-    </div>
   </div>
 </section>
 
@@ -5695,8 +5701,20 @@ function renderMarketNewsItem() {
   ticker.hidden = false;
   const item = marketNewsItems[marketNewsIndex % marketNewsItems.length];
   text.textContent = item.title;
-  time.textContent = item.time || item.source || 'خبر بازار';
+  if (item.link && /^https?:\\/\\//i.test(item.link)) {
+    text.href = item.link;
+    text.target = '_blank';
+    text.rel = 'noopener noreferrer';
+  } else {
+    text.removeAttribute('href');
+    text.removeAttribute('target');
+    text.removeAttribute('rel');
+  }
   text.title = item.title;
+  text.style.animation = 'none';
+  void text.offsetWidth;
+  text.style.animation = '';
+  time.textContent = item.time || item.source || 'خبر بازار';
   ticker.setAttribute('aria-label', 'اخبار مهم بازار؛ ' + item.title);
 }
 
