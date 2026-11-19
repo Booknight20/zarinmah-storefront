@@ -16,11 +16,11 @@ function getPrimaryCategory(item) {
   const title = normalizeText(item.title);
   const titleMatches = item.title_market_matches || {};
   const has = key => Array.isArray(titleMatches[key]) && titleMatches[key].length > 0;
+  if (/اقتصاد جهان|اقتصاد جهانی|اروپا|فدرال رزرو|بانک مرکزی اروپا|تورم آمریکا|بازده اوراق|اقتصاد آمریکا/.test(title)) return "global";
   if (has("stock") || /بورس|شاخص کل|شاخص هم وزن|فرابورس|سهام|عرضه اولیه|کارگزاری/.test(title)) return "stock";
   if (/اونس|طلای جهانی|طلای بین الملل|بازار جهانی طلا/.test(title)) return "gold";
   if (/طلا|سکه|شمش|مثقال|طلای ۱۸|طلای 18/.test(title) || has("gold")) return "gold";
-  if (/دلار|یورو|درهم|ارز|نرخ ارز|مرکز مبادله/.test(title) || has("currency")) return "currency";
-  if (/اقتصاد جهان|اقتصاد جهانی|فدرال رزرو|بانک مرکزی اروپا|تورم آمریکا|بازده اوراق/.test(title)) return "global";
+  if (/دلار|یورو|درهم|نرخ ارز|بازار ارز|قیمت ارز|ارزها|نرخ دلار|مرکز مبادله/.test(title) || (has("currency") && !/ارز نیست|تقصیر ارز نیست/.test(title))) return "currency";
   return "economy";
 }
 
@@ -55,7 +55,7 @@ function getTopicKey(item, category) {
 
 function scoreItem(item, timestamp, now) {
   const ageHours = Math.max(0, (now - timestamp) / 3600000);
-  const freshness = Math.max(0, 8 - ageHours / 6);
+  const freshness = Math.max(0, 16 - ageHours / 2);
   const priority = item.priority === "high" ? 8 : item.priority === "medium" ? 4 : 0;
   const summaryBonus = String(item.summary || item.full_text || "").length >= 100 ? 2 : 0;
   return (Number(item.market_score) || 0) + priority + freshness + summaryBonus;
