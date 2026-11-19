@@ -615,11 +615,20 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold-insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .gold-insights-title{display:flex;align-items:center;gap:10px;min-width:0}
 .gold-insights-mark{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(218,183,103,.28);border-radius:11px;color:#e5c77f;background:rgba(211,174,91,.08)}
-.gold-insights-title strong{display:block;color:#f0dfb5;font-size:18px;font-weight:800;line-height:1.6}
+.gold-insights-title strong{display:block;color:#f0dfb5;font-size:20px;font-weight:900;line-height:1.6;letter-spacing:-.25px;background:linear-gradient(105deg,#f8e8b6 0%,#d6ad55 28%,#fff1c7 48%,#b98731 68%,#f7df9d 100%);background-size:220% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 9px rgba(219,177,82,.22));animation:gold-title-glint 6s ease-in-out infinite}
 .gold-insights-title small{display:block;margin-top:2px;color:#aeb7b7;font-size:13px;line-height:1.7}
 .gold-insights-live{display:inline-flex;align-items:center;gap:6px;color:#a9c9b4;font-size:12px;white-space:nowrap}
 .gold-insights-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#75bd91;box-shadow:0 0 8px #75bd9180}
-.gold-insight-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid rgba(211,174,91,.17)}
+.gold-insight-tabs{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:0 auto 14px;padding:0 0 12px;border-bottom:1px solid rgba(211,174,91,.17);text-align:center}
+.gold-insights-title{position:relative}
+.gold-insights-title strong{position:relative}
+.gold-insights-title strong:after{content:"";display:block;width:54px;height:2px;margin:4px auto 0;border-radius:3px;background:linear-gradient(90deg,transparent,#d7b15e,#fff0bd,transparent);box-shadow:0 0 9px rgba(224,183,91,.55);transform-origin:center;animation:gold-title-line 4s ease-in-out infinite}
+.gold-insights-title .gold-insights-mark{position:relative;overflow:visible;box-shadow:0 0 0 0 rgba(221,181,91,.28);animation:gold-mark-pulse 4s ease-in-out infinite}
+@keyframes gold-title-glint{0%,100%{background-position:100% center;filter:drop-shadow(0 0 7px rgba(219,177,82,.16))}50%{background-position:0% center;filter:drop-shadow(0 0 13px rgba(219,177,82,.34))}}
+@keyframes gold-title-line{0%,100%{opacity:.62;transform:scaleX(.72)}50%{opacity:1;transform:scaleX(1.16)}}
+@keyframes gold-mark-pulse{0%,100%{box-shadow:0 0 0 0 rgba(221,181,91,0),0 0 12px rgba(221,181,91,.12)}50%{box-shadow:0 0 0 5px rgba(221,181,91,.045),0 0 20px rgba(221,181,91,.24)}}
+@media(max-width:760px){.gold-insight-tabs{justify-content:center}.gold-insights-title strong{font-size:19px}}
+@media(prefers-reduced-motion:reduce){.gold-insights-title strong,.gold-insights-title strong:after,.gold-insights-title .gold-insights-mark{animation:none}}
 .gold-insight-tab{border:1px solid rgba(211,174,91,.24);border-radius:9px;background:rgba(255,255,255,.025);color:#d9d2c3;padding:8px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .gold-insight-tab:hover{border-color:rgba(211,174,91,.55);color:#f5dfa3}
 .gold-insight-tab.active{border-color:rgba(211,174,91,.7);background:rgba(211,174,91,.14);color:#f0d58e}
