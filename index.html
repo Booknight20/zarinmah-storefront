@@ -5766,7 +5766,7 @@ function renderGoldTrend(data) {
     : 'قیمت در دسترس نیست';
 
   const rows = Array.isArray(data?.history) ? data.history
-    .filter(item => item && /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date) && Number.isFinite(Number(item.price)) && Number(item.price) > 0)
+    .filter(item => item && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && Number.isFinite(Number(item.price)) && Number(item.price) > 0)
     .sort((a,b) => a.date.localeCompare(b.date))
     .slice(-goldTrendRange) : [];
 
@@ -5853,13 +5853,13 @@ async function loadGoldMarketAnalysis() {
     }
 
     const title = String(item.title || 'تحلیل بازار طلا').trim();
-    const summary = String(item.summary || item.full_text || '').replace(/https?:\\/\\/t\\.me\\/\\S+/g, '').trim();
+    const summary = String(item.summary || item.full_text || '').replace(/https?:\/\/t\.me\/\S+/g, '').trim();
     const analyst = String(item.analyst || item.source || 'تحلیل‌گر بازار');
     const stamp = item.collected_at ? new Date(item.collected_at) : null;
     const dateText = stamp && !Number.isNaN(stamp.getTime())
       ? new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', dateStyle:'medium', timeStyle:'short' }).format(stamp)
       : 'زمان انتشار نامشخص';
-    const articleUrl = /^https:\\/\\/t\\.me\\//i.test(String(item.link || '')) ? String(item.link) : 'https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json';
+    const articleUrl = /^https:\/\/t\.me\//i.test(String(item.link || '')) ? String(item.link) : 'https://github.com/Booknight20/zarinmah-gold-bot/blob/main/analyst_ready.json';
 
     const titleNode = document.createElement('h3');
     titleNode.className = 'gold-analysis-title';
