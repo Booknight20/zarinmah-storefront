@@ -4,6 +4,8 @@ const SOURCE_URL = "https://t.me/s/navasanchannel";
 const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
+const MAX_SOURCE_AGE_MS = 6 * 60 * 60 * 1000;
+const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
 // سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
 const INITIAL_STATE = {
@@ -121,6 +123,11 @@ function extractMessages(html) {
 
   while ((match = regex.exec(html)) !== null) {
     const text = cleanHtml(match[1]);
+    // Telegram exposes each post timestamp in the footer after its text.
+    // Do not stamp an old Telegram post with the current server time.
+    const nearbyHtml = html.slice(regex.lastIndex, regex.lastIndex + 5000);
+    const timeMatch = nearbyHtml.match(/<time[^>]*datetime=["']([^"']+)["']/i);
+    const postedAt = timeMatch ? Date.parse(timeMatch[1]) : NaN;
 
     const hasAllLabels =
       /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم/i.test(text) &&
@@ -128,7 +135,9 @@ function extractMessages(html) {
       /نیم\s*سکه/i.test(text) &&
       /دلار\s*آمریکا\s*فروش/i.test(text);
 
-    if (hasAllLabels) messages.push(text);
+    if (hasAllLabels && Number.isFinite(postedAt)) {
+      messages.push({ text, postedAt });
+    }
   }
 
   return messages;
@@ -390,6 +399,22 @@ function buildCachedResponse(state, marketOpen, message) {
     };
   }
 
+  const latestAge = Date.now() - new Date(latest.updatedAt).getTime();
+  if (!Number.isFinite(latestAge) || latestAge < 0 || latestAge > MAX_CACHED_AGE_MS) {
+    return {
+      ok: false,
+      marketOpen,
+      timezone: TIMEZONE,
+      source: SOURCE_URL,
+      currency: "تومان",
+      prices: null,
+      updatedAt: latest.updatedAt,
+      cached: true,
+      stale: true,
+      message: "آخرین داده قیمت قدیمی است و برای جلوگیری از نمایش قیمت نادرست، فعلاً نمایش داده نمی‌شود."
+    };
+  }
+
   const previousEntry = getPreviousEntry(state, latest.date);
   const previousDate = previousEntry?.date || getPreviousDate(latest.date);
 
@@ -494,12 +519,17 @@ async function fetchSourcePrices() {
   const messages = extractMessages(html);
 
   for (let i = messages.length - 1; i >= 0; i--) {
-    const result = extractPricesFromMessage(messages[i]);
+    const message = messages[i];
+    const age = Date.now() - message.postedAt;
+    if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > MAX_SOURCE_AGE_MS) continue;
 
-    if (result.valid) return result.prices;
+    const result = extractPricesFromMessage(message.text);
+    if (result.valid) {
+      return { prices: result.prices, postedAt: new Date(message.postedAt).toISOString() };
+    }
   }
 
-  throw new Error("No valid prices found for all assets");
+  throw new Error("No fresh valid prices found for all assets");
 }
 
 
@@ -587,8 +617,9 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const prices = await fetchSourcePrices();
-    const updatedAt = new Date().toISOString();
+    const sourceData = await fetchSourcePrices();
+    const prices = sourceData.prices;
+    const updatedAt = sourceData.postedAt;
 
     let previousEntry = getPreviousEntry(state, dateString);
     let previousPrices = previousEntry?.prices || null;
