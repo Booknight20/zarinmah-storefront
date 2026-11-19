@@ -1491,6 +1491,36 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 .admin-banner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:20px;border:1px solid rgba(215,177,91,.3);border-radius:19px;background:linear-gradient(145deg,#1c1913,#100f0c);box-shadow:0 12px 32px #0003}.admin-banner-form label{display:flex;flex-direction:column;gap:7px;color:#d9c79e;font-weight:650}.admin-banner-form input,.admin-banner-form select{min-height:43px;padding:10px 12px;background:#0b0d0e;color:var(--text);border:1px solid rgba(214,177,91,.24);border-radius:11px;outline:none;transition:.2s}.admin-banner-form input:focus,.admin-banner-form select:focus{border-color:#d7ad52;box-shadow:0 0 0 3px #d7ad5220}.admin-banner-form input[type=file]{padding:8px}.banner-crop-guide{margin:12px 0;padding:14px 16px;border:1px solid rgba(190,150,65,.45);border-radius:14px;background:rgba(190,150,65,.08);color:inherit}.banner-crop-guide strong{display:block;margin-bottom:6px;color:var(--gold,#c9a34a)}.banner-crop-guide p{margin:0;line-height:1.9;font-size:13px}.admin-banner-preview{grid-column:1/-1;display:none;overflow:hidden;border:1px solid rgba(215,177,91,.5);border-radius:15px;background:#090909}.admin-banner-preview.show{display:block}.banner-crop-window{position:relative;width:100%;aspect-ratio:16/9;min-height:0;overflow:hidden;background:repeating-conic-gradient(#171717 0% 25%,#101010 0% 50%) 50%/20px 20px;border:3px solid #d7ad52;box-shadow:inset 0 0 0 2px #080808}.banner-crop-window:after{content:"";position:absolute;inset:8px;border:1px dashed rgba(255,255,255,.7);pointer-events:none}.banner-crop-window img{position:absolute;inset:0;display:block;width:100%!important;height:100%!important;min-width:100%;min-height:100%;max-width:none;object-fit:cover;object-position:50% 50%;transform:scale(1);transform-origin:center;transition:transform .12s}.admin-banner-preview span{display:block;padding:9px 11px;color:#cbb782;font-size:12px;line-height:1.8}.banner-crop-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;gap:12px;padding:12px}.banner-crop-controls label{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px}.banner-crop-controls input{width:100%;min-width:0;accent-color:#d7ad52}.banner-crop-controls select{width:100%;min-height:38px;padding:7px;background:#15130f;color:var(--text);border:1px solid rgba(214,177,91,.35);border-radius:9px}.banner-crop-controls button{min-height:38px;padding:7px 12px}.banner-crop-zoom-value{color:#e4c77e;font-variant-numeric:tabular-nums}@media(max-width:600px){.banner-crop-controls{grid-template-columns:1fr}.banner-crop-window{min-height:90px}}.admin-banner-form .banner-form-actions{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.admin-banner-form button{border-radius:11px}.admin-banner-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:16px;margin-top:18px}.admin-banner-card{border:1px solid rgba(215,177,91,.3);border-radius:17px;overflow:hidden;background:linear-gradient(145deg,#1b1914,#0e0e0d);box-shadow:0 9px 24px #0003;transition:transform .22s,border-color .22s,box-shadow .22s}.admin-banner-card:hover{transform:translateY(-3px);border-color:#d9b45f;box-shadow:0 14px 30px #0005}.admin-banner-card img{width:100%;height:125px;object-fit:cover;display:block;border-bottom:1px solid #d6b15a35}.admin-banner-card .body{padding:13px}.admin-banner-card .body b{color:#f1d89e}.admin-banner-card .body p{color:#b9aa88;font-size:12px}.admin-banner-card .body button{margin:3px 4px 0 0}
 @media(max-width:760px){.hero-banner{min-height:0;border-radius:26px}.hero-banner:before{inset:0;border-width:2px;border-radius:inherit}.hero-banner-slide img{min-height:0}.hero-banner-caption{right:12px;bottom:38px;font-size:15px}.hero-banner-arrow{width:34px;height:34px}.admin-banner-form{grid-template-columns:1fr;padding:14px}.admin-banner-list{grid-template-columns:1fr}}
 </style>
+
+<style id="admin-slogan-preview-styles">
+#adminWorkspaceSlogans{color:var(--text);max-width:1100px;margin:0 auto}
+.slogan-preview-note{padding:12px 14px;border:1px solid rgba(216,180,91,.28);border-radius:12px;background:rgba(216,180,91,.07);color:var(--muted);font-size:12px;line-height:1.9;margin:0 0 16px}
+.slogan-preview-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:16px;align-items:start}
+.slogan-editor-card,.slogan-live-card{border:1px solid var(--line);border-radius:16px;background:var(--card,#101a20);padding:16px;min-width:0}
+.slogan-editor-card h3,.slogan-live-card h3{margin:0 0 12px;color:var(--gold);font-size:15px}
+.slogan-editor-card label{display:block;color:var(--muted);font-size:12px;margin:10px 0}
+.slogan-editor-card input,.slogan-editor-card textarea,.slogan-editor-card select{display:block;width:100%;margin-top:6px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:#071219;color:var(--text);padding:10px;font:inherit}
+.slogan-editor-card textarea{min-height:68px;resize:vertical}
+.slogan-line-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slogan-admin-list{display:grid;gap:8px;margin-top:12px}
+.slogan-admin-item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:10px;background:rgba(255,255,255,.025)}
+.slogan-admin-item .copy{flex:1;min-width:0;font-size:12px;line-height:1.8}
+.slogan-admin-item button,.slogan-preview-actions button{border:1px solid var(--line);border-radius:9px;background:#17232a;color:var(--text);padding:7px 10px;cursor:pointer;font:inherit;font-size:11px}
+.slogan-admin-item .remove{color:#e6a19a}
+.slogan-live-stage{min-height:220px;border:1px solid rgba(216,180,91,.28);border-radius:14px;padding:20px;background:radial-gradient(ellipse at 70% 35%,rgba(199,162,75,.13),transparent 50%),linear-gradient(120deg,#030a0e,#0b1921 60%,#17130c);display:flex;flex-direction:column;justify-content:center;gap:12px}
+.slogan-live-stage .eyebrow{color:#d7b45b;font-size:11px}
+.slogan-live-stage h2{font-size:clamp(22px,3vw,34px);line-height:1.7;margin:0;color:#fff0c2}
+.slogan-live-stage h2 span{display:block;color:#e8bd60}
+.slogan-live-stage p{font-size:11px;line-height:2;color:#d0c6b5;margin:0}
+.slogan-preview-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.slogan-preview-actions .primary{background:linear-gradient(135deg,#d8b45b,#a77a2b);color:#17130c;border:0;font-weight:800}
+.slogan-demo-list{display:grid;gap:8px;margin-top:14px}
+.slogan-demo-row{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:11px}
+.slogan-demo-row strong{color:var(--gold)}
+.slogan-demo-row small{color:var(--muted)}
+@media(max-width:760px){.slogan-preview-grid{grid-template-columns:1fr}.slogan-live-card{order:-1}.slogan-line-row{grid-template-columns:1fr}}
+</style>
+
 </head>
 
 <body>
@@ -2019,6 +2049,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <div class="admin-workspace-nav" role="tablist" aria-label="بخش‌های مدیریت">
         <button type="button" data-admin-workspace-tab="overview" onclick="showAdminWorkspaceTab('overview')">داشبورد</button>
 <button type="button" data-admin-workspace-tab="banners" onclick="showAdminWorkspaceTab('banners')">مدیریت بنرها</button>
+        <button type="button" data-admin-workspace-tab="slogans" onclick="showAdminWorkspaceTab('slogans')">مدیریت شعارها</button>
         <button type="button" data-admin-workspace-tab="members" onclick="showAdminWorkspaceTab('members')">مدیریت اعضا</button>
         <button type="button" class="active" data-admin-workspace-tab="all" onclick="showAdminWorkspaceTab('all')">مدیریت آگهی‌ها</button>
         <button type="button" data-admin-workspace-tab="pending" onclick="showAdminWorkspaceTab('pending')">در حال بررسی</button>
@@ -2032,6 +2063,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       </div>
       <div class="admin-workspace-content">
         <div id="adminWorkspaceOverview"></div><div id="adminWorkspaceBanners" style="display:none"></div>
+        <div id="adminWorkspaceSlogans" style="display:none"></div>
         <div id="adminWorkspaceListings"></div>
         <div id="adminWorkspaceRequests"></div>
         <div id="adminWorkspaceMembers"></div>
@@ -2726,7 +2758,7 @@ async function openAdminWorkspace() {
   document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
     const tab = button.dataset.adminWorkspaceTab;
     const allowed = isSuperAdmin()
-      || (canManageListings() && tab !== "members" && tab !== "storage")
+      || (canManageListings() && tab !== "members" && tab !== "storage" && tab !== "slogans")
       || (canManageMembers() && tab === "members");
     button.hidden = !allowed;
   });
@@ -2748,6 +2780,69 @@ async function compressBannerImage(file){if(!file||!file.type.startsWith("image/
 const targetW=1920,targetH=1080,mode=document.getElementById("bannerFitMode")?.value||"cover",zoom=Number(document.getElementById("bannerCropZoom")?.value||100)/100,x=Number(document.getElementById("bannerCropX")?.value??50)/100,y=Number(document.getElementById("bannerCropY")?.value??50)/100,canvas=document.createElement("canvas");canvas.width=targetW;canvas.height=targetH;const ctx=canvas.getContext("2d");if(!ctx){cleanup();throw Error("آماده‌سازی تصویر در این مرورگر ممکن نیست.");}ctx.fillStyle="#15130f";ctx.fillRect(0,0,targetW,targetH);const baseScale=(mode==="contain"?Math.min(targetW/sourceWidth,targetH/sourceHeight):Math.max(targetW/sourceWidth,targetH/sourceHeight))*zoom,dw=sourceWidth*baseScale,dh=sourceHeight*baseScale,dx=(targetW-dw)*x,dy=(targetH-dh)*y;ctx.drawImage(source,dx,dy,dw,dh);cleanup();for(let q=.9;q>=.48;q-=.06){const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",q));if(blob&&blob.size<=1850*1024)return new File([blob],file.name.replace(/\\.[^.]+$/,"")+".jpg",{type:"image/jpeg",lastModified:Date.now()});}throw Error("حجم تصویر پس از آماده‌سازی هنوز زیاد است؛ تصویر دیگری انتخاب کنید.");}function editAdminBanner(id){const b=window.adminBannerCache.find(x=>String(x.id)===String(id)),f=document.getElementById("adminBannerForm");if(!b||!f)return;f.elements.banner_id.value=b.id;f.elements.title.value=(["بنر زرین ماه","بنر زرین‌ماه"].includes(String(b.title||"").trim())?"":(b.title||""));f.elements.target_url.value=b.target_url||"";f.elements.sort_order.value=b.sort_order;f.elements.is_active.value=String(!!b.is_active);window.bannerEditingImageUrl=b.image_url||"";const p=document.getElementById("adminBannerPreview");if(p&&b.image_url){const img=p.querySelector("img");img.onload=()=>{p.classList.add("show");updateBannerCropPreview();};img.src=b.image_url;}resetBannerCrop();document.getElementById("adminBannerFeedback").textContent="تصویر فعلی در کادر نمایش داده شد؛ با بزرگ‌نمایی و جابه‌جایی تنظیمش کنید یا عکس جدید انتخاب کنید.";document.getElementById("adminBannerForm").scrollIntoView({behavior:"smooth",block:"start"});}
 async function saveAdminBanner(e){e.preventDefault();const f=e.currentTarget,btn=document.getElementById("adminBannerSaveButton"),msg=document.getElementById("adminBannerFeedback");let file=f.elements.banner_image.files[0];if(!file&&f.elements.banner_id.value&&window.bannerEditingImageUrl){try{msg.textContent="در حال آماده‌سازی تصویر فعلی برای ویرایش…";const imageResponse=await fetch(window.bannerEditingImageUrl,{mode:"cors",cache:"no-store"});if(!imageResponse.ok)throw Error("دریافت تصویر فعلی ممکن نشد؛ لطفاً عکس را دوباره انتخاب کنید.");const imageBlob=await imageResponse.blob();file=new File([imageBlob],"banner-edit.jpg",{type:imageBlob.type||"image/jpeg"});}catch(imageError){msg.textContent=imageError.message||"برای ویرایش تصویر، لطفاً فایل عکس را دوباره انتخاب کنید.";return;}}if(!f.elements.banner_id.value&&!file){msg.textContent="برای بنر جدید، تصویر انتخاب کنید.";return;}btn.disabled=true;btn.textContent="در حال آماده‌سازی تصویر…";msg.textContent="در حال فشرده‌سازی تصویر و ارسال…";try{const fd=new FormData(f);fd.set("action","admin_banner_save");if(file){const optimized=await compressBannerImage(file);fd.set("banner_image",optimized,optimized.name);}const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);let r;try{r=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd,signal:controller.signal});}finally{clearTimeout(timer);}let d;try{d=await r.json();}catch(_){throw Error("پاسخ سرور قابل خواندن نبود؛ لطفاً گزارش Vercel را بررسی کنید.");}if(!r.ok||!d.ok)throw Error(d.error||"ذخیره بنر ناموفق بود.");msg.textContent="بنر با موفقیت ذخیره شد.";await loadAdminBanners();await loadPublicBanners();}catch(x){msg.textContent=x.name==="AbortError"?"زمان ارسال تصویر تمام شد؛ اتصال را بررسی و دوباره تلاش کنید.":(x.message||"ذخیره بنر ناموفق بود.");}finally{btn.disabled=false;btn.textContent="ذخیره بنر";}}
 async function deleteAdminBanner(id){if(!confirm("این بنر حذف شود؟"))return;const fd=new FormData();fd.set("action","admin_banner_delete");fd.set("banner_id",id);try{const r=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd}),d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"حذف ناموفق");await loadAdminBanners();await loadPublicBanners();}catch(e){showToast(e.message||"خطا");}}
+
+const adminSloganPreviewItems = [
+  { first:"درخشش طلا،", second:"با خیال آسوده" },
+  { first:"زیبایی ماندگار،", second:"برای انتخابی هوشمندانه" },
+  { first:"خرید و فروش طلا،", second:"شفاف و ساده" },
+  { first:"هر انتخابی،", second:"به درخشش زرین ماه" },
+  { first:"طلای دلخواهت،", second:"با آگاهی انتخاب کن" }
+];
+let adminSloganPreviewIndex = 0;
+function renderAdminSlogansPreview(){
+  const box=document.getElementById("adminWorkspaceSlogans");
+  if(!box)return;
+  const item=adminSloganPreviewItems[adminSloganPreviewIndex]||adminSloganPreviewItems[0];
+  box.innerHTML=`
+    <h3 style="color:var(--gold);margin:0 0 8px">مدیریت شعارهای صفحه اصلی</h3>
+    <p class="slogan-preview-note">این نسخه صرفاً پیش‌نمایش طراحی و رفتار پنل است. تغییرات این صفحه فعلاً آزمایشی‌اند و در سایت یا پایگاه داده ذخیره نمی‌شوند. دسترسی نهایی این بخش فقط برای مدیر کل خواهد بود.</p>
+    <div class="slogan-preview-grid">
+      <section class="slogan-editor-card">
+        <h3>متن‌های چرخشی کنار پوستر</h3>
+        <label>خط اول<input id="adminSloganFirst" maxlength="70" value="${escapeSloganText(item.first)}" oninput="updateAdminSloganLivePreview()"></label>
+        <label>خط دوم با تأکید طلایی<input id="adminSloganSecond" maxlength="70" value="${escapeSloganText(item.second)}" oninput="updateAdminSloganLivePreview()"></label>
+        <div class="slogan-line-row">
+          <label>مدت نمایش هر شعار<select id="adminSloganDuration"><option value="4">۴ ثانیه</option><option value="5" selected>۵ ثانیه</option><option value="6">۶ ثانیه</option><option value="8">۸ ثانیه</option><option value="10">۱۰ ثانیه</option></select></label>
+          <label>حالت نمایش<select id="adminSloganMode"><option value="rotate" selected>چرخش خودکار</option><option value="fixed">نمایش ثابت</option><option value="off">خاموش</option></select></label>
+        </div>
+        <div class="slogan-preview-actions">
+          <button type="button" class="primary" onclick="addAdminSloganPreviewItem()">افزودن شعار</button>
+          <button type="button" onclick="saveAdminSloganPreviewItem()">اعمال در پیش‌نمایش</button>
+        </div>
+        <div class="slogan-demo-list" id="adminSloganDemoList">${adminSloganPreviewItems.map((x,i)=>`<div class="slogan-demo-row"><span><strong>${escapeSloganText(x.first)}</strong><br>${escapeSloganText(x.second)}</span><small>${i+1} · <a href="#" onclick="selectAdminSloganPreviewItem(${i});return false" style="color:var(--gold)">ویرایش</a> · <a href="#" onclick="removeAdminSloganPreviewItem(${i});return false" style="color:#d99a90">حذف</a></small></div>`).join("")}</div>
+      </section>
+      <section class="slogan-live-card">
+        <h3>پیش‌نمایش کنار پوستر</h3>
+        <div class="slogan-live-stage">
+          <span class="eyebrow">زیبایی ماندگار، انتخاب هوشمندانه</span>
+          <h2 id="adminSloganLiveHeading">${escapeSloganText(item.first)}<span>${escapeSloganText(item.second)}</span></h2>
+          <p>در زرین ماه، محصولات طلا را بررسی کن و برای خرید یا فروش اقدام کن.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><span style="font-size:10px;padding:7px 10px;border-radius:8px;background:#c9a34f;color:#17130c">مشاهده محصولات</span><span style="font-size:10px;padding:7px 10px;border:1px solid #c9a34f;border-radius:8px;color:#f2d98e">قصد فروش طلا داری؟</span></div>
+        </div>
+        <div class="slogan-preview-actions">
+          <button type="button" onclick="cycleAdminSloganPreview(-1)">شعار قبلی</button>
+          <button type="button" onclick="cycleAdminSloganPreview(1)">شعار بعدی</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);line-height:1.9;margin:12px 0 0">پوستر اصلی، قاب تصویر، اسلایدر بنر و عنوان اختیاری روی تصویر در این مدیریت دخالتی ندارند و بدون تغییر باقی می‌مانند.</p>
+      </section>
+    </div>
+    <section class="slogan-editor-card" style="margin-top:16px">
+      <h3>شعار نوار بالایی سایت</h3>
+      <label>متن نوار بالا<input id="adminToplineSlogan" maxlength="110" value="زرین ماه؛ انتخابی درخشان برای خرید و فروش طلا"></label>
+      <p style="font-size:11px;color:var(--muted);line-height:1.8">این قسمت مستقل از شعارهای چرخشی کنار پوستر است. جلوه فعلی طلایی و ستاره‌های دو طرف حفظ می‌شوند.</p>
+      <div class="slogan-preview-actions"><button type="button" onclick="previewToplineSlogan()">پیش‌نمایش متن نوار</button></div>
+      <p id="adminToplinePreview" style="color:var(--gold);font-size:13px;margin:10px 0 0">زرین ماه؛ انتخابی درخشان برای خرید و فروش طلا</p>
+    </section>`;
+}
+function escapeSloganText(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function updateAdminSloganLivePreview(){const first=document.getElementById("adminSloganFirst")?.value||"",second=document.getElementById("adminSloganSecond")?.value||"",heading=document.getElementById("adminSloganLiveHeading");if(heading)heading.innerHTML=escapeSloganText(first)+"<span>"+escapeSloganText(second)+"</span>";}
+function selectAdminSloganPreviewItem(i){if(!adminSloganPreviewItems[i])return;adminSloganPreviewIndex=i;renderAdminSlogansPreview();}
+function cycleAdminSloganPreview(step){adminSloganPreviewIndex=(adminSloganPreviewIndex+step+adminSloganPreviewItems.length)%adminSloganPreviewItems.length;renderAdminSlogansPreview();}
+function addAdminSloganPreviewItem(){adminSloganPreviewItems.push({first:"شعار تازه،",second:"جمله تبلیغاتی شما"});adminSloganPreviewIndex=adminSloganPreviewItems.length-1;renderAdminSlogansPreview();}
+function saveAdminSloganPreviewItem(){const first=document.getElementById("adminSloganFirst")?.value.trim(),second=document.getElementById("adminSloganSecond")?.value.trim();if(!first||!second){showToast("هر دو خط شعار را وارد کنید.");return;}adminSloganPreviewItems[adminSloganPreviewIndex]={first,second};renderAdminSlogansPreview();showToast("در پیش‌نمایش اعمال شد؛ هنوز ذخیره دائمی نمی‌شود.");}
+function removeAdminSloganPreviewItem(i){if(adminSloganPreviewItems.length<=1){showToast("حداقل یک شعار باید باقی بماند.");return;}adminSloganPreviewItems.splice(i,1);adminSloganPreviewIndex=Math.min(adminSloganPreviewIndex,adminSloganPreviewItems.length-1);renderAdminSlogansPreview();}
+function previewToplineSlogan(){const input=document.getElementById("adminToplineSlogan"),out=document.getElementById("adminToplinePreview");if(input&&out)out.textContent=input.value.trim()||"پیش‌نمایش خالی است";}
+
 const heroSlogans=[
   ["درخشش طلا،","با خیال آسوده"],
   ["زیبایی ماندگار،","برای انتخابی هوشمندانه"],
@@ -2783,8 +2878,9 @@ async function showAdminWorkspaceTab(tab) {
   if (tab === "storage" && !isSuperAdmin()) return;
   if (tab === "overview" && !isSuperAdmin()) return;
   if (tab === "banners" && !isSuperAdmin()) return;
+  if (tab === "slogans" && !isSuperAdmin()) return;
   const listingTabs = ["all","pending","published","sold","rejected","deleted","archive"];
-  const panels = ["overview","listings","requests","members","storage","banners"];
+  const panels = ["overview","listings","requests","members","storage","banners","slogans"];
   panels.forEach(name => {
     const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
     if(panel) panel.style.display = (name === "listings" && listingTabs.includes(tab)) || name === tab ? "block" : "none";
@@ -2816,7 +2912,7 @@ async function showAdminWorkspaceTab(tab) {
   } else if (tab === "storage") {
     const box = document.getElementById("adminWorkspaceStorage");
     await loadAdminStorageUsage(box);
-  } else if (tab === "banners") { await loadAdminBanners(); }
+  } else if (tab === "banners") { await loadAdminBanners(); } else if (tab === "slogans") { renderAdminSlogansPreview(); }
 }
 
 function closeAdminWorkspace() {
