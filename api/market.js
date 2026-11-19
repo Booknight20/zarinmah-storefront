@@ -193,7 +193,7 @@ function validPrices(prices) {
 // without ever comparing a price against another price from the same day.
 function getPreviousEntry(state, dateString) {
   const dates = Object.keys(state?.days || {})
-    .filter(date => /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && date < dateString)
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date) && date < dateString)
     .sort()
     .reverse();
 
