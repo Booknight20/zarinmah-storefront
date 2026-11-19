@@ -63,7 +63,25 @@ a { color: inherit; text-decoration: none; }
 .topline span {
   display: inline-block;
   white-space: nowrap;
-  text-shadow: 0 0 10px rgba(220,180,85,.14);
+  color: #e8c977;
+  background: linear-gradient(105deg,
+    #d8b65f 0%,
+    #f3df9e 34%,
+    #fff4cf 46%,
+    #d5ad50 58%,
+    #e8c977 100%);
+  background-size: 220% 100%;
+  background-position: 100% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 12px rgba(220,180,85,.16);
+  animation: topline-text-shimmer 6.5s ease-in-out infinite;
+}
+@keyframes topline-text-shimmer {
+  0%, 18% { background-position: 100% 50%; }
+  62%, 78% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 @keyframes topline-star-twinkle {
   0%, 72%, 100% { opacity: .58; transform: scale(.88); text-shadow: 0 0 3px rgba(242,213,138,.25); }
@@ -75,7 +93,8 @@ a { color: inherit; text-decoration: none; }
   .topline::before, .topline::after { font-size: 11px; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .topline::before, .topline::after { animation: none; }
+  .topline::before, .topline::after, .topline span { animation: none; }
+  .topline span { background-position: 50% 50%; }
 }
 header {
   position: sticky;
