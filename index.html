@@ -1599,7 +1599,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
     </div>
     <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
-    <div class="market-news-ticker" id="marketNewsTicker" role="region" aria-label="اخبار مهم بازار">
+    <div class="market-news-ticker" id="marketNewsTicker" hidden role="region" aria-label="اخبار مهم بازار">
       <span class="market-news-label">اخبار مهم</span>
       <div class="market-news-content" aria-live="polite">
         <span class="market-news-track" id="marketNewsText">در حال حاضر خبر مهمی برای نمایش ثبت نشده است.</span>
@@ -5678,28 +5678,49 @@ async function loadMarketPrices() {
   }
 }
 
-// News items are intentionally left empty until a verified news source is connected.
-// Never show fabricated or stale headlines in the market ticker.
-const MARKET_NEWS = [];
+let marketNewsItems = [];
+let marketNewsIndex = 0;
 
-function renderMarketNews() {
+function renderMarketNewsItem() {
+  const ticker = document.getElementById('marketNewsTicker');
   const text = document.getElementById('marketNewsText');
   const time = document.getElementById('marketNewsTime');
-  if (!text || !time) return;
+  if (!ticker || !text || !time) return;
 
-  const items = MARKET_NEWS.filter(item =>
-    item && typeof item.title === 'string' && item.title.trim()
-  );
-
-  if (!items.length) {
-    text.textContent = 'در حال حاضر خبر مهمی برای نمایش ثبت نشده است.';
-    time.textContent = 'زرین ماه';
+  if (!marketNewsItems.length) {
+    ticker.hidden = true;
     return;
   }
 
-  const item = items[0];
-  text.textContent = item.title.trim();
-  time.textContent = item.time || 'خبر بازار';
+  ticker.hidden = false;
+  const item = marketNewsItems[marketNewsIndex % marketNewsItems.length];
+  text.textContent = item.title;
+  time.textContent = item.time || item.source || 'خبر بازار';
+  text.title = item.title;
+  ticker.setAttribute('aria-label', 'اخبار مهم بازار؛ ' + item.title);
+}
+
+async function loadMarketNews() {
+  const ticker = document.getElementById('marketNewsTicker');
+  if (!ticker) return;
+
+  try {
+    const response = await fetch('/api/news', { cache: 'no-store' });
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.items)) {
+      throw new Error(data.message || 'News feed unavailable');
+    }
+
+    marketNewsItems = data.items.filter(item =>
+      item && typeof item.title === 'string' && item.title.trim()
+    );
+    marketNewsIndex = 0;
+    renderMarketNewsItem();
+  } catch (error) {
+    console.warn('Market news unavailable:', error.message);
+    marketNewsItems = [];
+    renderMarketNewsItem();
+  }
 }
 
 function trackSiteVisit() {
@@ -5730,7 +5751,7 @@ trackSiteVisit();
 initializeAuth();
 loadListings();
 loadMarketPrices();
-renderMarketNews();
+loadMarketNews();\nsetInterval(() => { if (marketNewsItems.length > 1) { marketNewsIndex = (marketNewsIndex + 1) % marketNewsItems.length; renderMarketNewsItem(); } }, 7000);\nsetInterval(loadMarketNews, 300000);
 
 setInterval(loadListings, 60000);
 setInterval(loadMarketPrices, 60000);
