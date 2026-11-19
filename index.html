@@ -5907,10 +5907,10 @@ async function loadGoldMarketAnalysis() {
     });
 
     goldAnalysisIndex = 0;
-    renderGoldAnalysis(0, false);
+    if (activeMarketInsightTab === 'analysis') renderGoldAnalysis(0, false);
     if (goldAnalysisTimer) clearInterval(goldAnalysisTimer);
     goldAnalysisTimer = setInterval(() => {
-      if (!goldAnalysisPaused && goldAnalysisItems.length > 1 && !document.getElementById('goldAnalysisDialog')?.open) {
+      if (activeMarketInsightTab === 'analysis' && !goldAnalysisPaused && goldAnalysisItems.length > 1 && !document.getElementById('goldAnalysisDialog')?.open) {
         renderGoldAnalysis(goldAnalysisIndex + 1);
       }
     }, 10000);
