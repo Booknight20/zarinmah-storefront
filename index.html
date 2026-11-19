@@ -610,7 +610,7 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .section-desc { color: var(--muted); font-size: 13px; }
 
 
-/* Gold trend + analyst panel: restrained gold accents and low-motion polish */
+/* Analyst panel and compact gold-price sparkline */
 .gold-insights-panel{
   position:relative;isolation:isolate;overflow:hidden;margin-top:18px;padding:clamp(12px,1.5vw,17px);
   border:1px solid rgba(211,174,91,.28);border-radius:17px;
@@ -626,25 +626,13 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold-insights-title small{display:block;margin-top:2px;color:#929b9c;font-size:10px}
 .gold-insights-live{display:inline-flex;align-items:center;gap:6px;color:#a9c9b4;font-size:10px;white-space:nowrap}
 .gold-insights-live:before{content:"";width:6px;height:6px;border-radius:50%;background:#75bd91;box-shadow:0 0 8px #75bd9180}
-.gold-insights-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:stretch}
-.gold-trend-card,.gold-analysis-card{min-width:0;border:1px solid rgba(255,255,255,.065);border-radius:13px;background:rgba(255,255,255,.025);padding:11px}
-.gold-trend-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.gold-trend-label{color:#aeb7b7;font-size:11px}
-.gold-trend-price{margin-top:5px;color:#f2d995;font-size:clamp(19px,2.2vw,25px);font-weight:800;letter-spacing:-.4px}
-.gold-trend-price small{font-size:10px;font-weight:500;color:#aeb7b7}
-.gold-trend-change{margin-top:5px;font-size:11px;color:#aeb7b7}
-.gold-trend-change.up{color:#75c69a}.gold-trend-change.down{color:#e58c83}.gold-trend-change.same{color:#b9b3a5}
-.gold-trend-ranges{display:flex;gap:5px;flex:0 0 auto}
-.gold-trend-ranges button{padding:5px 9px;border:1px solid rgba(211,174,91,.17);border-radius:8px;background:transparent;color:#aeb7b7;font:inherit;font-size:10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
-.gold-trend-ranges button:hover,.gold-trend-ranges button.active{border-color:rgba(220,185,105,.48);background:rgba(211,174,91,.11);color:#f0d797}
-.gold-trend-chart{position:relative;margin-top:8px;min-height:94px}
-.gold-trend-chart svg{display:block;width:100%;height:94px;overflow:visible}
-.gold-trend-gridline{stroke:rgba(255,255,255,.07);stroke-width:1;stroke-dasharray:3 6}
-.gold-trend-area{fill:url(#goldTrendFill)}
-.gold-trend-line{fill:none;stroke:#d8b665;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(216,182,101,.25));stroke-dasharray:1000;stroke-dashoffset:1000;animation:gold-trend-draw 1.15s ease forwards}
-.gold-trend-dot{fill:#f4d88e;stroke:#151a1b;stroke-width:3}
-.gold-trend-axis{display:flex;justify-content:space-between;color:#778486;font-size:9px;margin-top:1px}
-.gold-trend-empty{display:grid;place-items:center;min-height:94px;color:#9da7a7;font-size:10px;text-align:center;line-height:1.8}
+.gold-insights-grid{display:block}
+.gold-analysis-card{min-width:0;border:1px solid rgba(255,255,255,.065);border-radius:13px;background:rgba(255,255,255,.025);padding:13px}
+.gold18-mini-trend{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(216,180,91,.12)}
+.gold18-mini-trend svg{display:block;width:78px;height:25px;flex:0 0 78px;overflow:visible}
+.gold18-mini-trend path{fill:none;stroke:#d8b665;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(216,182,101,.2))}
+.gold18-mini-trend small{color:#879394;font-size:9px;white-space:nowrap}
+.gold18-mini-trend .up{color:#75c69a}.gold18-mini-trend .down{color:#e58c83}.gold18-mini-trend .same{color:#b9b3a5}
 .gold-analysis-card{display:flex;flex-direction:column;gap:6px;min-height:170px;position:relative}
 .gold-analysis-label{color:#d8b96e;font-size:10px;font-weight:700}
 .gold-analysis-title{margin:0;color:#f0e6ce;font-size:14px;line-height:1.8}
@@ -678,8 +666,8 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .gold-insights-more:hover{color:#f5dfa3}
 @keyframes gold-panel-glow{0%,100%{box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025)}50%{box-shadow:0 14px 38px rgba(0,0,0,.22),0 0 22px rgba(211,174,91,.055),inset 0 1px rgba(255,255,255,.035)}}
 @keyframes gold-trend-draw{to{stroke-dashoffset:0}}
-@media(max-width:760px){.gold-insights-grid{grid-template-columns:1fr}.gold-insights-panel{margin-top:16px;padding:12px}.gold-analysis-card{min-height:160px}.gold-trend-card,.gold-analysis-card{padding:11px}}
-@media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-trend-line,.gold-analysis-card.is-changing{animation:none}.gold-trend-line{stroke-dashoffset:0}}
+@media(max-width:760px){.gold-insights-panel{margin-top:16px;padding:12px}.gold-analysis-card{min-height:130px;padding:11px}}
+@media(prefers-reduced-motion:reduce){.gold-insights-panel,.gold-analysis-card.is-changing{animation:none}}
 
 .market-strip {
   display: grid;
@@ -698,6 +686,7 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .market-change.up { color: #4bd18b; }
 .market-change.down { color: #ff6868; }
 .market-change.same { color: #b9b1a2; }
+.market-item[data-market-key="gold18"] .gold18-mini-trend{margin-top:8px}
 .market-disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; }
 .market-news-wrap { padding-top:0; padding-bottom:0; }
 .market-news-ticker {
@@ -1681,47 +1670,30 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <p class="section-desc">قیمت‌ها از منبع بازار دریافت می‌شوند و تغییر روزانه فقط در صورت موجودبودن اطلاعات روز قبل نمایش داده می‌شود.</p>
     </div>
     <div class="market-strip" id="marketStrip" aria-live="polite">
-      <div class="market-item" data-market-key="gold18"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
+      <div class="market-item" data-market-key="gold18"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small><div class="gold18-mini-trend" id="gold18MiniTrend"><small>روند ۷ روزه</small><small>در انتظار سابقه قیمت</small></div></div>
       <div class="market-item" data-market-key="emami"><div class="market-label">سکه امامی</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
       <div class="market-item" data-market-key="half"><div class="market-label">نیم‌سکه</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
       <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
     </div>
     <p class="market-disclaimer" id="marketDisclaimer">قیمت‌ها به تومان هستند. تغییر روزانه بر اساس قیمت ثبت‌شده روز قبل محاسبه می‌شود.</p>
 
-    <div class="gold-insights-panel" id="goldInsightsPanel" aria-label="روند قیمت طلا و تحلیل بازار">
+    <div class="gold-insights-panel" id="goldInsightsPanel" aria-label="تحلیل‌های منتخب تحلیلگران">
       <div class="gold-insights-head">
         <div class="gold-insights-title">
           <span class="gold-insights-mark" aria-hidden="true">✦</span>
-          <div><strong>روند طلا و تحلیل بازار</strong><small>نمودار قیمت و دیدگاه تحلیل‌گران</small></div>
+          <div><strong>تحلیل‌های منتخب تحلیلگران</strong><small>دیدگاه‌ها و بررسی‌های مرتبط با بازار طلا</small></div>
         </div>
         <span class="gold-insights-live">به‌روزرسانی خودکار</span>
       </div>
       <div class="gold-insights-grid">
         <article class="gold-analysis-card" id="goldAnalysisCard" aria-live="polite">
-          <span class="gold-analysis-label">تحلیل منتخب از GitHub</span>
+          <span class="gold-analysis-label">تحلیل‌های منتخب تحلیلگران</span>
           <p class="gold-analysis-empty">در حال دریافت تحلیل‌های مرتبط با طلا…</p>
         </article>
-        <div class="gold-trend-card">
-          <div class="gold-trend-top">
-            <div>
-              <div class="gold-trend-label">روند طلای ۱۸ عیار</div>
-              <div class="gold-trend-price" id="goldTrendPrice">در حال دریافت…</div>
-              <div class="gold-trend-change" id="goldTrendChange">تغییرات قیمت</div>
-            </div>
-            <div class="gold-trend-ranges" role="group" aria-label="بازه نمودار">
-              <button type="button" data-gold-range="7" class="active" aria-pressed="true">۷ روز</button>
-              <button type="button" data-gold-range="14" aria-pressed="false">۱۴ روز</button>
-            </div>
-          </div>
-          <div class="gold-trend-chart" id="goldTrendChart" aria-live="polite">
-            <div class="gold-trend-empty">در حال دریافت سابقه قیمت…</div>
-          </div>
-          <div class="gold-trend-axis" id="goldTrendAxis"><span>—</span><span>—</span></div>
-        </div>
       </div>
       <div class="gold-insights-foot">
-        <span id="goldTrendUpdated">روند براساس سوابق ثبت‌شده قیمت محاسبه می‌شود.</span>
-        <button class="gold-insights-more" id="goldAnalysisMore" type="button">همه تحلیل‌ها ←</button>
+        <span>تحلیل‌ها پس از انتشار و تأیید محتوایی در این بخش نمایش داده می‌شوند.</span>
+        <button class="gold-insights-more" id="goldAnalysisMore" type="button">آرشیو تحلیل‌ها ←</button>
       </div>
     </div>
     <dialog class="gold-analysis-dialog" id="goldAnalysisDialog" aria-labelledby="goldAnalysisDialogTitle">
@@ -5711,6 +5683,33 @@ function formatMarketPrice(value) {
   return number.toLocaleString('fa-IR') + ' تومان';
 }
 
+function renderGoldMiniTrend(data) {
+  const node = document.getElementById('gold18MiniTrend');
+  if (!node) return;
+  const rows = Array.isArray(data?.history) ? data.history
+    .filter(item => item && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && Number.isFinite(Number(item.price)) && Number(item.price) > 0)
+    .sort((a,b) => a.date.localeCompare(b.date)).slice(-7) : [];
+  if (rows.length < 2) {
+    node.innerHTML = '<small>روند ۷ روزه</small><small>در انتظار سابقه کافی</small>';
+    return;
+  }
+  const values = rows.map(item => Number(item.price));
+  const min = Math.min(...values), max = Math.max(...values), span = Math.max(max-min, max*.002);
+  const points = values.map((value,i) => [2 + i * 72 / (values.length-1), 21 - ((value-min)/span)*17]);
+  const path = points.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const diff = values[values.length-1]-values[0];
+  const dir = diff>0?'up':diff<0?'down':'same';
+  const sign = diff>0?'+':'';
+  const pct = values[0] ? diff/values[0]*100 : 0;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 76 25'); svg.setAttribute('role','img'); svg.setAttribute('aria-label','روند هفت روز اخیر طلای ۱۸ عیار');
+  const pathNode = document.createElementNS('http://www.w3.org/2000/svg','path'); pathNode.setAttribute('d',path); svg.appendChild(pathNode);
+  const label = document.createElement('small'); label.className=dir;
+  label.textContent=(dir==='up'?'▲ ':dir==='down'?'▼ ':'● ')+sign+pct.toLocaleString('fa-IR',{maximumFractionDigits:2})+'٪';
+  const caption=document.createElement('small'); caption.textContent='روند ۷ روزه';
+  node.replaceChildren(caption,svg,label);
+}
+
 function renderMarket(data) {
   const cards = document.querySelectorAll('[data-market-key]');
 
@@ -5750,6 +5749,7 @@ function renderMarket(data) {
     change.classList.add(daily.direction);
   });
 
+  renderGoldMiniTrend(data);
   const disclaimer = document.getElementById('marketDisclaimer');
 
   if (data.updatedAt) {
@@ -5768,87 +5768,6 @@ function renderMarket(data) {
   }
 }
 
-
-let goldTrendRange = 7;
-let latestGoldMarketData = null;
-
-function formatGoldTrendDate(dateString) {
-  const date = new Date(dateString + 'T12:00:00+03:30');
-  return Number.isNaN(date.getTime())
-    ? dateString
-    : new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'short', timeZone: 'Asia/Tehran' }).format(date);
-}
-
-function renderGoldTrend(data) {
-  latestGoldMarketData = data;
-  const priceNode = document.getElementById('goldTrendPrice');
-  const changeNode = document.getElementById('goldTrendChange');
-  const chartNode = document.getElementById('goldTrendChart');
-  const axisNode = document.getElementById('goldTrendAxis');
-  const updatedNode = document.getElementById('goldTrendUpdated');
-  if (!priceNode || !changeNode || !chartNode || !axisNode) return;
-
-  const current = Number(data?.prices?.gold18);
-  priceNode.textContent = Number.isFinite(current) && current > 0
-    ? current.toLocaleString('fa-IR') + ' تومان'
-    : 'قیمت در دسترس نیست';
-
-  const rows = Array.isArray(data?.history) ? data.history
-    .filter(item => item && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && Number.isFinite(Number(item.price)) && Number(item.price) > 0)
-    .sort((a,b) => a.date.localeCompare(b.date))
-    .slice(-goldTrendRange) : [];
-
-  document.querySelectorAll('[data-gold-range]').forEach(button => {
-    const active = Number(button.dataset.goldRange) === goldTrendRange;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', active ? 'true' : 'false');
-  });
-
-  if (rows.length < 2) {
-    chartNode.innerHTML = '<div class="gold-trend-empty">برای ترسیم روند، دست‌کم دو روز سابقه معتبر قیمت لازم است.<br>با ثبت قیمت‌های روزهای بعد، نمودار به‌صورت خودکار تکمیل می‌شود.</div>';
-    axisNode.innerHTML = '<span>—</span><span>—</span>';
-    changeNode.textContent = 'هنوز سابقه کافی برای محاسبه روند وجود ندارد';
-    changeNode.className = 'gold-trend-change';
-  } else {
-    const values = rows.map(item => Number(item.price));
-    const min = Math.min(...values), max = Math.max(...values);
-    const span = Math.max(max - min, max * .002);
-    const x = i => 12 + (i * 576 / (rows.length - 1));
-    const y = value => 145 - ((value - min) / span) * 112;
-    const points = values.map((value,i) => [x(i),y(value)]);
-    const line = points.map((point,i) => (i ? 'L' : 'M') + point[0].toFixed(1) + ' ' + point[1].toFixed(1)).join(' ');
-    const area = line + ' L 588 158 L 12 158 Z';
-    const first = values[0], last = values[values.length - 1];
-    const difference = last - first;
-    const percent = first ? difference / first * 100 : 0;
-    const direction = difference > 0 ? 'up' : difference < 0 ? 'down' : 'same';
-    const sign = difference > 0 ? '+' : '';
-    changeNode.className = 'gold-trend-change ' + direction;
-    changeNode.textContent = (direction === 'up' ? '▲ افزایش ' : direction === 'down' ? '▼ کاهش ' : '● بدون تغییر ') +
-      sign + percent.toLocaleString('fa-IR', { maximumFractionDigits: 2 }) + '٪ در این بازه';
-
-    chartNode.innerHTML = '<svg viewBox="0 0 600 170" role="img" aria-label="نمودار تغییرات قیمت طلای ۱۸ عیار">' +
-      '<defs><linearGradient id="goldTrendFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#d8b665" stop-opacity=".25"/><stop offset="100%" stop-color="#d8b665" stop-opacity="0"/></linearGradient></defs>' +
-      '<path class="gold-trend-gridline" d="M8 33H592 M8 89H592 M8 158H592"/>' +
-      '<path class="gold-trend-area" d="' + area + '"/>' +
-      '<path class="gold-trend-line" d="' + line + '"/>' +
-      '<circle class="gold-trend-dot" cx="' + points[points.length-1][0].toFixed(1) + '" cy="' + points[points.length-1][1].toFixed(1) + '" r="5"/>' +
-      '</svg>';
-    axisNode.innerHTML = '<span>' + formatGoldTrendDate(rows[0].date) + '</span><span>' + formatGoldTrendDate(rows[rows.length-1].date) + '</span>';
-  }
-
-  if (updatedNode && data?.updatedAt) {
-    const stamp = new Date(data.updatedAt);
-    if (!Number.isNaN(stamp.getTime())) {
-      updatedNode.textContent = 'آخرین ثبت قیمت: ' + new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', dateStyle:'short', timeStyle:'short' }).format(stamp);
-    }
-  }
-}
-
-function setGoldTrendRange(range) {
-  goldTrendRange = Number(range) === 14 ? 14 : 7;
-  if (latestGoldMarketData) renderGoldTrend(latestGoldMarketData);
-}
 
 let goldAnalysisItems = [];
 let goldAnalysisIndex = 0;
@@ -5882,7 +5801,7 @@ function renderGoldAnalysis(index, animate = true) {
   const card = document.getElementById('goldAnalysisCard');
   if (!card) return;
   if (!goldAnalysisItems.length) {
-    card.innerHTML = '<span class="gold-analysis-label">تحلیل منتخب از GitHub</span><p class="gold-analysis-empty">هنوز تحلیل مستدل و مشخصی درباره بازار طلا برای نمایش ثبت نشده است. به‌محض انتشار تحلیل معتبر، این بخش به‌روزرسانی می‌شود.</p>';
+    card.innerHTML = '<span class="gold-analysis-label">تحلیل‌های منتخب تحلیلگران</span><p class="gold-analysis-empty">هنوز تحلیل مستدل و مشخصی درباره بازار طلا منتشر نشده است. پس از انتشار تحلیل معتبر، این بخش به‌روزرسانی می‌شود.</p>';
     return;
   }
   goldAnalysisIndex = (index + goldAnalysisItems.length) % goldAnalysisItems.length;
@@ -5898,7 +5817,7 @@ function renderGoldAnalysis(index, animate = true) {
   summary.textContent = String(item.summary || item.full_text || '').replace(/https?:\/\/t\.me\/\S+/g, '').trim();
   const label = document.createElement('span');
   label.className = 'gold-analysis-label';
-  label.textContent = 'تحلیل منتخب از GitHub';
+  label.textContent = 'تحلیل‌های منتخب تحلیلگران';
   const actions = document.createElement('div');
   actions.className = 'gold-analysis-actions';
   const detail = document.createElement('button');
@@ -5996,7 +5915,7 @@ async function loadGoldMarketAnalysis() {
     }, 10000);
   } catch (error) {
     console.warn('Gold analysis unavailable:', error.message);
-    card.innerHTML = '<span class="gold-analysis-label">تحلیل منتخب از GitHub</span><p class="gold-analysis-empty">دریافت تحلیل‌ها موقتاً ممکن نیست؛ کمی بعد دوباره تلاش می‌کنیم.</p>';
+    card.innerHTML = '<span class="gold-analysis-label">تحلیل‌های منتخب تحلیلگران</span><p class="gold-analysis-empty">دریافت تحلیل‌ها موقتاً ممکن نیست؛ کمی بعد دوباره تلاش می‌کنیم.</p>';
   }
 }
 
@@ -6018,10 +5937,6 @@ if (goldAnalysisDialog) goldAnalysisDialog.addEventListener('click', event => {
 const goldAnalysisMore = document.getElementById('goldAnalysisMore');
 if (goldAnalysisMore) goldAnalysisMore.addEventListener('click', showGoldAnalysisArchive);
 
-document.querySelectorAll('[data-gold-range]').forEach(button => {
-  button.addEventListener('click', () => setGoldTrendRange(button.dataset.goldRange));
-});
-
 async function loadMarketPrices() {
   const disclaimer = document.getElementById('marketDisclaimer');
 
@@ -6041,7 +5956,6 @@ async function loadMarketPrices() {
     }
 
     renderMarket(data);
-    renderGoldTrend(data);
 
   } catch (error) {
     console.error('Market API error:', error);
