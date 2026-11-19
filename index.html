@@ -111,12 +111,12 @@ header {
   gap: 15px;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark-wrap { position:relative; display:block; width:58px; height:58px; flex:0 0 58px; overflow:hidden; border-radius:0; isolation:isolate; }
+.brand-mark-wrap { position:relative; display:block; width:58px; height:58px; flex:0 0 58px; overflow:visible; border-radius:0; isolation:isolate; }
 .brand-mark { width:100%; height:100%; display:block; object-fit:contain; border:0; background:transparent; transition:transform .3s ease; }
-.brand-mark-wrap::after { content:""; position:absolute; z-index:1; top:0; bottom:0; left:-35%; width:28%; transform:skewX(-22deg); background:linear-gradient(90deg,transparent,rgba(255,248,218,.72),transparent); animation:logo-light-sweep 7s ease-in-out infinite; pointer-events:none; }
+.brand-mark-wrap::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(110deg,transparent 38%,rgba(255,246,205,.95) 49%,rgba(255,255,240,.78) 52%,transparent 64%); background-size:260% 100%; background-position:100% 50%; -webkit-mask-image:url('/logo-zarinmah.webp'); mask-image:url('/logo-zarinmah.webp'); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; mix-blend-mode:screen; animation:logo-alpha-sweep 8s ease-in-out infinite; }
 .brand:hover .brand-mark { transform:scale(1.045); }
-@keyframes logo-light-sweep { 0%,68% { left:-35%; opacity:0; } 72% { opacity:.8; } 88%,100% { left:115%; opacity:0; } }
-@media(prefers-reduced-motion:reduce) { .brand-mark-wrap::after { animation:none; } .brand-mark { transition:none; } }
+@keyframes logo-alpha-sweep { 0%,70% { background-position:100% 50%; opacity:0; } 74% { opacity:.9; } 90%,100% { background-position:0% 50%; opacity:0; } }
+@media(prefers-reduced-motion:reduce) { .brand-mark-wrap::after { animation:none; opacity:0; } .brand-mark { transition:none; } }
 .brand-sub { display:block; color:var(--muted); font-size:11px; }
 .navlinks { display: flex; gap: 20px; font-size: 13px; color: #ded5c3; }
 .navlinks a:hover { color: var(--gold); }
