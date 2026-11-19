@@ -5920,6 +5920,110 @@ async function loadGoldMarketAnalysis() {
   }
 }
 
+
+let marketInsightItems = { funds: [], comparison: [] };
+let activeMarketInsightTab = 'analysis';
+
+function openMarketInsightDetails(item, label) {
+  const dialog = document.getElementById('goldAnalysisDialog');
+  const title = document.getElementById('goldAnalysisDialogTitle');
+  const body = document.getElementById('goldAnalysisDialogBody');
+  const source = document.getElementById('goldAnalysisDialogSource');
+  if (!dialog || !title || !body || !source || !item) return;
+  title.textContent = String(item.title || label);
+  const meta = document.createElement('span');
+  meta.className = 'gold-analysis-dialog-meta';
+  meta.textContent = String(item.analyst || item.source || 'منبع بازار') + ' · ' + goldAnalysisDate(item);
+  body.replaceChildren(meta, document.createTextNode(String(item.full_text || item.summary || item.text || 'متن کامل در دسترس نیست.').trim()));
+  source.hidden = true;
+  if (!dialog.open) dialog.showModal();
+}
+
+function renderMarketInsightCategory(tab) {
+  const card = document.getElementById('goldAnalysisCard');
+  const footnote = document.getElementById('goldInsightsFootnote');
+  const archive = document.getElementById('goldAnalysisMore');
+  if (!card) return;
+  const config = tab === 'funds'
+    ? { key:'funds', label:'نبض صندوق‌ها', empty:'هنوز گزارش تازه‌ای از معاملات و جریان نقدینگی صندوق‌های طلا و نقره برای نمایش ثبت نشده است.', note:'رصد معاملات، ورود و خروج پول و وضعیت صندوق‌های طلا و نقره' }
+    : { key:'comparison', label:'قدرت خرید', empty:'هنوز مقایسه تازه‌ای از قدرت خرید طلا در برابر مسکن، خودرو و سایر دارایی‌ها برای نمایش ثبت نشده است.', note:'مقایسه قدرت خرید سکه و طلا با دارایی‌ها و شاخص‌های اقتصادی' };
+  const items = marketInsightItems[config.key] || [];
+  if (footnote) footnote.textContent = config.note;
+  if (archive) archive.hidden = true;
+  if (!items.length) {
+    const label = document.createElement('span');
+    label.className = 'gold-analysis-label';
+    label.textContent = config.label;
+    const empty = document.createElement('p');
+    empty.className = 'gold-analysis-empty';
+    empty.textContent = config.empty;
+    card.replaceChildren(label, empty);
+    return;
+  }
+  const item = items[0];
+  const label = document.createElement('span');
+  label.className = 'gold-analysis-label';
+  label.textContent = config.label;
+  const title = document.createElement('h3');
+  title.className = 'gold-analysis-title';
+  title.textContent = String(item.title || config.label);
+  const meta = document.createElement('div');
+  meta.className = 'gold-analysis-meta';
+  meta.textContent = String(item.analyst || item.source || 'منبع بازار') + ' · ' + goldAnalysisDate(item);
+  const summary = document.createElement('p');
+  summary.className = 'gold-analysis-summary';
+  summary.textContent = String(item.summary || item.full_text || item.text || '').replace(/https?:\\/\\/t\\.me\\/\\S+/g, '').trim();
+  const actions = document.createElement('div');
+  actions.className = 'gold-analysis-actions';
+  const detail = document.createElement('button');
+  detail.type = 'button';
+  detail.className = 'gold-analysis-detail';
+  detail.textContent = 'جزئیات';
+  detail.addEventListener('click', () => openMarketInsightDetails(item, config.label));
+  const count = document.createElement('span');
+  count.className = 'gold-analysis-count';
+  count.textContent = items.length.toLocaleString('fa-IR') + ' مطلب';
+  actions.append(detail, count);
+  card.replaceChildren(label, title, meta, summary, actions);
+}
+
+function switchMarketInsightTab(tab) {
+  if (!['analysis','funds','comparison'].includes(tab)) return;
+  activeMarketInsightTab = tab;
+  document.querySelectorAll('[data-insight-tab]').forEach(button => {
+    const active = button.dataset.insightTab === tab;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  const footnote = document.getElementById('goldInsightsFootnote');
+  const archive = document.getElementById('goldAnalysisMore');
+  if (tab === 'analysis') {
+    if (footnote) footnote.textContent = 'تحلیل‌های مستدل و مرتبط با بازار طلا';
+    if (archive) archive.hidden = false;
+    renderGoldAnalysis(goldAnalysisIndex, false);
+  } else {
+    renderMarketInsightCategory(tab);
+  }
+}
+
+async function loadMarketInsightCategories() {
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/Booknight20/zarinmah-gold-bot/main/market_content_ready.json', { cache:'no-store' });
+    if (!response.ok) throw new Error('Market content feed unavailable');
+    const data = await response.json();
+    const items = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+    marketInsightItems.funds = items.filter(item => item && item.content_category === 'gold_fund_market_pulse');
+    marketInsightItems.comparison = items.filter(item => item && item.content_category === 'market_comparison');
+    if (activeMarketInsightTab !== 'analysis') renderMarketInsightCategory(activeMarketInsightTab);
+  } catch (error) {
+    console.info('Additional market insight feeds are not connected yet:', error.message);
+  }
+}
+
+document.querySelectorAll('[data-insight-tab]').forEach(button => {
+  button.addEventListener('click', () => switchMarketInsightTab(button.dataset.insightTab));
+});
+
 const goldAnalysisCardNode = document.getElementById('goldAnalysisCard');
 if (goldAnalysisCardNode) {
   goldAnalysisCardNode.addEventListener('mouseenter', () => { goldAnalysisPaused = true; });
@@ -6075,6 +6179,7 @@ loadListings();
 loadMarketPrices();
 loadMarketNews();
 loadGoldMarketAnalysis();
+loadMarketInsightCategories();
 setInterval(loadMarketNews, 300000);
 
 setInterval(loadListings, 60000);
