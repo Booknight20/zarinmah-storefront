@@ -691,7 +691,21 @@ h2 { margin: 5px 0; font-size: clamp(22px,3vw,32px); }
 .market-change.up { color: #4bd18b; }
 .market-change.down { color: #ff6868; }
 .market-change.same { color: #b9b1a2; }
-.market-item[data-market-key="gold18"] .gold18-mini-trend{margin-top:8px}
+.market-item[data-market-key="gold18"] { position:relative; isolation:isolate; overflow:hidden; transition:border-color .35s ease,box-shadow .35s ease,background .35s ease; }
+.market-item[data-market-key="gold18"] .market-value { position:relative; z-index:1; transition:color .35s ease,text-shadow .35s ease; }
+.market-item[data-market-key="gold18"]::before { content:""; position:absolute; z-index:-1; inset:-45% -25%; opacity:0; pointer-events:none; background:radial-gradient(ellipse at 50% 50%,var(--gold-glow,rgba(199,162,75,.2)),transparent 62%); transition:opacity .4s ease; }
+.market-item[data-market-key="gold18"]::after { content:""; position:absolute; z-index:0; top:-55%; left:-38%; width:34%; height:210%; opacity:0; pointer-events:none; transform:rotate(22deg); background:linear-gradient(90deg,transparent,var(--gold-sweep,rgba(255,255,255,.18)),transparent); }
+.market-item[data-market-key="gold18"].gold18-rising { --gold-glow:rgba(49,205,133,.2); --gold-sweep:rgba(91,245,171,.3); border-color:rgba(75,209,139,.62); box-shadow:0 0 22px rgba(49,205,133,.09),inset 0 0 18px rgba(49,205,133,.035); }
+.market-item[data-market-key="gold18"].gold18-falling { --gold-glow:rgba(255,86,86,.19); --gold-sweep:rgba(255,119,119,.3); border-color:rgba(255,104,104,.62); box-shadow:0 0 22px rgba(255,86,86,.09),inset 0 0 18px rgba(255,86,86,.035); }
+.market-item[data-market-key="gold18"].gold18-steady { --gold-glow:rgba(199,162,75,.18); --gold-sweep:rgba(255,224,151,.26); }
+.market-item[data-market-key="gold18"].gold18-rising::before,.market-item[data-market-key="gold18"].gold18-falling::before,.market-item[data-market-key="gold18"].gold18-steady::before { opacity:1; animation:gold18-direction-pulse 3.8s ease-in-out infinite; }
+.market-item[data-market-key="gold18"].gold18-rising::after,.market-item[data-market-key="gold18"].gold18-falling::after,.market-item[data-market-key="gold18"].gold18-steady::after { opacity:1; animation:gold18-direction-sweep 5.5s ease-in-out infinite; }
+.market-item[data-market-key="gold18"].gold18-rising .market-value { color:#65e5a4; text-shadow:0 0 14px rgba(75,209,139,.22); }
+.market-item[data-market-key="gold18"].gold18-falling .market-value { color:#ff8585; text-shadow:0 0 14px rgba(255,104,104,.22); }
+.market-item[data-market-key="gold18"].gold18-steady .market-value { color:#e5c779; text-shadow:0 0 12px rgba(199,162,75,.18); }
+@keyframes gold18-direction-pulse { 0%,100%{transform:scale(.94);opacity:.55} 50%{transform:scale(1.06);opacity:1} }
+@keyframes gold18-direction-sweep { 0%,58%{left:-38%;opacity:0} 66%{opacity:.8} 88%,100%{left:120%;opacity:0} }
+@media(prefers-reduced-motion:reduce){.market-item[data-market-key="gold18"]::before,.market-item[data-market-key="gold18"]::after{animation:none}}
 .market-disclaimer { font-size: 11px; color: var(--muted); margin-top: 12px; }
 .market-news-wrap { padding-top:0; padding-bottom:0; }
 .market-news-ticker {
@@ -1675,7 +1689,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       <p class="section-desc">قیمت‌ها از منبع بازار دریافت می‌شوند و تغییر روزانه فقط در صورت موجودبودن اطلاعات روز قبل نمایش داده می‌شود.</p>
     </div>
     <div class="market-strip" id="marketStrip" aria-live="polite">
-      <div class="market-item" data-market-key="gold18"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small><div class="gold18-mini-trend" id="gold18MiniTrend"><small>روند ۷ روزه</small><small>در انتظار سابقه قیمت</small></div></div>
+      <div class="market-item" data-market-key="gold18"><div class="market-label">طلای ۱۸ عیار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
       <div class="market-item" data-market-key="emami"><div class="market-label">سکه امامی</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
       <div class="market-item" data-market-key="half"><div class="market-label">نیم‌سکه</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
       <div class="market-item" data-market-key="dollar"><div class="market-label">دلار</div><div class="market-value">در حال دریافت…</div><small class="market-change">در حال دریافت قیمت</small></div>
@@ -5693,33 +5707,6 @@ function formatMarketPrice(value) {
   return number.toLocaleString('fa-IR') + ' تومان';
 }
 
-function renderGoldMiniTrend(data) {
-  const node = document.getElementById('gold18MiniTrend');
-  if (!node) return;
-  const rows = Array.isArray(data?.history) ? data.history
-    .filter(item => item && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && Number.isFinite(Number(item.price)) && Number(item.price) > 0)
-    .sort((a,b) => a.date.localeCompare(b.date)).slice(-7) : [];
-  if (rows.length < 2) {
-    node.innerHTML = '<small>روند ۷ روزه</small><small>در انتظار سابقه کافی</small>';
-    return;
-  }
-  const values = rows.map(item => Number(item.price));
-  const min = Math.min(...values), max = Math.max(...values), span = Math.max(max-min, max*.002);
-  const points = values.map((value,i) => [2 + i * 72 / (values.length-1), 21 - ((value-min)/span)*17]);
-  const path = points.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-  const diff = values[values.length-1]-values[0];
-  const dir = diff>0?'up':diff<0?'down':'same';
-  const sign = diff>0?'+':'';
-  const pct = values[0] ? diff/values[0]*100 : 0;
-  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('viewBox','0 0 76 25'); svg.setAttribute('role','img'); svg.setAttribute('aria-label','روند هفت روز اخیر طلای ۱۸ عیار');
-  const pathNode = document.createElementNS('http://www.w3.org/2000/svg','path'); pathNode.setAttribute('d',path); svg.appendChild(pathNode);
-  const label = document.createElement('small'); label.className=dir;
-  label.textContent=(dir==='up'?'▲ ':dir==='down'?'▼ ':'● ')+sign+pct.toLocaleString('fa-IR',{maximumFractionDigits:2})+'٪';
-  const caption=document.createElement('small'); caption.textContent='روند ۷ روزه';
-  node.replaceChildren(caption,svg,label);
-}
-
 function renderMarket(data) {
   const cards = document.querySelectorAll('[data-market-key]');
 
@@ -5733,11 +5720,17 @@ function renderMarket(data) {
 
     value.textContent = formatMarketPrice(price);
     change.className = 'market-change';
+    if (key === 'gold18') card.classList.remove('gold18-rising','gold18-falling','gold18-steady');
 
     if (!daily || !['up', 'down', 'same'].includes(daily.direction)) {
       change.textContent = marketLabels.unknown;
       change.classList.add('same');
       return;
+    }
+    if (key === 'gold18') {
+      const directionClass = daily.direction === 'up' ? 'gold18-rising' : daily.direction === 'down' ? 'gold18-falling' : 'gold18-steady';
+      card.classList.add(directionClass);
+      card.setAttribute('data-market-direction', daily.direction);
     }
 
     const difference = Number(daily.difference);
@@ -5759,7 +5752,6 @@ function renderMarket(data) {
     change.classList.add(daily.direction);
   });
 
-  renderGoldMiniTrend(data);
   const disclaimer = document.getElementById('marketDisclaimer');
 
   if (data.updatedAt) {
