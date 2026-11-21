@@ -5,6 +5,7 @@ const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
 const MAX_SOURCE_AGE_MS = 6 * 60 * 60 * 1000;
+const MAX_CLOSED_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
 // سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
@@ -498,7 +499,7 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
 // دریافت قیمت از منبع
 // =========================================================
 
-async function fetchSourcePrices() {
+async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
   const response = await fetch(SOURCE_URL, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
@@ -521,7 +522,7 @@ async function fetchSourcePrices() {
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
     const age = Date.now() - message.postedAt;
-    if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > MAX_SOURCE_AGE_MS) continue;
+    if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
 
     const result = extractPricesFromMessage(message.text);
     if (result.valid) {
@@ -583,17 +584,6 @@ module.exports = async function handler(req, res) {
     console.error("Market Blob read error:", error.message);
   }
 
-  // خارج از ساعات بازار، آخرین قیمت ذخیره‌شده نمایش داده می‌شود.
-  if (!marketOpen) {
-    const payload = buildCachedResponse(
-      state,
-      false,
-      "ساعات به‌روزرسانی بازار ۹ تا ۲۲ به وقت تهران است؛ آخرین قیمت معتبر نمایش داده شده است."
-    );
-
-    return res.status(payload.ok ? 200 : 503).json(payload);
-  }
-
   // جلوگیری از دریافت تکراری قیمت در فاصله کمتر از ۵۰ ثانیه
   const latestSaved = getLatestSaved(state);
 
@@ -617,11 +607,16 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const sourceData = await fetchSourcePrices();
+    const sourceData = await fetchSourcePrices(
+      marketOpen ? MAX_SOURCE_AGE_MS : MAX_CLOSED_SOURCE_AGE_MS
+    );
     const prices = sourceData.prices;
     const updatedAt = sourceData.postedAt;
+    // Save against the source post's Tehran date, not today's server date.
+    const sourceTehran = tehranParts(new Date(updatedAt));
+    const sourceDateString = `${sourceTehran.year}-${sourceTehran.month}-${sourceTehran.day}`;
 
-    let previousEntry = getPreviousEntry(state, dateString);
+    let previousEntry = getPreviousEntry(state, sourceDateString);
     let previousPrices = previousEntry?.prices || null;
     let comparisonDate = previousEntry?.date || getPreviousDate(dateString);
 
@@ -629,7 +624,7 @@ module.exports = async function handler(req, res) {
 
     try {
       const history = await saveTodayPrices(
-        dateString,
+        sourceDateString,
         prices,
         updatedAt
       );
@@ -647,14 +642,14 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
-      marketOpen: true,
+      marketOpen,
       source: SOURCE_URL,
       currency: "تومان",
       updatedAt,
       timezone: TIMEZONE,
       prices,
       history: getGoldTrendHistory(state, {
-        date: dateString,
+        date: sourceDateString,
         prices,
         updatedAt
       }),
@@ -665,9 +660,11 @@ module.exports = async function handler(req, res) {
       ),
       historySaved,
       cached: false,
-      message: historySaved
-        ? "قیمت‌ها با موفقیت دریافت و در فضای ذخیره‌سازی سایت ثبت شدند."
-        : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
+      message: !marketOpen
+        ? "آخرین قیمت ثبت‌شده از منبع معتبر نمایش داده می‌شود."
+        : historySaved
+          ? "قیمت‌ها با موفقیت دریافت و در فضای ذخیره‌سازی سایت ثبت شدند."
+          : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
     });
 
   } catch (error) {
