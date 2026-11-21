@@ -1655,7 +1655,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 .hero-banner:before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;box-sizing:border-box;border:3px solid #dca94f;border-top-color:#f1cf7d;border-left-color:#e6b85e;border-right-color:#e4b65b;border-bottom-color:#c99032;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,232,169,.16)}
 .hero-banner-track{position:absolute;inset:0;width:100%;height:100%}.hero-banner-slide{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;visibility:hidden;transition:opacity .45s ease}.hero-banner-slide.active{opacity:1;visibility:visible}
 .hero-banner-slide img{position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;max-width:none;max-height:none;object-fit:cover;object-position:center;display:block;transform:none}.hero-banner-caption{position:absolute;right:26px;bottom:48px;color:#ffe3a0;font-size:clamp(16px,2vw,25px);font-weight:800;text-shadow:0 2px 14px #000;z-index:2;padding:9px 16px;border:1px solid rgba(232,190,97,.5);border-radius:14px;background:linear-gradient(90deg,rgba(15,12,7,.18),rgba(15,12,7,.76));backdrop-filter:blur(7px)}
-.hero-banner-arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;background:rgba(10,9,7,.72);color:#ffe2a0;border:1px solid rgba(231,190,91,.7);box-shadow:0 5px 18px #0005;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease,background .2s ease,transform .2s ease}.hero-banner:hover .hero-banner-arrow,.hero-banner:focus-within .hero-banner-arrow{opacity:1;visibility:visible;pointer-events:auto}.hero-banner-arrow:hover{background:#bd9140;color:#17110a;transform:translateY(-50%) scale(1.07)}@media(hover:none){.hero-banner-arrow{opacity:1;visibility:visible;pointer-events:auto}}.hero-banner-arrow.prev{left:14px}.hero-banner-arrow.next{right:14px}
+.hero-banner-arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;background:rgba(10,9,7,.72);color:#ffe2a0;border:1px solid rgba(231,190,91,.7);box-shadow:0 5px 18px #0005;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease,background .2s ease,transform .2s ease}.hero-banner:hover .hero-banner-arrow,.hero-banner:focus-within .hero-banner-arrow{opacity:1;visibility:visible;pointer-events:auto}.hero-banner-arrow:hover{background:#bd9140;color:#17110a;transform:translateY(-50%) scale(1.07)}@media(hover:none){.hero-banner-arrow{opacity:1;visibility:visible;pointer-events:auto}}.hero-banner-arrow.prev{left:14px}.hero-banner-arrow.next{right:14px}@media(max-width:760px){.hero-banner-arrow{display:none!important}}
 .hero-banner-dots{position:absolute;z-index:4;bottom:13px;left:0;right:0;display:flex;justify-content:center;gap:8px}.hero-banner-dots button{width:8px;height:8px;border:1px solid #fff9;border-radius:10px;background:#fff9;padding:0;transition:.25s}.hero-banner-dots button.active{width:25px;background:#e2b957;border-color:#e2b957;box-shadow:0 0 12px #e2b95788}
 .admin-banner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:20px;border:1px solid rgba(215,177,91,.3);border-radius:19px;background:linear-gradient(145deg,#1c1913,#100f0c);box-shadow:0 12px 32px #0003}.admin-banner-form label{display:flex;flex-direction:column;gap:7px;color:#d9c79e;font-weight:650}.admin-banner-form input,.admin-banner-form select{min-height:43px;padding:10px 12px;background:#0b0d0e;color:var(--text);border:1px solid rgba(214,177,91,.24);border-radius:11px;outline:none;transition:.2s}.admin-banner-form input:focus,.admin-banner-form select:focus{border-color:#d7ad52;box-shadow:0 0 0 3px #d7ad5220}.admin-banner-form input[type=file]{padding:8px}.banner-crop-guide{margin:12px 0;padding:14px 16px;border:1px solid rgba(190,150,65,.45);border-radius:14px;background:rgba(190,150,65,.08);color:inherit}.banner-crop-guide strong{display:block;margin-bottom:6px;color:var(--gold,#c9a34a)}.banner-crop-guide p{margin:0;line-height:1.9;font-size:13px}.admin-banner-preview{grid-column:1/-1;display:none;overflow:hidden;border:1px solid rgba(215,177,91,.5);border-radius:15px;background:#090909}.admin-banner-preview.show{display:block}.banner-crop-window{position:relative;width:100%;aspect-ratio:16/9;min-height:0;overflow:hidden;background:repeating-conic-gradient(#171717 0% 25%,#101010 0% 50%) 50%/20px 20px;border:3px solid #d7ad52;box-shadow:inset 0 0 0 2px #080808}.banner-crop-window:after{content:"";position:absolute;inset:8px;border:1px dashed rgba(255,255,255,.7);pointer-events:none}.banner-crop-window img{position:absolute;inset:0;display:block;width:100%!important;height:100%!important;min-width:100%;min-height:100%;max-width:none;object-fit:cover;object-position:50% 50%;transform:scale(1);transform-origin:center;transition:transform .12s}.admin-banner-preview span{display:block;padding:9px 11px;color:#cbb782;font-size:12px;line-height:1.8}.banner-crop-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;gap:12px;padding:12px}.banner-crop-controls label{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px}.banner-crop-controls input{width:100%;min-width:0;accent-color:#d7ad52}.banner-crop-controls select{width:100%;min-height:38px;padding:7px;background:#15130f;color:var(--text);border:1px solid rgba(214,177,91,.35);border-radius:9px}.banner-crop-controls button{min-height:38px;padding:7px 12px}.banner-crop-zoom-value{color:#e4c77e;font-variant-numeric:tabular-nums}@media(max-width:600px){.banner-crop-controls{grid-template-columns:1fr}.banner-crop-window{min-height:90px}}.admin-banner-form .banner-form-actions{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.admin-banner-form button{border-radius:11px}.admin-banner-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:16px;margin-top:18px}.admin-banner-card{border:1px solid rgba(215,177,91,.3);border-radius:17px;overflow:hidden;background:linear-gradient(145deg,#1b1914,#0e0e0d);box-shadow:0 9px 24px #0003;transition:transform .22s,border-color .22s,box-shadow .22s}.admin-banner-card:hover{transform:translateY(-3px);border-color:#d9b45f;box-shadow:0 14px 30px #0005}.admin-banner-card img{width:100%;height:125px;object-fit:cover;display:block;border-bottom:1px solid #d6b15a35}.admin-banner-card .body{padding:13px}.admin-banner-card .body b{color:#f1d89e}.admin-banner-card .body p{color:#b9aa88;font-size:12px}.admin-banner-card .body button{margin:3px 4px 0 0}
 @media(max-width:760px){.hero-banner{min-height:0;border-radius:26px}.hero-banner:before{inset:0;border-width:2px;border-radius:inherit}.hero-banner-slide img{min-height:0}.hero-banner-caption{right:12px;bottom:38px;font-size:15px}.hero-banner-arrow{width:34px;height:34px}.admin-banner-form{grid-template-columns:1fr;padding:14px}.admin-banner-list{grid-template-columns:1fr}}
@@ -2178,6 +2178,16 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
     </div>
     <form id="profileForm">
       <div class="field">
+        <label for="profileUsername">نام کاربری *</label>
+        <input id="profileUsername" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,23}" autocomplete="username" placeholder="مثلاً Amir_Gold">
+        <small>نام کاربری یکتا؛ فقط حروف انگلیسی، عدد، نقطه، خط تیره و زیرخط.</small>
+      </div>
+      <div class="field">
+        <label for="profileEmail">ایمیل (اختیاری)</label>
+        <input id="profileEmail" name="email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com">
+        <small>برای اطلاعات تماس و ارتباطات حساب شما.</small>
+      </div>
+      <div class="field">
         <label for="profileFullName">نام و نام خانوادگی *</label>
         <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
         <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
@@ -2224,8 +2234,8 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
           <input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithEmail();}">
         </div>
         <div class="field" id="authPasswordGroup" style="margin-top:12px">
-          <label for="authPassword">رمز عبور</label>
-          <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithEmail();}">
+          <label for="authEmailPassword">رمز عبور</label>
+          <input id="authEmailPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithEmail();}">
         </div>
         <div class="auth-actions" style="margin-top:14px">
           <button class="btn" id="authEmailSignInButton" type="button" onclick="signInWithEmail()">ورود با ایمیل</button>
@@ -2240,17 +2250,25 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <input id="authPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="مثلاً 09123456789">
         <small>شماره موبایل ایران را وارد کنید.</small>
       </div>
+      <div class="field" id="authPhonePasswordGroup" style="margin-top:12px">
+        <label id="authPhonePasswordLabel" for="authPassword">رمز عبور</label>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه">
+        <small id="authPhonePasswordHelp">برای ورود، رمز عبور حساب خود را وارد کنید.</small>
+      </div>
       <div class="field" id="authOtpGroup" style="display:none;margin-top:14px">
         <label for="authOtp">کد شش‌رقمی پیامک‌شده</label>
         <input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد پیامک‌شده">
         <small>کد را فقط در همین صفحه وارد کنید و در اختیار دیگران نگذارید.</small>
       </div>
       <div class="auth-actions">
-        <button class="btn" id="authSendButton" type="button" onclick="requestAuthOtp()">دریافت کد پیامکی</button>
-        <button class="btn" id="authVerifyButton" type="button" style="display:none" onclick="verifyAuthOtp()">تأیید و ورود</button>
+        <button class="btn" id="authPasswordLoginButton" type="button" onclick="signInWithPhonePassword()">ورود با رمز عبور</button>
+        <button class="btn btn-outline" id="authOtpStartButton" type="button" onclick="setPhoneAuthMode('setup')">ثبت‌نام / تعیین یا بازیابی رمز</button>
+        <button class="btn" id="authSendButton" type="button" style="display:none" onclick="requestAuthOtp()">دریافت کد پیامکی</button>
+        <button class="btn" id="authVerifyButton" type="button" style="display:none" onclick="verifyAuthOtp()">تأیید کد و ثبت رمز</button>
         <button class="btn btn-outline" id="authResendButton" type="button" style="display:none" onclick="requestAuthOtp(true)">ارسال مجدد کد</button>
+        <button class="btn btn-outline" id="authCancelSetupButton" type="button" style="display:none" onclick="setPhoneAuthMode('login')">بازگشت به ورود</button>
       </div>
-      <p class="auth-help">با ورود، حساب کاربری شما در زرین ماه ایجاد یا بازیابی می‌شود.</p>
+      <p class="auth-help" id="authPhoneHelp">ثبت‌نام و بازیابی رمز با تأیید شماره موبایل از طریق پیامک انجام می‌شود.</p>
       </div>
     </div>
     <div id="authLoggedIn" style="display:none">
@@ -2392,6 +2410,8 @@ const supabaseClient = {
   })
 };
 let authPhoneE164 = '';
+let pendingAuthPassword = '';
+let phoneAuthMode = 'login';
 let authResendTimer = null;
 let currentAuthSession = null;
 let currentUserProfile = null;
@@ -2535,7 +2555,7 @@ function setEmailAuthBusy(busy) {
 async function signInWithEmail() {
   if (!IS_ZARINMAH_STAGING) return;
   const email = document.getElementById('authEmail').value.trim().toLowerCase();
-  const password = document.getElementById('authPassword').value;
+  const password = document.getElementById('authEmailPassword').value;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) {
     setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
     return;
@@ -2560,7 +2580,7 @@ async function signInWithEmail() {
 async function signUpWithEmail() {
   if (!IS_ZARINMAH_STAGING) return;
   const email = document.getElementById('authEmail').value.trim().toLowerCase();
-  const password = document.getElementById('authPassword').value;
+  const password = document.getElementById('authEmailPassword').value;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) {
     setAuthMessage('ایمیل معتبر و رمز عبور حداقل ۸ نویسه‌ای وارد کنید.');
     return;
@@ -2604,12 +2624,67 @@ function startAuthResendCooldown(seconds = 30) {
   }, 1000);
 }
 
+function setPhoneAuthMode(mode) {
+  phoneAuthMode = mode === 'setup' ? 'setup' : 'login';
+  const setup = phoneAuthMode === 'setup';
+  document.getElementById('authPhoneGroup').style.display = 'grid';
+  document.getElementById('authPhonePasswordGroup').style.display = 'grid';
+  document.getElementById('authOtpGroup').style.display = 'none';
+  document.getElementById('authPhonePasswordLabel').textContent = setup ? 'رمز عبور جدید' : 'رمز عبور';
+  document.getElementById('authPhonePasswordHelp').textContent = setup
+    ? 'رمز جدید حداقل ۸ نویسه باشد. پس از تأیید پیامک روی همین حساب ذخیره می‌شود.'
+    : 'برای ورود، رمز عبور حساب خود را وارد کنید.';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authPassword').autocomplete = setup ? 'new-password' : 'current-password';
+  document.getElementById('authPasswordLoginButton').style.display = setup ? 'none' : 'inline-block';
+  document.getElementById('authOtpStartButton').style.display = setup ? 'none' : 'inline-block';
+  document.getElementById('authSendButton').style.display = setup ? 'inline-block' : 'none';
+  document.getElementById('authVerifyButton').style.display = 'none';
+  document.getElementById('authResendButton').style.display = 'none';
+  document.getElementById('authCancelSetupButton').style.display = setup ? 'inline-block' : 'none';
+  document.getElementById('authPhoneHelp').textContent = setup
+    ? 'برای ثبت‌نام یا بازیابی رمز، کد پیامکی دریافت کنید. این کار فقط پس از تأیید مالکیت شماره انجام می‌شود.'
+    : 'اگر هنوز حساب ندارید یا رمزتان را فراموش کرده‌اید، گزینه ثبت‌نام / بازیابی رمز را انتخاب کنید.';
+  clearInterval(authResendTimer);
+  setAuthMessage('');
+}
+
+async function signInWithPhonePassword() {
+  const phone = normalizeIranPhone(document.getElementById('authPhone').value);
+  const password = document.getElementById('authPassword').value;
+  if (!phone) return setAuthMessage('شماره موبایل معتبر وارد کنید؛ مانند 09123456789.');
+  if (password.length < 8) return setAuthMessage('رمز عبور باید حداقل ۸ نویسه باشد.');
+  const button = document.getElementById('authPasswordLoginButton');
+  button.disabled = true;
+  setAuthMessage('در حال ورود به حساب…');
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ phone, password });
+    if (error) throw error;
+    if (!data.session) throw new Error('نشست ورود ایجاد نشد.');
+    setAuthMessage('ورود با موفقیت انجام شد.');
+    updateAuthUI(data.session);
+    openAccountDrawer();
+  } catch (error) {
+    console.error('Phone/password sign-in failed:', error);
+    setAuthMessage('ورود انجام نشد؛ شماره موبایل و رمز عبور را بررسی کنید. برای بازیابی رمز از تأیید پیامکی استفاده کنید.');
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function requestAuthOtp(isResend = false) {
   const phone = normalizeIranPhone(document.getElementById('authPhone').value);
+  const password = document.getElementById('authPassword').value;
   if (!phone) {
     setAuthMessage('شماره موبایل معتبر وارد کنید؛ مانند 09123456789.');
     return;
   }
+  if (password.length < 8) {
+    setAuthMessage('رمز جدید باید حداقل ۸ نویسه باشد.');
+    document.getElementById('authPassword').focus();
+    return;
+  }
+  pendingAuthPassword = password;
   const sendButton = document.getElementById('authSendButton');
   const resendButton = document.getElementById('authResendButton');
   sendButton.disabled = true;
@@ -2623,11 +2698,13 @@ async function requestAuthOtp(isResend = false) {
     if (error) throw error;
     authPhoneE164 = phone;
     document.getElementById('authPhoneGroup').style.display = 'none';
+    document.getElementById('authPhonePasswordGroup').style.display = 'none';
     document.getElementById('authOtpGroup').style.display = 'grid';
-    document.getElementById('authSendButton').style.display = 'none';
+    sendButton.style.display = 'none';
     document.getElementById('authVerifyButton').style.display = 'inline-block';
     resendButton.style.display = 'inline-block';
-    setAuthMessage('کد پیامکی ارسال شد. آن را در کادر زیر وارد کنید.');
+    document.getElementById('authCancelSetupButton').style.display = 'inline-block';
+    setAuthMessage('کد پیامکی ارسال شد. پس از تأیید، رمز جدید روی حساب شما ثبت می‌شود.');
     startAuthResendCooldown();
     document.getElementById('authOtp').focus();
   } catch (error) {
@@ -2640,13 +2717,13 @@ async function requestAuthOtp(isResend = false) {
 
 async function verifyAuthOtp() {
   const token = toEnglishDigits(document.getElementById('authOtp').value).replace(/\D/g, '');
-  if (!authPhoneE164 || !/^\d{6}$/.test(token)) {
-    setAuthMessage('کد شش‌رقمی پیامک‌شده را وارد کنید.');
+  if (!authPhoneE164 || !/^\d{6}$/.test(token) || pendingAuthPassword.length < 8) {
+    setAuthMessage('کد شش‌رقمی و رمز جدید معتبر را وارد کنید.');
     return;
   }
   const button = document.getElementById('authVerifyButton');
   button.disabled = true;
-  setAuthMessage('در حال بررسی کد…');
+  setAuthMessage('در حال تأیید شماره و ثبت رمز…');
   try {
     const { data, error } = await supabaseClient.auth.verifyOtp({
       phone: authPhoneE164,
@@ -2654,13 +2731,18 @@ async function verifyAuthOtp() {
       type: 'sms'
     });
     if (error) throw error;
-    if (!data.session) throw new Error('Session was not returned');
-    setAuthMessage('ورود با موفقیت انجام شد.');
-    updateAuthUI(data.session);
+    if (!data.session) throw new Error('نشست ورود ایجاد نشد.');
+    const { error: passwordError } = await supabaseClient.auth.updateUser({ password: pendingAuthPassword });
+    if (passwordError) throw passwordError;
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const session = sessionData?.session || data.session;
+    pendingAuthPassword = '';
+    setAuthMessage('شماره تأیید شد و رمز عبور شما با موفقیت ثبت شد.');
+    updateAuthUI(session);
     openAccountDrawer();
   } catch (error) {
-    console.error('SMS OTP verification failed:', error);
-    setAuthMessage('کد واردشده معتبر نیست یا منقضی شده است. دوباره بررسی کنید.');
+    console.error('SMS verification/password setup failed:', error);
+    setAuthMessage(error.message || 'تأیید شماره یا ثبت رمز انجام نشد؛ دوباره تلاش کنید.');
   } finally {
     button.disabled = false;
   }
@@ -2746,9 +2828,10 @@ function updateAuthUI(session) {
     profileRequestId += 1;
     closeModal('profileModal');
     if (isAccountPage) openAuthModal();
+    setPhoneAuthMode('login');
     document.getElementById('authPhoneGroup').style.display = 'grid';
+    document.getElementById('authPhonePasswordGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
-    document.getElementById('authPhoneMode').style.display = 'block';
     document.getElementById('authEmailMode').style.display = 'none';
     document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING ? 'flex' : 'none';
     document.getElementById('authSendButton').style.display = 'inline-block';
@@ -2794,6 +2877,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
       currentUserProfile &&
       currentUserProfile.is_active === true &&
       String(currentUserProfile.full_name || '').trim() &&
+      /^[a-z0-9][a-z0-9_.-]{2,23}$/i.test(String(currentUserProfile.username || '')) &&
       String(currentUserProfile.address || '').trim().length >= 10 &&
       Boolean(majorCitiesByProvince[currentUserProfile.province]?.includes(currentUserProfile.city)) &&
       /^\d{10}$/.test(String(currentUserProfile.national_id || ''))
@@ -2802,6 +2886,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
     const roleLabel = ROLE_LABELS[currentUserRole] || ROLE_LABELS.user;
     if (profileReady) {
       label.textContent = `${currentUserProfile.full_name} · ${roleLabel} · ${session.user.phone || session.user.email || ''}`;
+      document.getElementById('profileUsername').value = currentUserProfile.username || '';
+      document.getElementById('profileEmail').value = currentUserProfile.email || '';
       document.getElementById('profileFullName').value = currentUserProfile.full_name;
       const profilePhone = document.getElementById('profilePhone');
       const isStagingEmail = IS_ZARINMAH_STAGING && !session.user.phone && Boolean(session.user.email);
@@ -2817,6 +2903,8 @@ async function loadCurrentProfile(session = currentAuthSession) {
       loadAccountPanel();
     } else {
       label.textContent = `تکمیل اطلاعات حساب · ${session.user.phone || session.user.email || ''}`;
+      document.getElementById('profileUsername').value = currentUserProfile?.username || '';
+      document.getElementById('profileEmail').value = currentUserProfile?.email || session.user.email || '';
       document.getElementById('profileFullName').value = currentUserProfile?.full_name || '';
       setProfileLocation(currentUserProfile?.province || '', currentUserProfile?.city || '');
       document.getElementById('profileAddress').value = currentUserProfile?.address || '';
@@ -2851,6 +2939,8 @@ async function editUserProfile() {
   if (!currentAuthSession || !currentUserProfile) return openAuthModal();
   document.getElementById('profileTitle').textContent = 'ویرایش اطلاعات حساب';
   document.getElementById('profileSubmit').textContent = 'ذخیره تغییرات';
+  document.getElementById('profileUsername').value = currentUserProfile.username || '';
+  document.getElementById('profileEmail').value = currentUserProfile.email || currentAuthSession.user.email || '';
   document.getElementById('profileFullName').value = currentUserProfile.full_name || '';
   setProfileLocation(currentUserProfile.province || '', currentUserProfile.city || '');
   document.getElementById('profileAddress').value = currentUserProfile.address || '';
@@ -2874,6 +2964,8 @@ async function saveUserProfile(event) {
     showToast('ابتدا وارد حساب کاربری شوید.');
     return;
   }
+  const username = document.getElementById('profileUsername').value.trim().toLowerCase();
+  const email = document.getElementById('profileEmail').value.trim().toLowerCase();
   const fullName = document.getElementById('profileFullName').value.trim().replace(/\s+/g, ' ');
   const province = profileProvinceSelect.value;
   const city = profileCitySelect.value;
@@ -2887,6 +2979,16 @@ async function saveUserProfile(event) {
   if (isStagingEmail && !contactPhone) {
     document.getElementById('profileMessage').textContent = 'شماره موبایل معتبر وارد کنید؛ مانند 09123456789.';
     profilePhone.focus();
+    return;
+  }
+  if (!/^[a-z0-9][a-z0-9_.-]{2,23}$/.test(username)) {
+    document.getElementById('profileMessage').textContent = 'نام کاربری باید ۳ تا ۲۴ نویسه و با حروف انگلیسی، عدد، نقطه، خط تیره یا زیرخط باشد.';
+    document.getElementById('profileUsername').focus();
+    return;
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('profileMessage').textContent = 'نشانی ایمیل معتبر وارد کنید یا کادر آن را خالی بگذارید.';
+    document.getElementById('profileEmail').focus();
     return;
   }
   if (fullName.split(' ').length < 2 || fullName.length < 5) {
@@ -2929,7 +3031,7 @@ async function saveUserProfile(event) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${currentAuthSession.access_token}`
       },
-      body: JSON.stringify({ action: 'complete_profile', full_name: fullName, province, city, address, national_id: nationalId, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
+      body: JSON.stringify({ action: 'complete_profile', username, email, full_name: fullName, province, city, address, national_id: nationalId, ...(isStagingEmail ? { mobile: contactPhone } : {}) })
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'ذخیره پروفایل ناموفق بود.');
@@ -4391,7 +4493,7 @@ function renderAccountProfile() {
   box.appendChild(makeElement("h3", "admin-members-title", "اطلاعات حساب کاربری"));
   box.appendChild(makeElement("p", "account-summary", "اطلاعات ثبت‌شده حساب شما در زرین ماه"));
   const grid = makeElement("div", "account-profile-grid");
-  [["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["کد ملی",profile.national_id],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
+  [["نام کاربری",profile.username],["ایمیل",profile.email || currentAuthSession?.user?.email || "ثبت نشده"],["نام و نام خانوادگی",profile.full_name],["شماره تماس",profile.mobile || currentAuthSession?.user?.phone || "ثبت نشده"],["کد ملی",profile.national_id],["استان",profile.province],["شهر",profile.city],["نشانی",profile.address]].forEach(([label,value]) => {
     const item = makeElement("div", "account-profile-field");
     const valueElement = makeElement("strong","",value || "ثبت نشده");
     if (label === "شماره تماس" && value) {
