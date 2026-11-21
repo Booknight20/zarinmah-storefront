@@ -619,8 +619,16 @@ module.exports = async function handler(req, res) {
     const sourceDateString = `${sourceTehran.year}-${sourceTehran.month}-${sourceTehran.day}`;
 
     let previousEntry = getPreviousEntry(state, sourceDateString);
+    // Do not compare against a very old historical quote when recent daily
+    // history is missing; that would create a misleading multi-week change.
+    const comparisonGapDays = previousEntry
+      ? (Date.parse(`${sourceDateString}T00:00:00Z`) - Date.parse(`${previousEntry.date}T00:00:00Z`)) / 86400000
+      : Infinity;
+    if (!Number.isFinite(comparisonGapDays) || comparisonGapDays > 4) {
+      previousEntry = null;
+    }
     let previousPrices = previousEntry?.prices || null;
-    let comparisonDate = previousEntry?.date || getPreviousDate(dateString);
+    let comparisonDate = previousEntry?.date || getPreviousDate(sourceDateString);
 
     let historySaved = false;
 
