@@ -2,6 +2,7 @@ const SOURCE_URL = "https://t.me/s/navasanchannel";
 const TGJU_FALLBACK_URL = "https://t.me/s/tgjunews";
 const HISTORY_API_URL = process.env.ZARINMAH_MARKET_HISTORY_API_URL || "";
 const HISTORY_WRITE_TOKEN = process.env.ZARINMAH_MARKET_HISTORY_WRITE_TOKEN || "";
+const BACKEND_PROTECTION_BYPASS = process.env.ZARINMAH_BACKEND_PROTECTION_BYPASS || "";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
 const MAX_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
@@ -285,7 +286,10 @@ async function readState() {
   }
 
   const response = await fetch(HISTORY_API_URL, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "x-vercel-protection-bypass": BACKEND_PROTECTION_BYPASS
+    },
     signal: AbortSignal.timeout(10000)
   });
 
@@ -317,7 +321,8 @@ async function writeState(state) {
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json",
-      "X-Market-History-Token": HISTORY_WRITE_TOKEN
+      "X-Market-History-Token": HISTORY_WRITE_TOKEN,
+      "x-vercel-protection-bypass": BACKEND_PROTECTION_BYPASS
     },
     body: JSON.stringify({ state }),
     signal: AbortSignal.timeout(15000)
