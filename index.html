@@ -5924,11 +5924,12 @@ function renderMarket(data) {
         timeStyle: 'short'
       }).format(date);
 
+      const sourceLabel = data.source && data.source.includes('navasanchannel') ? 'منبع اصلی: نوسان' : 'منبع جایگزین: TGJU';
       disclaimer.textContent = data.stale
-        ? `آخرین نرخ منتشرشده: ${formatted} به وقت تهران · ممکن است بازار هنوز نرخ جدیدی منتشر نکرده باشد؛ قیمت‌ها به تومان هستند.`
+        ? `آخرین نرخ منتشرشده: ${formatted} به وقت تهران · ${sourceLabel} · قیمت‌ها به تومان هستند.`
         : data.marketOpen === false
-          ? `آخرین قیمت ثبت‌شده: ${formatted} به وقت تهران · بازار در حال حاضر خارج از ساعات به‌روزرسانی است؛ قیمت‌ها به تومان هستند.`
-          : `آخرین دریافت: ${formatted} به وقت تهران · قیمت‌ها به تومان هستند.`;
+          ? `آخرین قیمت ثبت‌شده: ${formatted} به وقت تهران · ${sourceLabel} · قیمت‌ها به تومان هستند.`
+          : `آخرین دریافت: ${formatted} به وقت تهران · ${sourceLabel} · قیمت‌ها به تومان هستند.`;
     }
   }
 }
