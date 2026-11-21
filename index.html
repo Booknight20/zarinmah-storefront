@@ -2340,6 +2340,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 
 <div class="toast" id="toast" role="status"></div>
 
+<script src="/api/public-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const LISTINGS_API = '/api/listings-gateway';
@@ -2382,8 +2383,8 @@ const majorCitiesByProvince = {
 };
 
 
-const SUPABASE_URL = 'https://qijahxokldkaqmjinfvy.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_gxessMO-YfOyBbvSb-cuYw_UvTTG23s';
+const SUPABASE_URL = String(window.ZARINMAH_PUBLIC_CONFIG?.supabaseUrl || '').replace(/\/$/, '');
+const SUPABASE_PUBLISHABLE_KEY = String(window.ZARINMAH_PUBLIC_CONFIG?.publishableKey || '');
 const IS_ZARINMAH_STAGING = SUPABASE_URL === 'https://qijahxokldkaqmjinfvy.supabase.co';
 // Public storefront data must remain usable even if the optional auth CDN is blocked.
 const supabaseReady = (async () => {
