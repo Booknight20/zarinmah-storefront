@@ -736,7 +736,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(502).json({
       ...payload,
-      error: "دریافت قیمت جدید ناموفق بود و قیمت ذخیره‌شده‌ای نیز در دسترس نیست.",
+      error: error.message || "دریافت قیمت جدید ناموفق بود و قیمت ذخیره‌شده‌ای نیز در دسترس نیست.",
       historyAvailable: stateAvailable
     });
   }
