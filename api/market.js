@@ -147,26 +147,24 @@ function extractPricesFromMessage(text) {
 
 function extractMessages(html) {
   const messages = [];
-  const regex =
-    /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+  const wrapperRegex =
+    /<div class="tgme_widget_message_wrap[^"]*"[^>]*>([\\s\\S]*?)(?=<div class="tgme_widget_message_wrap|$)/gi;
 
-  let match;
+  let wrapperMatch;
+  while ((wrapperMatch = wrapperRegex.exec(html)) !== null) {
+    const wrapper = wrapperMatch[1];
+    const textMatch = wrapper.match(
+      /<div class="tgme_widget_message_text[^"]*"[^>]*>([\\s\\S]*?)<\\/div>/i
+    );
+    if (!textMatch) continue;
 
-  while ((match = regex.exec(html)) !== null) {
-    const text = cleanHtml(match[1]);
-    // Telegram exposes each post timestamp in the footer after its text.
-    // Do not stamp an old Telegram post with the current server time.
-    const nearbyHtml = html.slice(regex.lastIndex, regex.lastIndex + 5000);
-    const timeMatch = nearbyHtml.match(/<time[^>]*datetime=["']([^"']+)["']/i);
+    const text = cleanHtml(textMatch[1]);
+    const timeMatch = wrapper.match(
+      /<time[^>]*datetime=["']([^"']+)["']/i
+    );
     const postedAt = timeMatch ? Date.parse(timeMatch[1]) : NaN;
 
-    const hasAllLabels =
-      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم/i.test(text) &&
-      /سکه\s*امامی/i.test(text) &&
-      /نیم\s*سکه/i.test(text) &&
-      /دلار\s*آمریکا\s*فروش/i.test(text);
-
-    if (hasAllLabels && Number.isFinite(postedAt)) {
+    if (text && Number.isFinite(postedAt)) {
       messages.push({ text, postedAt });
     }
   }
