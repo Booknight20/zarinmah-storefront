@@ -5877,13 +5877,19 @@ function renderMarket(data) {
 
     const price = data.prices && data.prices[key];
     const daily = data.dailyChanges && data.dailyChanges[key];
+    const sourceName = data.assetSources?.[key] === 'navasan' ? 'نوسان' : 'TGJU';
+    const assetDate = data.assetUpdatedAt?.[key] ? new Date(data.assetUpdatedAt[key]) : null;
+    const assetTime = assetDate && !Number.isNaN(assetDate.getTime())
+      ? new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', timeStyle:'short' }).format(assetDate)
+      : '';
+    const sourceMeta = [sourceName, assetTime].filter(Boolean).join(' · ');
 
     value.textContent = formatMarketPrice(price);
     change.className = 'market-change';
     if (key === 'gold18') card.classList.remove('gold18-rising','gold18-falling','gold18-steady');
 
     if (!daily || !['up', 'down', 'same'].includes(daily.direction)) {
-      change.textContent = marketLabels.unknown;
+      change.textContent = [marketLabels.unknown, sourceMeta].filter(Boolean).join(' · ');
       change.classList.add('same');
       return;
     }
@@ -5908,7 +5914,7 @@ function renderMarket(data) {
         })}٪)`;
     }
 
-    change.textContent = detail;
+    change.textContent = [detail, sourceMeta].filter(Boolean).join(' · ');
     change.classList.add(daily.direction);
   });
 
