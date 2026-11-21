@@ -598,8 +598,10 @@ module.exports = async function handler(req, res) {
     ) {
       const payload = buildCachedResponse(
         state,
-        true,
-        "آخرین قیمت دریافت‌شده در کمتر از یک دقیقه اخیر نمایش داده می‌شود."
+        marketOpen,
+        marketOpen
+          ? "آخرین قیمت دریافت‌شده در کمتر از یک دقیقه اخیر نمایش داده می‌شود."
+          : "آخرین قیمت ثبت‌شده نمایش داده می‌شود."
       );
 
       return res.status(200).json(payload);
@@ -672,8 +674,10 @@ module.exports = async function handler(req, res) {
 
     const payload = buildCachedResponse(
       state,
-      true,
-      "دریافت قیمت جدید ناموفق بود؛ آخرین قیمت معتبر ذخیره‌شده نمایش داده شده است."
+      marketOpen,
+      marketOpen
+        ? "دریافت قیمت جدید ناموفق بود؛ آخرین قیمت معتبر ذخیره‌شده نمایش داده شده است."
+        : "منبع قیمت در دسترس نیست؛ آخرین قیمت معتبر ثبت‌شده نمایش داده شده است."
     );
 
     if (payload.ok) {
