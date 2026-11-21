@@ -1,12 +1,13 @@
 const { list, put, get } = require("@vercel/blob");
 
-const SOURCE_URL = "https://t.me/s/tgjunews";
+const SOURCE_URL = "https://t.me/s/navasanchannel";
+const TGJU_FALLBACK_URL = "https://t.me/s/tgjunews";
 const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
-const MAX_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
+const MAX_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
 const SOURCE_STALE_AFTER_MS = 6 * 60 * 60 * 1000;
-const MAX_CLOSED_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
+const MAX_CLOSED_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
 // سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
@@ -531,82 +532,101 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
 // دریافت قیمت از منبع
 // =========================================================
 
-async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
-  const response = await fetch(SOURCE_URL, {
+function parseNavasanPrices(text) {
+  const normalized = normalizeDigits(text)
+    .replace(/[ي]/g, "ی")
+    .replace(/[ك]/g, "ک");
+
+  const readToman = pattern => {
+    const match = normalized.match(pattern);
+    if (!match) return null;
+    const value = Number(match[1].replace(/,/g, ""));
+    return Number.isSafeInteger(value) && value > 0 ? value : null;
+  };
+
+  return {
+    gold18: readToman(/طلای\s*(?:18|۱۸)\s*عیار(?:\s*هر\s*گرم)?[\s\S]{0,70}?([0-9][0-9,]*)\s*تومان/i),
+    emami: readToman(/سکه\s*امامی[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i),
+    half: readToman(/نیم\s*سکه[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i),
+    dollar: readToman(/دلار\s*آمریکا\s*فروش[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i)
+  };
+}
+
+async function fetchTelegramMessages(channel) {
+  const response = await fetch("https://t.me/s/" + channel, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
+      "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)",
+      "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.8"
     },
     signal: AbortSignal.timeout(15000)
   });
 
-  if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
-
+  if (!response.ok) throw new Error(channel + " returned HTTP " + response.status);
   const html = await response.text();
   if (!html.includes("tgme_widget_message_text")) {
-    throw new Error("Unexpected TGJU Telegram page");
+    throw new Error("Unexpected Telegram page for " + channel);
   }
+  return extractMessages(html);
+}
 
-  const messages = extractMessages(html);
+async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
   const latestPrices = {};
   const timestamps = {};
+  const sources = {};
 
-  // TGJU publishes gold, coin and currency quotes in separate posts.
-  // Merge the newest fresh value for each storefront asset.
-  for (const message of messages) {
+  // Navasan is the primary live feed. Each asset is taken from its newest
+  // post independently because some posts omit the dollar line.
+  const navasanMessages = await fetchTelegramMessages("navasanchannel");
+  for (const message of navasanMessages) {
     const age = Date.now() - message.postedAt;
     if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
 
-    const parsed = extractPricesFromMessage(message.text).prices;
+    const parsed = parseNavasanPrices(message.text);
     for (const key of ASSETS) {
       if (latestPrices[key] === undefined &&
           Number.isSafeInteger(parsed[key]) && parsed[key] > 0) {
         latestPrices[key] = parsed[key];
         timestamps[key] = message.postedAt;
+        sources[key] = "navasan";
       }
     }
-
     if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
   }
 
-  // TGJU maintains a dedicated currency channel; use it for the free-market dollar
-  // if the combined news channel did not include a current dollar quote.
-  if (latestPrices.dollar === undefined) {
-    const currencyResponse = await fetch("https://t.me/s/tgjucurrency", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
-      },
-      signal: AbortSignal.timeout(15000)
-    });
-    if (currencyResponse.ok) {
-      const currencyHtml = await currencyResponse.text();
-      const currencyMessages = extractMessages(currencyHtml);
-      for (const message of currencyMessages) {
-        const age = Date.now() - message.postedAt;
-        if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
-        const parsed = extractPricesFromMessage(message.text).prices;
-        if (Number.isSafeInteger(parsed.dollar) && parsed.dollar > 0) {
-          latestPrices.dollar = parsed.dollar;
-          timestamps.dollar = message.postedAt;
-          break;
+  // TGJU is only a per-asset fallback when Navasan has no usable fresh quote.
+  const missingFromNavasan = ASSETS.filter(key => latestPrices[key] === undefined);
+  if (missingFromNavasan.length) {
+    const tgjuMessages = await fetchTelegramMessages("tgjunews");
+    for (const message of tgjuMessages) {
+      const age = Date.now() - message.postedAt;
+      if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > 6 * 60 * 60 * 1000) continue;
+
+      const parsed = extractPricesFromMessage(message.text).prices;
+      for (const key of missingFromNavasan) {
+        if (latestPrices[key] === undefined &&
+            Number.isSafeInteger(parsed[key]) && parsed[key] > 0) {
+          latestPrices[key] = parsed[key];
+          timestamps[key] = message.postedAt;
+          sources[key] = "tgju";
         }
       }
+      if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
     }
   }
 
   const missing = ASSETS.filter(key => latestPrices[key] === undefined);
   if (missing.length) {
-    throw new Error("Fresh TGJU prices missing for: " + missing.join(", "));
+    throw new Error("Fresh prices missing from Navasan and TGJU fallback: " + missing.join(", "));
   }
 
-  // Report the oldest timestamp among the displayed assets, so the UI never
-  // implies that all four quotes were published simultaneously.
   const oldestTimestamp = Math.min(...Object.values(timestamps));
   return {
     prices: latestPrices,
     postedAt: new Date(oldestTimestamp).toISOString(),
     assetUpdatedAt: Object.fromEntries(
       Object.entries(timestamps).map(([key, value]) => [key, new Date(value).toISOString()])
-    )
+    ),
+    sources
   };
 }
 
