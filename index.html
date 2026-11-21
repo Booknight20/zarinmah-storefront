@@ -2517,8 +2517,9 @@ function openAuthModal() {
     toggleAuthMethod('email');
   } else {
     title.textContent = 'ورود به حساب زرین ماه';
-    subtitle.textContent = 'با شماره موبایل خود کد یک‌بارمصرف دریافت کنید.';
+    subtitle.textContent = 'با شماره موبایل و رمز عبور وارد شوید؛ ثبت‌نام و بازیابی رمز با پیامک انجام می‌شود.';
     toggleAuthMethod('phone');
+    setPhoneAuthMode('login');
   }
   document.getElementById('authModal').classList.add('show');
   document.getElementById('authModal').setAttribute('aria-hidden', 'false');
@@ -2646,6 +2647,9 @@ function setPhoneAuthMode(mode) {
     ? 'برای ثبت‌نام یا بازیابی رمز، کد پیامکی دریافت کنید. این کار فقط پس از تأیید مالکیت شماره انجام می‌شود.'
     : 'اگر هنوز حساب ندارید یا رمزتان را فراموش کرده‌اید، گزینه ثبت‌نام / بازیابی رمز را انتخاب کنید.';
   clearInterval(authResendTimer);
+  authPhoneE164 = '';
+  pendingAuthPassword = '';
+  document.getElementById('authOtp').value = '';
   setAuthMessage('');
 }
 
@@ -2834,7 +2838,7 @@ function updateAuthUI(session) {
     document.getElementById('authOtpGroup').style.display = 'none';
     document.getElementById('authEmailMode').style.display = 'none';
     document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING ? 'flex' : 'none';
-    document.getElementById('authSendButton').style.display = 'inline-block';
+    document.getElementById('authSendButton').style.display = 'none';
     document.getElementById('authSendButton').disabled = false;
     document.getElementById('authVerifyButton').style.display = 'none';
     document.getElementById('authResendButton').style.display = 'none';
