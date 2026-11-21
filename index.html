@@ -392,6 +392,48 @@ body.account-mode #authModal .account-toolbar{margin:16px 0}
 body.account-mode #authModal .account-refresh{margin:12px 0}
 @media(max-width:650px){body.account-mode #authModal{padding:8px}body.account-mode #authModal .modal{padding:16px;border-radius:12px}body.account-mode #authModal .modal-head h2{font-size:20px}body.account-mode #authModal #authLoggedIn>a,body.account-mode #authModal #authLoggedIn>button{margin:4px 2px!important}}
 body.account-mode #profileModal{z-index:110}body.account-mode #profileModal .modal{width:min(520px,100%);margin:auto}
+
+/* Restore the original listing-photo presentation: compact fixed frame with vertical crop.
+   Clicking the photo continues to open the full, uncropped gallery image. */
+.product-visual {
+  height:132px !important;
+  min-height:132px !important;
+  padding:4px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+  background:transparent !important;
+  border-bottom:0 !important;
+}
+.product-hero-frame {
+  width:100% !important;
+  max-width:none !important;
+  height:100% !important;
+  max-height:none !important;
+  aspect-ratio:auto !important;
+  overflow:hidden !important;
+  border-radius:9px !important;
+  background:transparent !important;
+}
+.product-hero-photo {
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  cursor:zoom-in !important;
+}
+@media(max-width:650px) {
+  .product-visual {
+    height:112px !important;
+    min-height:112px !important;
+    padding:3px !important;
+  }
+}
+
 </style>
 </head>
 
