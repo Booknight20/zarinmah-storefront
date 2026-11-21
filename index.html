@@ -1223,7 +1223,8 @@ footer h3 { color: var(--gold); font-size: 14px; }
   .cta { flex-direction: column; align-items: flex-start; }
   .footer-grid { grid-template-columns: 1fr; }
   .products { gap: 10px; }
-  .product-visual { height:112px; padding:3px; }
+  .product-visual { height:auto;min-height:0;padding:3px; }
+  .product-hero-photo { max-height:112px; }
   .product-info { padding:7px 8px 8px; }
   .product-info h3 { font-size:12px; }
   .product-description { font-size:9px; line-height:1.6; }
@@ -1580,9 +1581,9 @@ header {
   transition:transform .22s,border-color .22s,box-shadow .22s;
 }
 .product:hover { transform:translateY(-2px);border-color:rgba(180,139,51,.55);box-shadow:0 12px 28px rgba(0,0,0,.28); }
-.product-visual { height:132px;padding:4px;background:transparent;border-bottom:0; }
-.product-hero-frame { width:100%;height:100%;aspect-ratio:auto;border-radius:9px;background:transparent; }
-.product-hero-photo { object-fit:contain;object-position:center;background:transparent; }
+.product-visual { height:auto;min-height:0;padding:4px;background:transparent;border-bottom:0;display:flex;align-items:center;justify-content:center; }
+.product-hero-frame { width:fit-content;height:auto;max-width:100%;aspect-ratio:auto;border-radius:9px;background:transparent;display:flex;align-items:center;justify-content:center; }
+.product-hero-photo { display:block;width:auto;height:auto;max-width:100%;max-height:132px;object-fit:contain;object-position:center;background:transparent; }
 .product-info { padding:8px 9px 9px; }
 .product-info h3 { font-size:13px;font-weight:800;line-height:1.65;color:#f5e7c2;margin-bottom:1px; }
 .product-meta { font-size:10px;line-height:1.65; }
@@ -5029,46 +5030,6 @@ function openListingDetails(item, galleryUrls = []) {
   close.focus();
 }
 
-function removeWhiteProductPhotoBackground(image) {
-  if (!image || image.dataset.whiteBgChecked === '1' || !image.naturalWidth || !image.naturalHeight) return;
-  image.dataset.whiteBgChecked = '1';
-  try {
-    const width = image.naturalWidth, height = image.naturalHeight, total = width * height;
-    const canvas = document.createElement('canvas');
-    canvas.width = width; canvas.height = height;
-    const context = canvas.getContext('2d', { willReadFrequently:true });
-    if (!context) return;
-    context.drawImage(image, 0, 0);
-    const frame = context.getImageData(0, 0, width, height), pixels = frame.data;
-    const visited = new Uint8Array(total), queue = new Uint32Array(total);
-    let head = 0, tail = 0, removed = 0;
-    const nearWhite = index => {
-      const p = index * 4, red = pixels[p], green = pixels[p + 1], blue = pixels[p + 2];
-      return red > 224 && green > 224 && blue > 224 && Math.max(red,green,blue) - Math.min(red,green,blue) < 38;
-    };
-    const add = index => {
-      if (index < 0 || index >= total || visited[index] || !nearWhite(index)) return;
-      visited[index] = 1; queue[tail++] = index;
-    };
-    for (let x=0; x<width; x++) { add(x); add((height-1)*width+x); }
-    for (let y=1; y<height-1; y++) { add(y*width); add(y*width+width-1); }
-    const edgeWhiteStart = tail;
-    while (head < tail) {
-      const index = queue[head++], p = index*4, x = index%width;
-      pixels[p+3] = 0; removed++;
-      if (x>0) add(index-1);
-      if (x<width-1) add(index+1);
-      if (index>=width) add(index-width);
-      if (index<total-width) add(index+width);
-    }
-    if (removed < total*0.012 || edgeWhiteStart < Math.min(width*2,80)) return;
-    context.putImageData(frame,0,0);
-    image.src = canvas.toDataURL('image/png');
-  } catch (error) {
-    console.info('White background removal skipped for this product image:', error.message);
-  }
-}
-
 function createListingCard(item) {
   const article = makeElement('article', 'product');
   const visual = makeElement('div', 'product-visual');
@@ -5088,21 +5049,10 @@ function createListingCard(item) {
   let activeGalleryIndex = 0;
   const setHeroPhoto = index => {
     activeGalleryIndex = index;
-    heroPhoto.onload = () => {
-      if (!heroPhoto.src.startsWith('data:')) removeWhiteProductPhotoBackground(heroPhoto);
-    };
     heroPhoto.onerror = () => {
       heroPhoto.onerror = null;
-      heroPhoto.onload = null;
-      if (heroPhoto.crossOrigin) {
-        heroPhoto.crossOrigin = null;
-        heroPhoto.src = galleryUrls[index] || fallbackImage;
-      } else {
-        heroPhoto.src = fallbackImage;
-      }
+      heroPhoto.src = fallbackImage;
     };
-    heroPhoto.dataset.whiteBgChecked = '0';
-    heroPhoto.crossOrigin = 'anonymous';
     heroPhoto.src = galleryUrls[index] || fallbackImage;
     heroPhoto.alt = (item.product_type || item.item_type || 'محصول طلا') + '، تصویر ' + (index + 1);
     const count = visual.querySelector('.product-gallery-count');
