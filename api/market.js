@@ -117,13 +117,16 @@ function extractPricesFromMessage(text) {
   };
 
   if (!prices.dollar) {
-    const dollarLabel = normalized.match(/#?قیمت[_\s]*دلار/i);
-    if (dollarLabel) {
-      const section = normalized.slice(dollarLabel.index, dollarLabel.index + 500);
-      const direct = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
-      if (direct) {
-        const rial = Number(direct[1].replace(/,/g, ""));
-        if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
+    const dollarLines = normalized.split(/\r?\n/);
+    for (const line of dollarLines) {
+      if (!/دلار\s*[:：]\s*[0-9]/i.test(line)) continue;
+      if (/توافقی|سلیمانیه|هرات|خرید|صرافی/i.test(line)) continue;
+      const direct = line.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
+      if (!direct) continue;
+      const rial = Number(direct[1].replace(/,/g, ""));
+      if (Number.isSafeInteger(rial) && rial > 0) {
+        prices.dollar = Math.round(rial / 10);
+        break;
       }
     }
   }
