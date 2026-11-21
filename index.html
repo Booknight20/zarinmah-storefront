@@ -6052,7 +6052,7 @@ function showGoldAnalysisArchive() {
 async function loadGoldMarketAnalysis() {
   const card = document.getElementById('goldAnalysisCard');
   if (!card) return;
-  const sourceUrl = 'https://raw.githubusercontent.com/Booknight20/zarinmah-gold-bot/main/analyst_ready.json';
+  const sourceUrl = 'https://raw.githubusercontent.com/Booknight20/zarinmah-gold-bot/feature/public-analysis-feed-preview-2026-11-21/analyst_public.json';
   try {
     const response = await fetch(sourceUrl, { cache: 'no-store' });
     if (!response.ok) throw new Error('تحلیل‌ها در دسترس نیستند');
