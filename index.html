@@ -2511,17 +2511,11 @@ function openAccount() {
 function openAuthModal() {
   const title = document.getElementById('authTitle');
   const subtitle = document.getElementById('authSubtitle');
-  if (IS_ZARINMAH_STAGING) {
-    title.textContent = 'ورود آزمایشی به زرین ماه';
-    subtitle.textContent = 'در محیط Staging ورود و ثبت‌نام فقط با ایمیل و رمز عبور انجام می‌شود؛ پیامک OTP غیرفعال است.';
-    document.getElementById('authEmailModeEntry').style.display = 'none';
-    toggleAuthMethod('email');
-  } else {
-    title.textContent = 'ورود به حساب زرین ماه';
-    subtitle.textContent = 'با شماره موبایل و رمز عبور وارد شوید؛ ثبت‌نام و بازیابی رمز با پیامک انجام می‌شود.';
-    toggleAuthMethod('phone');
-    setPhoneAuthMode('login');
-  }
+  title.textContent = IS_ZARINMAH_STAGING ? 'ورود آزمایشی با شماره موبایل' : 'ورود به حساب زرین ماه';
+  subtitle.textContent = 'با شماره موبایل و رمز عبور وارد شوید؛ ثبت‌نام و بازیابی رمز با تأیید پیامکی انجام می‌شود.';
+  document.getElementById('authEmailModeEntry').style.display = 'none';
+  toggleAuthMethod('phone');
+  setPhoneAuthMode('login');
   document.getElementById('authModal').classList.add('show');
   document.getElementById('authModal').setAttribute('aria-hidden', 'false');
   document.getElementById('authMessage').textContent = '';
@@ -2535,11 +2529,12 @@ function setAuthMessage(message) {
 }
 
 function toggleAuthMethod(method) {
-  const useEmail = IS_ZARINMAH_STAGING ? true : false;
+  // Phone/password is the account method in both Preview and Production.
+  const useEmail = false;
   document.getElementById('authPhoneMode').style.display = useEmail ? 'none' : 'block';
   document.getElementById('authEmailMode').style.display = useEmail ? 'block' : 'none';
   document.getElementById('authEmailModeEntry').style.display = 'none';
-  document.getElementById('authBackToPhoneButton').style.display = IS_ZARINMAH_STAGING ? 'none' : 'inline-block';
+  document.getElementById('authBackToPhoneButton').style.display = 'none';
   setAuthMessage('');
   if (useEmail) {
     document.getElementById('authEmail').focus();
@@ -2838,7 +2833,7 @@ function updateAuthUI(session) {
     document.getElementById('authPhonePasswordGroup').style.display = 'grid';
     document.getElementById('authOtpGroup').style.display = 'none';
     document.getElementById('authEmailMode').style.display = 'none';
-    document.getElementById('authEmailModeEntry').style.display = IS_ZARINMAH_STAGING ? 'flex' : 'none';
+    document.getElementById('authEmailModeEntry').style.display = 'none';
     document.getElementById('authSendButton').style.display = 'none';
     document.getElementById('authSendButton').disabled = false;
     document.getElementById('authVerifyButton').style.display = 'none';
