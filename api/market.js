@@ -570,6 +570,31 @@ async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
     if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
   }
 
+  // TGJU maintains a dedicated currency channel; use it for the free-market dollar
+  // if the combined news channel did not include a current dollar quote.
+  if (latestPrices.dollar === undefined) {
+    const currencyResponse = await fetch("https://t.me/s/tgjucurrency", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (currencyResponse.ok) {
+      const currencyHtml = await currencyResponse.text();
+      const currencyMessages = extractMessages(currencyHtml);
+      for (const message of currencyMessages) {
+        const age = Date.now() - message.postedAt;
+        if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
+        const parsed = extractPricesFromMessage(message.text).prices;
+        if (Number.isSafeInteger(parsed.dollar) && parsed.dollar > 0) {
+          latestPrices.dollar = parsed.dollar;
+          timestamps.dollar = message.postedAt;
+          break;
+        }
+      }
+    }
+  }
+
   const missing = ASSETS.filter(key => latestPrices[key] === undefined);
   if (missing.length) {
     throw new Error("Fresh TGJU prices missing for: " + missing.join(", "));
