@@ -131,6 +131,20 @@ function extractPricesFromMessage(text) {
     }
   }
 
+  if (!prices.dollar) {
+    const dollarIndex = normalized.search(/(?:#?قیمت[_\s]*دلار|دلار)/i);
+    if (dollarIndex >= 0) {
+      const section = normalized.slice(dollarIndex, dollarIndex + 1200);
+      const liveQuote = section.match(/قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i);
+      const inlineQuote = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
+      const quote = liveQuote || inlineQuote;
+      if (quote) {
+        const rial = Number(quote[1].replace(/,/g, ""));
+        if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
+      }
+    }
+  }
+
   return {
     prices,
     valid: ASSETS.every(key => Number.isSafeInteger(prices[key]) && prices[key] > 0)
