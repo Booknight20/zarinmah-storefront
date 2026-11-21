@@ -619,10 +619,10 @@ async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
     throw new Error("Fresh prices missing from Navasan and TGJU fallback: " + missing.join(", "));
   }
 
-  const oldestTimestamp = Math.min(...Object.values(timestamps));
+  const newestTimestamp = Math.max(...Object.values(timestamps));
   return {
     prices: latestPrices,
-    postedAt: new Date(oldestTimestamp).toISOString(),
+    postedAt: new Date(newestTimestamp).toISOString(),
     assetUpdatedAt: Object.fromEntries(
       Object.entries(timestamps).map(([key, value]) => [key, new Date(value).toISOString()])
     ),
