@@ -1,11 +1,11 @@
 const { list, put, get } = require("@vercel/blob");
 
-const SOURCE_URL = "https://t.me/s/navasanchannel";
+const SOURCE_URL = "https://t.me/s/tgjunews";
 const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
-const MAX_SOURCE_AGE_MS = 6 * 60 * 60 * 1000;
-const MAX_CLOSED_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
+const MAX_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
+const MAX_CLOSED_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
 const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
 // سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
@@ -87,31 +87,60 @@ function parseAmount(text, pattern) {
     : null;
 }
 
+function extractPriceAfterLabel(text, labelPattern, maxChars = 1200) {
+  const match = text.match(labelPattern);
+  if (!match) return null;
+  const section = text.slice(match.index, match.index + maxChars);
+  const priceMatch = section.match(
+    /قیمت\\s*لحظه\\s*ای\\s*[:：]?\\s*([0-9][0-9,]*)\\s*ریال/i
+  );
+  if (!priceMatch) return null;
+  const rial = Number(priceMatch[1].replace(/,/g, ""));
+  if (!Number.isSafeInteger(rial) || rial <= 0) return null;
+  // TGJU publishes rial; the storefront displays toman.
+  return Math.round(rial / 10);
+}
+
 function extractPricesFromMessage(text) {
+  const normalized = normalizeDigits(text)
+    .replace(/[ي]/g, "ی")
+    .replace(/[ك]/g, "ک");
+
   const prices = {
-    gold18: parseAmount(
-      text,
-      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    gold18: extractPriceAfterLabel(
+      normalized,
+      /(?:قیمت\\s*)?طلای\\s*(?:18|۱۸)\\s*عیار/i
     ),
-    emami: parseAmount(
-      text,
-      /سکه\s*امامی\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    emami: extractPriceAfterLabel(
+      normalized,
+      /سکه\\s*امامی/i
     ),
-    half: parseAmount(
-      text,
-      /نیم\s*سکه\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    half: extractPriceAfterLabel(
+      normalized,
+      /نیم\\s*سکه/i
     ),
-    dollar: parseAmount(
-      text,
-      /دلار\s*آمریکا\s*فروش\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    dollar: extractPriceAfterLabel(
+      normalized,
+      /#?قیمت[_\\s]*دلار/i
     )
   };
 
+  // Some TGJU currency posts put the free-market dollar directly after its label.
+  if (!prices.dollar) {
+    const dollarLabel = normalized.match(/#?قیمت[_\\s]*دلار/i);
+    if (dollarLabel) {
+      const section = normalized.slice(dollarLabel.index, dollarLabel.index + 500);
+      const direct = section.match(/دلار\\s*[:：]\\s*([0-9][0-9,]*)\\s*ریال/i);
+      if (direct) {
+        const rial = Number(direct[1].replace(/,/g, ""));
+        if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
+      }
+    }
+  }
+
   return {
     prices,
-    valid: ASSETS.every(
-      key => Number.isSafeInteger(prices[key]) && prices[key] > 0
-    )
+    valid: ASSETS.every(key => Number.isSafeInteger(prices[key]) && prices[key] > 0)
   };
 }
 
@@ -504,33 +533,53 @@ async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
     },
-    signal: AbortSignal.timeout(12000)
+    signal: AbortSignal.timeout(15000)
   });
 
-  if (!response.ok) {
-    throw new Error(`Source returned HTTP ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
 
   const html = await response.text();
-
   if (!html.includes("tgme_widget_message_text")) {
-    throw new Error("Unexpected source page");
+    throw new Error("Unexpected TGJU Telegram page");
   }
 
   const messages = extractMessages(html);
+  const latestPrices = {};
+  const timestamps = {};
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
+  // TGJU publishes gold, coin and currency quotes in separate posts.
+  // Merge the newest fresh value for each storefront asset.
+  for (const message of messages) {
     const age = Date.now() - message.postedAt;
     if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
 
-    const result = extractPricesFromMessage(message.text);
-    if (result.valid) {
-      return { prices: result.prices, postedAt: new Date(message.postedAt).toISOString() };
+    const parsed = extractPricesFromMessage(message.text).prices;
+    for (const key of ASSETS) {
+      if (latestPrices[key] === undefined &&
+          Number.isSafeInteger(parsed[key]) && parsed[key] > 0) {
+        latestPrices[key] = parsed[key];
+        timestamps[key] = message.postedAt;
+      }
     }
+
+    if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
   }
 
-  throw new Error("No fresh valid prices found for all assets");
+  const missing = ASSETS.filter(key => latestPrices[key] === undefined);
+  if (missing.length) {
+    throw new Error("Fresh TGJU prices missing for: " + missing.join(", "));
+  }
+
+  // Report the oldest timestamp among the displayed assets, so the UI never
+  // implies that all four quotes were published simultaneously.
+  const oldestTimestamp = Math.min(...Object.values(timestamps));
+  return {
+    prices: latestPrices,
+    postedAt: new Date(oldestTimestamp).toISOString(),
+    assetUpdatedAt: Object.fromEntries(
+      Object.entries(timestamps).map(([key, value]) => [key, new Date(value).toISOString()])
+    )
+  };
 }
 
 
