@@ -1,34 +1,64 @@
-const { list, put } = require("@vercel/blob");
-
 const SOURCE_URL = "https://t.me/s/navasanchannel";
-const BLOB_PATH = "market/market-daily.json";
+const TGJU_FALLBACK_URL = "https://t.me/s/tgjunews";
+const HISTORY_API_URL = process.env.ZARINMAH_MARKET_HISTORY_API_URL || "";
+const HISTORY_WRITE_TOKEN = process.env.ZARINMAH_MARKET_HISTORY_WRITE_TOKEN || "";
+const BACKEND_PROTECTION_BYPASS = process.env.ZARINMAH_BACKEND_PROTECTION_BYPASS || "";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
+const MAX_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
+const SOURCE_STALE_AFTER_MS = 6 * 60 * 60 * 1000;
+const MAX_CLOSED_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
+const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
-// سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
+// سابقه پشتیبان بازیابی‌شده از data/market-daily.json در GitHub
 const INITIAL_STATE = {
-  days: {
+  "days": {
     "2026-10-28": {
-      prices: { gold18: 26425500, emami: 268000000, half: 141000000, dollar: 269500 },
-      updatedAt: "2026-10-28T18:29:45.687Z"
+      "prices": {
+        "gold18": 26425500,
+        "emami": 268000000,
+        "half": 141000000,
+        "dollar": 269500
+      },
+      "updatedAt": "2026-10-28T18:29:45.687Z"
     },
     "2026-10-29": {
-      prices: { gold18: 26153100, emami: 266500000, half: 141000000, dollar: 271200 },
-      updatedAt: "2026-10-29T16:39:24.677Z"
+      "prices": {
+        "gold18": 26153100,
+        "emami": 266500000,
+        "half": 141000000,
+        "dollar": 271200
+      },
+      "updatedAt": "2026-10-29T16:39:24.677Z"
     },
     "2026-10-30": {
-      prices: { gold18: 26097700, emami: 266500000, half: 141000000, dollar: 271200 },
-      updatedAt: "2026-10-30T07:14:37.942Z"
+      "prices": {
+        "gold18": 26097700,
+        "emami": 266500000,
+        "half": 141000000,
+        "dollar": 271200
+      },
+      "updatedAt": "2026-10-30T07:14:37.942Z"
     },
     "2026-10-31": {
-      prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
-      updatedAt: "2026-10-31T06:49:50.665Z"
+      "prices": {
+        "gold18": 25428230,
+        "emami": 262000000,
+        "half": 139000000,
+        "dollar": 273200
+      },
+      "updatedAt": "2026-10-31T09:11:42.249Z"
     }
   },
-  latest: {
-    prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
-    updatedAt: "2026-10-31T06:49:50.665Z",
-    date: "2026-10-31"
+  "latest": {
+    "prices": {
+      "gold18": 25428230,
+      "emami": 262000000,
+      "half": 139000000,
+      "dollar": 273200
+    },
+    "updatedAt": "2026-10-31T09:11:42.249Z",
+    "date": "2026-10-31"
   }
 };
 
@@ -84,54 +114,92 @@ function parseAmount(text, pattern) {
     : null;
 }
 
+function extractPriceAfterLabel(text, labelPattern, maxChars = 1200) {
+  const match = text.match(labelPattern);
+  if (!match) return null;
+  const section = text.slice(match.index, match.index + maxChars);
+  const priceMatch = section.match(
+    /قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i
+  );
+  if (!priceMatch) return null;
+  const rial = Number(priceMatch[1].replace(/,/g, ""));
+  if (!Number.isSafeInteger(rial) || rial <= 0) return null;
+  return Math.round(rial / 10);
+}
+
 function extractPricesFromMessage(text) {
+  const normalized = normalizeDigits(text)
+    .replace(/[ي]/g, "ی")
+    .replace(/[ك]/g, "ک");
+
   const prices = {
-    gold18: parseAmount(
-      text,
-      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم\s*[^0-9]{0,30}([0-9][0-9,]*)/i
+    gold18: extractPriceAfterLabel(
+      normalized,
+      /(?:قیمت\s*)?طلای\s*(?:18|۱۸)\s*عیار/i
     ),
-    emami: parseAmount(
-      text,
-      /سکه\s*امامی\s*[^0-9]{0,30}([0-9][0-9,]*)/i
-    ),
-    half: parseAmount(
-      text,
-      /نیم\s*سکه\s*[^0-9]{0,30}([0-9][0-9,]*)/i
-    ),
-    dollar: parseAmount(
-      text,
-      /دلار\s*آمریکا\s*فروش\s*[^0-9]{0,30}([0-9][0-9,]*)/i
-    )
+    emami: extractPriceAfterLabel(normalized, /سکه\s*امامی/i),
+    half: extractPriceAfterLabel(normalized, /نیم\s*سکه/i),
+    dollar: null
   };
+
+  // Prefer the free-market quote, never the bank-exchange or negotiated rate.
+  const freeMarket = normalized.match(/قیمت\s*ارزهای\s*آزاد/i);
+  if (freeMarket) {
+    const section = normalized.slice(freeMarket.index, freeMarket.index + 1800);
+    const direct = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
+    if (direct) {
+      const rial = Number(direct[1].replace(/,/g, ""));
+      if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
+    }
+  }
+
+  // TGJU's dedicated currency posts use the exact #قیمت_دلار tag.
+  // The negative lookahead prevents matching توافقی/سلیمانیه/هرات variants.
+  if (!prices.dollar) {
+    const exactDollar = normalized.match(/#قیمت[_\s]*دلار(?![_\p{L}])/iu);
+    if (exactDollar) {
+      let section = normalized.slice(exactDollar.index, exactDollar.index + 1200);
+      const stop = section.search(/#قیمت[_\s]*دلار[_\s]*(?:توافقی|سلیمانیه|هرات|سنا|نیما)/i);
+      if (stop >= 0) section = section.slice(0, stop);
+      const quote = section.match(/قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i);
+      if (quote) {
+        const rial = Number(quote[1].replace(/,/g, ""));
+        if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
+      }
+    }
+  }
 
   return {
     prices,
-    valid: ASSETS.every(
-      key => Number.isSafeInteger(prices[key]) && prices[key] > 0
-    )
+    valid: ASSETS.every(key => Number.isSafeInteger(prices[key]) && prices[key] > 0)
   };
 }
 
 function extractMessages(html) {
   const messages = [];
-  const regex =
-    /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+  const wrapperRegex =
+    /<div class="tgme_widget_message_wrap[^"]*"[^>]*>([\s\S]*?)(?=<div class="tgme_widget_message_wrap|$)/gi;
 
-  let match;
+  let wrapperMatch;
+  while ((wrapperMatch = wrapperRegex.exec(html)) !== null) {
+    const wrapper = wrapperMatch[1];
+    const textMatch = wrapper.match(
+      /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i
+    );
+    if (!textMatch) continue;
 
-  while ((match = regex.exec(html)) !== null) {
-    const text = cleanHtml(match[1]);
+    const text = cleanHtml(textMatch[1]);
+    const timeMatch = wrapper.match(
+      /<time[^>]*datetime=["']([^"']+)["']/i
+    );
+    const postedAt = timeMatch ? Date.parse(timeMatch[1]) : NaN;
 
-    const hasAllLabels =
-      /طلای?\s*(?:18|۱۸)\s*عیار\s*هر\s*گرم/i.test(text) &&
-      /سکه\s*امامی/i.test(text) &&
-      /نیم\s*سکه/i.test(text) &&
-      /دلار\s*آمریکا\s*فروش/i.test(text);
-
-    if (hasAllLabels) messages.push(text);
+    if (text && Number.isFinite(postedAt)) {
+      messages.push({ text, postedAt });
+    }
   }
 
-  return messages;
+  return messages.sort((a, b) => b.postedAt - a.postedAt);
 }
 
 function getPreviousDate(dateString) {
@@ -188,66 +256,119 @@ function validPrices(prices) {
   );
 }
 
+// Use the most recent stored trading day before the requested date.
+// This keeps comparisons working across weekends and market holidays,
+// without ever comparing a price against another price from the same day.
+function getPreviousEntry(state, dateString) {
+  const dates = Object.keys(state?.days || {})
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date) && date < dateString)
+    .sort()
+    .reverse();
+
+  for (const date of dates) {
+    const entry = state.days[date];
+    if (validPrices(entry?.prices)) {
+      return { date, prices: entry.prices };
+    }
+  }
+
+  return null;
+}
+
 
 // =========================================================
 // ذخیره‌سازی قیمت‌ها در Vercel Blob
 // =========================================================
 
 async function readState() {
-  const result = await list({
-    prefix: BLOB_PATH,
-    limit: 10
-  });
-
-  const blob = (result.blobs || []).find(
-    item => item.pathname === BLOB_PATH
-  );
-
-  if (!blob) {
-    return JSON.parse(JSON.stringify(INITIAL_STATE));
+  if (!HISTORY_API_URL) {
+    throw new Error("Market history API URL is not configured");
   }
 
-  const response = await fetch(blob.url, {
-    cache: "no-store",
+  const response = await fetch(HISTORY_API_URL, {
+    headers: {
+      Accept: "application/json",
+      "x-vercel-protection-bypass": BACKEND_PROTECTION_BYPASS
+    },
     signal: AbortSignal.timeout(10000)
   });
 
   if (!response.ok) {
-    throw new Error(`Blob read failed: ${response.status}`);
+    throw new Error("Market history API returned HTTP " + response.status);
   }
 
-  const state = await response.json();
+  const payload = await response.json();
 
-  if (
-    !state ||
-    typeof state !== "object" ||
-    !state.days ||
-    typeof state.days !== "object"
-  ) {
-    throw new Error("Invalid market history structure in Blob");
+  if (payload?.ok && payload.found && payload.state &&
+      typeof payload.state.days === "object") {
+    return payload.state;
   }
 
-  return state;
+  if (payload?.ok && !payload.found) {
+    return JSON.parse(JSON.stringify(INITIAL_STATE));
+  }
+
+  throw new Error("Invalid response from market history API");
 }
 
 async function writeState(state) {
-  await put(
-    BLOB_PATH,
-    Buffer.from(JSON.stringify(state, null, 2), "utf8"),
-    {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "application/json",
-      cacheControlMaxAge: 60
-    }
-  );
+  if (!HISTORY_API_URL || !HISTORY_WRITE_TOKEN) {
+    throw new Error("Market history write credentials are not configured");
+  }
+
+  const response = await fetch(HISTORY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "X-Market-History-Token": HISTORY_WRITE_TOKEN,
+      "x-vercel-protection-bypass": BACKEND_PROTECTION_BYPASS
+    },
+    body: JSON.stringify({ state }),
+    signal: AbortSignal.timeout(15000)
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok || !payload?.saved) {
+    throw new Error("Market history save failed (HTTP " + response.status + ")");
+  }
 }
 
 
 // =========================================================
 // آخرین قیمت ذخیره‌شده
 // =========================================================
+
+
+// تاریخچه محدود قیمت برای نمودار روند
+function getGoldTrendHistory(state, latestOverride = null) {
+  const entries = Object.entries(state?.days || {})
+    .filter(([date, entry]) =>
+      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+      Number.isFinite(entry?.prices?.gold18) &&
+      entry.prices.gold18 > 0
+    )
+    .map(([date, entry]) => ({
+      date,
+      price: entry.prices.gold18,
+      updatedAt: entry.updatedAt || null
+    }));
+
+  if (latestOverride?.date && Number.isFinite(latestOverride?.prices?.gold18)) {
+    const existing = entries.findIndex(item => item.date === latestOverride.date);
+    const latestItem = {
+      date: latestOverride.date,
+      price: latestOverride.prices.gold18,
+      updatedAt: latestOverride.updatedAt || null
+    };
+    if (existing >= 0) entries[existing] = latestItem;
+    else entries.push(latestItem);
+  }
+
+  return entries
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-14);
+}
 
 function getLatestSaved(state) {
   if (
@@ -309,8 +430,24 @@ function buildCachedResponse(state, marketOpen, message) {
     };
   }
 
-  const previousDate = getPreviousDate(latest.date);
-  const previousPrices = state?.days?.[previousDate]?.prices || null;
+  const latestAge = Date.now() - new Date(latest.updatedAt).getTime();
+  if (!Number.isFinite(latestAge) || latestAge < 0 || latestAge > MAX_CACHED_AGE_MS) {
+    return {
+      ok: false,
+      marketOpen,
+      timezone: TIMEZONE,
+      source: SOURCE_URL,
+      currency: "تومان",
+      prices: null,
+      updatedAt: latest.updatedAt,
+      cached: true,
+      stale: true,
+      message: "آخرین داده قیمت قدیمی است و برای جلوگیری از نمایش قیمت نادرست، فعلاً نمایش داده نمی‌شود."
+    };
+  }
+
+  const previousEntry = getPreviousEntry(state, latest.date);
+  const previousDate = previousEntry?.date || getPreviousDate(latest.date);
 
   return {
     ok: true,
@@ -323,7 +460,7 @@ function buildCachedResponse(state, marketOpen, message) {
     previousDate,
     dailyChanges: calculateChanges(
       latest.prices,
-      previousPrices
+      previousEntry?.prices || null
     ),
     historySaved: true,
     cached: true,
@@ -341,8 +478,7 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const state = await readState();
 
-    const previousDate = getPreviousDate(dateString);
-    const previous = state.days[previousDate] || null;
+    const previousEntry = getPreviousEntry(state, dateString);
 
     state.days[dateString] = {
       prices,
@@ -370,8 +506,8 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
       await writeState(state);
 
       return {
-        previousDate,
-        previousPrices: previous?.prices || null,
+        previousDate: previousEntry?.date || getPreviousDate(dateString),
+        previousPrices: previousEntry?.prices || null,
         saved: true
       };
 
@@ -393,33 +529,102 @@ async function saveTodayPrices(dateString, prices, updatedAt) {
 // دریافت قیمت از منبع
 // =========================================================
 
-async function fetchSourcePrices() {
-  const response = await fetch(SOURCE_URL, {
+function parseNavasanPrices(text) {
+  const normalized = normalizeDigits(text)
+    .replace(/[ي]/g, "ی")
+    .replace(/[ك]/g, "ک");
+
+  const readToman = pattern => {
+    const match = normalized.match(pattern);
+    if (!match) return null;
+    const value = Number(match[1].replace(/,/g, ""));
+    return Number.isSafeInteger(value) && value > 0 ? value : null;
+  };
+
+  return {
+    gold18: readToman(/طلای\s*(?:18|۱۸)\s*عیار(?:\s*هر\s*گرم)?[\s\S]{0,70}?([0-9][0-9,]*)\s*تومان/i),
+    emami: readToman(/سکه\s*امامی[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i),
+    half: readToman(/نیم\s*سکه[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i),
+    dollar: readToman(/دلار\s*آمریکا\s*فروش[\s\S]{0,50}?([0-9][0-9,]*)\s*تومان/i)
+  };
+}
+
+async function fetchTelegramMessages(channel) {
+  const response = await fetch("https://t.me/s/" + channel, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)"
+      "User-Agent": "Mozilla/5.0 (compatible; ZarinMahMarket/1.0)",
+      "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.8"
     },
-    signal: AbortSignal.timeout(12000)
+    signal: AbortSignal.timeout(15000)
   });
 
-  if (!response.ok) {
-    throw new Error(`Source returned HTTP ${response.status}`);
-  }
-
+  if (!response.ok) throw new Error(channel + " returned HTTP " + response.status);
   const html = await response.text();
-
   if (!html.includes("tgme_widget_message_text")) {
-    throw new Error("Unexpected source page");
+    throw new Error("Unexpected Telegram page for " + channel);
+  }
+  return extractMessages(html);
+}
+
+async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
+  const latestPrices = {};
+  const timestamps = {};
+  const sources = {};
+
+  // Navasan is the primary live feed. Each asset is taken from its newest
+  // post independently because some posts omit the dollar line.
+  const navasanMessages = await fetchTelegramMessages("navasanchannel");
+  for (const message of navasanMessages) {
+    const age = Date.now() - message.postedAt;
+    if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > maxAgeMs) continue;
+
+    const parsed = parseNavasanPrices(message.text);
+    for (const key of ASSETS) {
+      if (latestPrices[key] === undefined &&
+          Number.isSafeInteger(parsed[key]) && parsed[key] > 0) {
+        latestPrices[key] = parsed[key];
+        timestamps[key] = message.postedAt;
+        sources[key] = "navasan";
+      }
+    }
+    if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
   }
 
-  const messages = extractMessages(html);
+  // TGJU is only a per-asset fallback when Navasan has no usable fresh quote.
+  const missingFromNavasan = ASSETS.filter(key => latestPrices[key] === undefined);
+  if (missingFromNavasan.length) {
+    const tgjuMessages = await fetchTelegramMessages("tgjunews");
+    for (const message of tgjuMessages) {
+      const age = Date.now() - message.postedAt;
+      if (!Number.isFinite(age) || age < -5 * 60 * 1000 || age > 6 * 60 * 60 * 1000) continue;
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const result = extractPricesFromMessage(messages[i]);
-
-    if (result.valid) return result.prices;
+      const parsed = extractPricesFromMessage(message.text).prices;
+      for (const key of missingFromNavasan) {
+        if (latestPrices[key] === undefined &&
+            Number.isSafeInteger(parsed[key]) && parsed[key] > 0) {
+          latestPrices[key] = parsed[key];
+          timestamps[key] = message.postedAt;
+          sources[key] = "tgju";
+        }
+      }
+      if (ASSETS.every(key => latestPrices[key] !== undefined)) break;
+    }
   }
 
-  throw new Error("No valid prices found for all assets");
+  const missing = ASSETS.filter(key => latestPrices[key] === undefined);
+  if (missing.length) {
+    throw new Error("Fresh prices missing from Navasan and TGJU fallback: " + missing.join(", "));
+  }
+
+  const newestTimestamp = Math.max(...Object.values(timestamps));
+  return {
+    prices: latestPrices,
+    postedAt: new Date(newestTimestamp).toISOString(),
+    assetUpdatedAt: Object.fromEntries(
+      Object.entries(timestamps).map(([key, value]) => [key, new Date(value).toISOString()])
+    ),
+    sources
+  };
 }
 
 
@@ -473,17 +678,6 @@ module.exports = async function handler(req, res) {
     console.error("Market Blob read error:", error.message);
   }
 
-  // خارج از ساعات بازار، آخرین قیمت ذخیره‌شده نمایش داده می‌شود.
-  if (!marketOpen) {
-    const payload = buildCachedResponse(
-      state,
-      false,
-      "ساعات به‌روزرسانی بازار ۹ تا ۲۲ به وقت تهران است؛ آخرین قیمت معتبر نمایش داده شده است."
-    );
-
-    return res.status(payload.ok ? 200 : 503).json(payload);
-  }
-
   // جلوگیری از دریافت تکراری قیمت در فاصله کمتر از ۵۰ ثانیه
   const latestSaved = getLatestSaved(state);
 
@@ -498,8 +692,10 @@ module.exports = async function handler(req, res) {
     ) {
       const payload = buildCachedResponse(
         state,
-        true,
-        "آخرین قیمت دریافت‌شده در کمتر از یک دقیقه اخیر نمایش داده می‌شود."
+        marketOpen,
+        marketOpen
+          ? "آخرین قیمت دریافت‌شده در کمتر از یک دقیقه اخیر نمایش داده می‌شود."
+          : "آخرین قیمت ثبت‌شده نمایش داده می‌شود."
       );
 
       return res.status(200).json(payload);
@@ -507,22 +703,38 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const prices = await fetchSourcePrices();
-    const updatedAt = new Date().toISOString();
+    const sourceData = await fetchSourcePrices(
+      marketOpen ? MAX_SOURCE_AGE_MS : MAX_CLOSED_SOURCE_AGE_MS
+    );
+    const prices = sourceData.prices;
+    const updatedAt = sourceData.postedAt;
+    // Save against the source post's Tehran date, not today's server date.
+    const sourceTehran = tehranParts(new Date(updatedAt));
+    const sourceDateString = `${sourceTehran.year}-${sourceTehran.month}-${sourceTehran.day}`;
 
-    let previousPrices =
-      state.days?.[getPreviousDate(dateString)]?.prices || null;
+    let previousEntry = getPreviousEntry(state, sourceDateString);
+    // Do not compare against a very old historical quote when recent daily
+    // history is missing; that would create a misleading multi-week change.
+    const comparisonGapDays = previousEntry
+      ? (Date.parse(`${sourceDateString}T00:00:00Z`) - Date.parse(`${previousEntry.date}T00:00:00Z`)) / 86400000
+      : Infinity;
+    if (!Number.isFinite(comparisonGapDays) || comparisonGapDays > 4) {
+      previousEntry = null;
+    }
+    let previousPrices = previousEntry?.prices || null;
+    let comparisonDate = previousEntry?.date || getPreviousDate(sourceDateString);
 
     let historySaved = false;
 
     try {
       const history = await saveTodayPrices(
-        dateString,
+        sourceDateString,
         prices,
         updatedAt
       );
 
       previousPrices = history.previousPrices;
+      comparisonDate = history.previousDate;
       historySaved = history.saved;
 
     } catch (error) {
@@ -534,22 +746,32 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
-      marketOpen: true,
+      marketOpen,
       source: SOURCE_URL,
       currency: "تومان",
       updatedAt,
+      stale: Date.now() - new Date(updatedAt).getTime() > SOURCE_STALE_AFTER_MS,
+      assetUpdatedAt: sourceData.assetUpdatedAt,
+      assetSources: sourceData.sources,
       timezone: TIMEZONE,
       prices,
-      previousDate: getPreviousDate(dateString),
+      history: getGoldTrendHistory(state, {
+        date: sourceDateString,
+        prices,
+        updatedAt
+      }),
+      previousDate: comparisonDate,
       dailyChanges: calculateChanges(
         prices,
         previousPrices
       ),
       historySaved,
       cached: false,
-      message: historySaved
-        ? "قیمت‌ها با موفقیت دریافت و در فضای ذخیره‌سازی سایت ثبت شدند."
-        : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
+      message: !marketOpen
+        ? "آخرین قیمت ثبت‌شده از منبع معتبر نمایش داده می‌شود."
+        : historySaved
+          ? "قیمت‌ها با موفقیت دریافت و در فضای ذخیره‌سازی سایت ثبت شدند."
+          : "قیمت‌ها دریافت شدند، اما ذخیره سابقه انجام نشد."
     });
 
   } catch (error) {
@@ -557,8 +779,10 @@ module.exports = async function handler(req, res) {
 
     const payload = buildCachedResponse(
       state,
-      true,
-      "دریافت قیمت جدید ناموفق بود؛ آخرین قیمت معتبر ذخیره‌شده نمایش داده شده است."
+      marketOpen,
+      marketOpen
+        ? "دریافت قیمت جدید ناموفق بود؛ آخرین قیمت معتبر ذخیره‌شده نمایش داده شده است."
+        : "منبع قیمت در دسترس نیست؛ آخرین قیمت معتبر ثبت‌شده نمایش داده شده است."
     );
 
     if (payload.ok) {
@@ -567,7 +791,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(502).json({
       ...payload,
-      error: "دریافت قیمت جدید ناموفق بود و قیمت ذخیره‌شده‌ای نیز در دسترس نیست.",
+      error: error.message || "دریافت قیمت جدید ناموفق بود و قیمت ذخیره‌شده‌ای نیز در دسترس نیست.",
       historyAvailable: stateAvailable
     });
   }
