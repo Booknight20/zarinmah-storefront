@@ -2262,7 +2262,8 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       </div>
       <div class="auth-actions">
         <button class="btn" id="authPasswordLoginButton" type="button" onclick="signInWithPhonePassword()">ورود با رمز عبور</button>
-        <button class="btn btn-outline" id="authOtpStartButton" type="button" onclick="setPhoneAuthMode('setup')">ثبت‌نام / تعیین یا بازیابی رمز</button>
+        <button class="btn btn-outline" id="authSignupButton" type="button" onclick="setPhoneAuthMode('signup')">ثبت‌نام با شماره موبایل</button>
+        <button class="btn btn-outline" id="authRecoveryButton" type="button" onclick="setPhoneAuthMode('recovery')">بازیابی رمز عبور</button>
         <button class="btn" id="authSendButton" type="button" style="display:none" onclick="requestAuthOtp()">دریافت کد پیامکی</button>
         <button class="btn" id="authVerifyButton" type="button" style="display:none" onclick="verifyAuthOtp()">تأیید کد و ثبت رمز</button>
         <button class="btn btn-outline" id="authResendButton" type="button" style="display:none" onclick="requestAuthOtp(true)">ارسال مجدد کد</button>
@@ -2622,26 +2623,30 @@ function startAuthResendCooldown(seconds = 30) {
 }
 
 function setPhoneAuthMode(mode) {
-  phoneAuthMode = mode === 'setup' ? 'setup' : 'login';
-  const setup = phoneAuthMode === 'setup';
+  phoneAuthMode = ['signup', 'recovery'].includes(mode) ? mode : 'login';
+  const setup = phoneAuthMode !== 'login';
+  const isRecovery = phoneAuthMode === 'recovery';
   document.getElementById('authPhoneGroup').style.display = 'grid';
   document.getElementById('authPhonePasswordGroup').style.display = 'grid';
   document.getElementById('authOtpGroup').style.display = 'none';
   document.getElementById('authPhonePasswordLabel').textContent = setup ? 'رمز عبور جدید' : 'رمز عبور';
   document.getElementById('authPhonePasswordHelp').textContent = setup
-    ? 'رمز جدید حداقل ۸ نویسه باشد. پس از تأیید پیامک روی همین حساب ذخیره می‌شود.'
+    ? 'رمز عبور جدید حداقل ۸ نویسه باشد؛ پس از تأیید پیامک روی حساب ذخیره می‌شود.'
     : 'برای ورود، رمز عبور حساب خود را وارد کنید.';
   document.getElementById('authPassword').value = '';
   document.getElementById('authPassword').autocomplete = setup ? 'new-password' : 'current-password';
   document.getElementById('authPasswordLoginButton').style.display = setup ? 'none' : 'inline-block';
-  document.getElementById('authOtpStartButton').style.display = setup ? 'none' : 'inline-block';
+  document.getElementById('authSignupButton').style.display = setup ? 'none' : 'inline-block';
+  document.getElementById('authRecoveryButton').style.display = setup ? 'none' : 'inline-block';
   document.getElementById('authSendButton').style.display = setup ? 'inline-block' : 'none';
   document.getElementById('authVerifyButton').style.display = 'none';
   document.getElementById('authResendButton').style.display = 'none';
   document.getElementById('authCancelSetupButton').style.display = setup ? 'inline-block' : 'none';
   document.getElementById('authPhoneHelp').textContent = setup
-    ? 'برای ثبت‌نام یا بازیابی رمز، کد پیامکی دریافت کنید. این کار فقط پس از تأیید مالکیت شماره انجام می‌شود.'
-    : 'اگر هنوز حساب ندارید یا رمزتان را فراموش کرده‌اید، گزینه ثبت‌نام / بازیابی رمز را انتخاب کنید.';
+    ? (isRecovery
+      ? 'کد فقط برای شماره‌ای ارسال می‌شود که قبلاً در زرین ماه حساب دارد.'
+      : 'پس از تأیید مالکیت شماره، حساب شما ساخته می‌شود و رمز جدید ثبت خواهد شد.')
+    : 'برای ساخت حساب یا تغییر رمز فراموش‌شده، گزینه مربوط را انتخاب کنید.';
   clearInterval(authResendTimer);
   authPhoneE164 = '';
   pendingAuthPassword = '';
@@ -2693,7 +2698,7 @@ async function requestAuthOtp(isResend = false) {
   try {
     const { error } = await supabaseClient.auth.signInWithOtp({
       phone,
-      options: { shouldCreateUser: true }
+      options: { shouldCreateUser: phoneAuthMode === 'signup' }
     });
     if (error) throw error;
     authPhoneE164 = phone;
