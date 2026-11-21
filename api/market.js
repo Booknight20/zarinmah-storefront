@@ -174,7 +174,7 @@ function extractMessages(html) {
     }
   }
 
-  return messages;
+  return messages.sort((a, b) => b.postedAt - a.postedAt);
 }
 
 function getPreviousDate(dateString) {
