@@ -5030,6 +5030,51 @@ function openListingDetails(item, galleryUrls = []) {
   close.focus();
 }
 
+function trimProductImageWhitespace(image) {
+  if (!image || image.dataset.trimAttempted === '1' || !image.naturalWidth || !image.naturalHeight) return;
+  image.dataset.trimAttempted = '1';
+  try {
+    const width = image.naturalWidth, height = image.naturalHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const context = canvas.getContext('2d', { willReadFrequently:true });
+    if (!context) return;
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const rowCounts = new Uint32Array(height), colCounts = new Uint32Array(width);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const p = (y * width + x) * 4;
+        const red = pixels[p], green = pixels[p + 1], blue = pixels[p + 2];
+        const active = red < 242 || green < 240 || blue < 235 ||
+          Math.max(red, green, blue) - Math.min(red, green, blue) > 16;
+        if (active) { rowCounts[y]++; colCounts[x]++; }
+      }
+    }
+    const rowThreshold = Math.max(1, Math.floor(width * 0.0015));
+    const colThreshold = Math.max(1, Math.floor(height * 0.0015));
+    let top = 0, bottom = height - 1, left = 0, right = width - 1;
+    while (top < height && rowCounts[top] < rowThreshold) top++;
+    while (bottom > top && rowCounts[bottom] < rowThreshold) bottom--;
+    while (left < width && colCounts[left] < colThreshold) left++;
+    while (right > left && colCounts[right] < colThreshold) right--;
+    if (top >= bottom || left >= right) return;
+    const padX = Math.max(3, Math.round((right - left + 1) * 0.025));
+    const padY = Math.max(3, Math.round((bottom - top + 1) * 0.025));
+    left = Math.max(0, left - padX); right = Math.min(width - 1, right + padX);
+    top = Math.max(0, top - padY); bottom = Math.min(height - 1, bottom + padY);
+    const cropWidth = right - left + 1, cropHeight = bottom - top + 1;
+    if (cropWidth * cropHeight > width * height * 0.96) return;
+    const trimmed = document.createElement('canvas');
+    trimmed.width = cropWidth; trimmed.height = cropHeight;
+    const trimmedContext = trimmed.getContext('2d');
+    trimmedContext.drawImage(canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    image.src = trimmed.toDataURL('image/png');
+  } catch (error) {
+    console.info('Product photo whitespace trim skipped:', error.message);
+  }
+}
+
 function createListingCard(item) {
   const article = makeElement('article', 'product');
   const visual = makeElement('div', 'product-visual');
@@ -5049,10 +5094,22 @@ function createListingCard(item) {
   let activeGalleryIndex = 0;
   const setHeroPhoto = index => {
     activeGalleryIndex = index;
-    heroPhoto.onerror = () => {
-      heroPhoto.onerror = null;
-      heroPhoto.src = fallbackImage;
+    heroPhoto.onload = () => {
+      if (!heroPhoto.src.startsWith('data:')) trimProductImageWhitespace(heroPhoto);
     };
+    heroPhoto.onerror = () => {
+      heroPhoto.onload = null;
+      if (heroPhoto.crossOrigin && !heroPhoto.dataset.corsRetried) {
+        heroPhoto.dataset.corsRetried = '1';
+        heroPhoto.crossOrigin = '';
+        heroPhoto.src = galleryUrls[index] || fallbackImage;
+      } else {
+        heroPhoto.onerror = null;
+        heroPhoto.src = fallbackImage;
+      }
+    };
+    heroPhoto.dataset.trimAttempted = '0';
+    heroPhoto.crossOrigin = 'anonymous';
     heroPhoto.src = galleryUrls[index] || fallbackImage;
     heroPhoto.alt = (item.product_type || item.item_type || 'محصول طلا') + '، تصویر ' + (index + 1);
     const count = visual.querySelector('.product-gallery-count');
