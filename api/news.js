@@ -1,5 +1,5 @@
 const NEWS_DATA_URL = "https://raw.githubusercontent.com/Booknight20/zarinmah-gold-bot/main/news_ready.json";
-const MAX_AGE_MS = 48 * 60 * 60 * 1000;
+const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_ITEMS = 8;
 
 function normalizeText(value) {
