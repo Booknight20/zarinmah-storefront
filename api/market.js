@@ -113,31 +113,29 @@ function extractPricesFromMessage(text) {
     ),
     emami: extractPriceAfterLabel(normalized, /سکه\s*امامی/i),
     half: extractPriceAfterLabel(normalized, /نیم\s*سکه/i),
-    dollar: extractPriceAfterLabel(normalized, /#?قیمت[_\s]*دلار/i)
+    dollar: null
   };
 
-  if (!prices.dollar) {
-    const dollarLines = normalized.split(/\r?\n/);
-    for (const line of dollarLines) {
-      if (!/دلار\s*[:：]\s*[0-9]/i.test(line)) continue;
-      if (/توافقی|سلیمانیه|هرات|خرید|صرافی/i.test(line)) continue;
-      const direct = line.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
-      if (!direct) continue;
+  // Prefer the free-market quote, never the bank-exchange or negotiated rate.
+  const freeMarket = normalized.match(/قیمت\s*ارزهای\s*آزاد/i);
+  if (freeMarket) {
+    const section = normalized.slice(freeMarket.index, freeMarket.index + 1800);
+    const direct = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
+    if (direct) {
       const rial = Number(direct[1].replace(/,/g, ""));
-      if (Number.isSafeInteger(rial) && rial > 0) {
-        prices.dollar = Math.round(rial / 10);
-        break;
-      }
+      if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
     }
   }
 
+  // TGJU's dedicated currency posts use the exact #قیمت_دلار tag.
+  // The negative lookahead prevents matching توافقی/سلیمانیه/هرات variants.
   if (!prices.dollar) {
-    const dollarIndex = normalized.search(/(?:#?قیمت[_\s]*دلار|دلار)/i);
-    if (dollarIndex >= 0) {
-      const section = normalized.slice(dollarIndex, dollarIndex + 1200);
-      const liveQuote = section.match(/قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i);
-      const inlineQuote = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
-      const quote = liveQuote || inlineQuote;
+    const exactDollar = normalized.match(/#قیمت[_\s]*دلار(?![_\p{L}])/iu);
+    if (exactDollar) {
+      let section = normalized.slice(exactDollar.index, exactDollar.index + 1200);
+      const stop = section.search(/#قیمت[_\s]*دلار[_\s]*(?:توافقی|سلیمانیه|هرات|سنا|نیما)/i);
+      if (stop >= 0) section = section.slice(0, stop);
+      const quote = section.match(/قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i);
       if (quote) {
         const rial = Number(quote[1].replace(/,/g, ""));
         if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
