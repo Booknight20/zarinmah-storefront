@@ -1,8 +1,7 @@
-const { list, put, get } = require("@vercel/blob");
-
 const SOURCE_URL = "https://t.me/s/navasanchannel";
 const TGJU_FALLBACK_URL = "https://t.me/s/tgjunews";
-const BLOB_PATH = "market/market-daily.json";
+const HISTORY_API_URL = process.env.ZARINMAH_MARKET_HISTORY_API_URL || "";
+const HISTORY_WRITE_TOKEN = process.env.ZARINMAH_MARKET_HISTORY_WRITE_TOKEN || "";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
 const MAX_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
@@ -10,30 +9,55 @@ const SOURCE_STALE_AFTER_MS = 6 * 60 * 60 * 1000;
 const MAX_CLOSED_SOURCE_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
-// سابقه اولیه قیمت‌ها برای انتقال از فایل قبلی GitHub
+// سابقه پشتیبان بازیابی‌شده از data/market-daily.json در GitHub
 const INITIAL_STATE = {
-  days: {
+  "days": {
     "2026-10-28": {
-      prices: { gold18: 26425500, emami: 268000000, half: 141000000, dollar: 269500 },
-      updatedAt: "2026-10-28T18:29:45.687Z"
+      "prices": {
+        "gold18": 26425500,
+        "emami": 268000000,
+        "half": 141000000,
+        "dollar": 269500
+      },
+      "updatedAt": "2026-10-28T18:29:45.687Z"
     },
     "2026-10-29": {
-      prices: { gold18: 26153100, emami: 266500000, half: 141000000, dollar: 271200 },
-      updatedAt: "2026-10-29T16:39:24.677Z"
+      "prices": {
+        "gold18": 26153100,
+        "emami": 266500000,
+        "half": 141000000,
+        "dollar": 271200
+      },
+      "updatedAt": "2026-10-29T16:39:24.677Z"
     },
     "2026-10-30": {
-      prices: { gold18: 26097700, emami: 266500000, half: 141000000, dollar: 271200 },
-      updatedAt: "2026-10-30T07:14:37.942Z"
+      "prices": {
+        "gold18": 26097700,
+        "emami": 266500000,
+        "half": 141000000,
+        "dollar": 271200
+      },
+      "updatedAt": "2026-10-30T07:14:37.942Z"
     },
     "2026-10-31": {
-      prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
-      updatedAt: "2026-10-31T06:49:50.665Z"
+      "prices": {
+        "gold18": 25428230,
+        "emami": 262000000,
+        "half": 139000000,
+        "dollar": 273200
+      },
+      "updatedAt": "2026-10-31T09:11:42.249Z"
     }
   },
-  latest: {
-    prices: { gold18: 25774500, emami: 266500000, half: 141000000, dollar: 274700 },
-    updatedAt: "2026-10-31T06:49:50.665Z",
-    date: "2026-10-31"
+  "latest": {
+    "prices": {
+      "gold18": 25428230,
+      "emami": 262000000,
+      "half": 139000000,
+      "dollar": 273200
+    },
+    "updatedAt": "2026-10-31T09:11:42.249Z",
+    "date": "2026-10-31"
   }
 };
 
@@ -256,85 +280,53 @@ function getPreviousEntry(state, dateString) {
 // =========================================================
 
 async function readState() {
-  const result = await list({
-    prefix: BLOB_PATH,
-    limit: 10
+  if (!HISTORY_API_URL) {
+    throw new Error("Market history API URL is not configured");
+  }
+
+  const response = await fetch(HISTORY_API_URL, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(10000)
   });
 
-  const blob = (result.blobs || []).find(
-    item => item.pathname === BLOB_PATH
-  );
+  if (!response.ok) {
+    throw new Error("Market history API returned HTTP " + response.status);
+  }
 
-  if (!blob) {
+  const payload = await response.json();
+
+  if (payload?.ok && payload.found && payload.state &&
+      typeof payload.state.days === "object") {
+    return payload.state;
+  }
+
+  if (payload?.ok && !payload.found) {
     return JSON.parse(JSON.stringify(INITIAL_STATE));
   }
 
-  // The connected Blob store may be private. Read through the SDK so
-  // private stores are authenticated instead of fetching the URL directly.
-  let state = null;
-  let lastReadError = null;
-
-  for (const access of ["private", "public"]) {
-    try {
-      const result = await get(blob.pathname, {
-        access,
-        abortSignal: AbortSignal.timeout(10000)
-      });
-
-      if (result?.statusCode === 200 && result.stream) {
-        const body = await new Response(result.stream).text();
-        state = JSON.parse(body);
-        break;
-      }
-
-      if (result === null) {
-        state = null;
-        break;
-      }
-    } catch (error) {
-      lastReadError = error;
-    }
-  }
-
-  if (!state) {
-    if (lastReadError) throw lastReadError;
-    throw new Error("Blob history file could not be read");
-  }
-
-  if (
-    !state ||
-    typeof state !== "object" ||
-    !state.days ||
-    typeof state.days !== "object"
-  ) {
-    throw new Error("Invalid market history structure in Blob");
-  }
-
-  return state;
+  throw new Error("Invalid response from market history API");
 }
 
 async function writeState(state) {
-  const body = Buffer.from(JSON.stringify(state, null, 2), "utf8");
-  let lastWriteError = null;
-
-  // Store access is fixed when the Blob store is created. Try private first,
-  // then public, so the same code works with either existing store type.
-  for (const access of ["private", "public"]) {
-    try {
-      await put(BLOB_PATH, body, {
-        access,
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: "application/json",
-        cacheControlMaxAge: 60
-      });
-      return;
-    } catch (error) {
-      lastWriteError = error;
-    }
+  if (!HISTORY_API_URL || !HISTORY_WRITE_TOKEN) {
+    throw new Error("Market history write credentials are not configured");
   }
 
-  throw lastWriteError || new Error("Could not write market history to Blob");
+  const response = await fetch(HISTORY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "X-Market-History-Token": HISTORY_WRITE_TOKEN
+    },
+    body: JSON.stringify({ state }),
+    signal: AbortSignal.timeout(15000)
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok || !payload?.saved) {
+    throw new Error("Market history save failed (HTTP " + response.status + ")");
+  }
 }
 
 
