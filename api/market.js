@@ -755,6 +755,7 @@ module.exports = async function handler(req, res) {
       updatedAt,
       stale: Date.now() - new Date(updatedAt).getTime() > SOURCE_STALE_AFTER_MS,
       assetUpdatedAt: sourceData.assetUpdatedAt,
+      assetSources: sourceData.sources,
       timezone: TIMEZONE,
       prices,
       history: getGoldTrendHistory(state, {
