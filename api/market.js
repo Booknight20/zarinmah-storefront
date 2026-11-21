@@ -5,6 +5,7 @@ const BLOB_PATH = "market/market-daily.json";
 const TIMEZONE = "Asia/Tehran";
 const ASSETS = ["gold18", "emami", "half", "dollar"];
 const MAX_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
+const SOURCE_STALE_AFTER_MS = 6 * 60 * 60 * 1000;
 const MAX_CLOSED_SOURCE_AGE_MS = 36 * 60 * 60 * 1000;
 const MAX_CACHED_AGE_MS = 36 * 60 * 60 * 1000;
 
@@ -705,6 +706,8 @@ module.exports = async function handler(req, res) {
       source: SOURCE_URL,
       currency: "تومان",
       updatedAt,
+      stale: Date.now() - new Date(updatedAt).getTime() > SOURCE_STALE_AFTER_MS,
+      assetUpdatedAt: sourceData.assetUpdatedAt,
       timezone: TIMEZONE,
       prices,
       history: getGoldTrendHistory(state, {
