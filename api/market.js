@@ -93,12 +93,11 @@ function extractPriceAfterLabel(text, labelPattern, maxChars = 1200) {
   if (!match) return null;
   const section = text.slice(match.index, match.index + maxChars);
   const priceMatch = section.match(
-    /قیمت\\s*لحظه\\s*ای\\s*[:：]?\\s*([0-9][0-9,]*)\\s*ریال/i
+    /قیمت\s*لحظه\s*ای\s*[:：]?\s*([0-9][0-9,]*)\s*ریال/i
   );
   if (!priceMatch) return null;
   const rial = Number(priceMatch[1].replace(/,/g, ""));
   if (!Number.isSafeInteger(rial) || rial <= 0) return null;
-  // TGJU publishes rial; the storefront displays toman.
   return Math.round(rial / 10);
 }
 
@@ -110,28 +109,18 @@ function extractPricesFromMessage(text) {
   const prices = {
     gold18: extractPriceAfterLabel(
       normalized,
-      /(?:قیمت\\s*)?طلای\\s*(?:18|۱۸)\\s*عیار/i
+      /(?:قیمت\s*)?طلای\s*(?:18|۱۸)\s*عیار/i
     ),
-    emami: extractPriceAfterLabel(
-      normalized,
-      /سکه\\s*امامی/i
-    ),
-    half: extractPriceAfterLabel(
-      normalized,
-      /نیم\\s*سکه/i
-    ),
-    dollar: extractPriceAfterLabel(
-      normalized,
-      /#?قیمت[_\\s]*دلار/i
-    )
+    emami: extractPriceAfterLabel(normalized, /سکه\s*امامی/i),
+    half: extractPriceAfterLabel(normalized, /نیم\s*سکه/i),
+    dollar: extractPriceAfterLabel(normalized, /#?قیمت[_\s]*دلار/i)
   };
 
-  // Some TGJU currency posts put the free-market dollar directly after its label.
   if (!prices.dollar) {
-    const dollarLabel = normalized.match(/#?قیمت[_\\s]*دلار/i);
+    const dollarLabel = normalized.match(/#?قیمت[_\s]*دلار/i);
     if (dollarLabel) {
       const section = normalized.slice(dollarLabel.index, dollarLabel.index + 500);
-      const direct = section.match(/دلار\\s*[:：]\\s*([0-9][0-9,]*)\\s*ریال/i);
+      const direct = section.match(/دلار\s*[:：]\s*([0-9][0-9,]*)\s*ریال/i);
       if (direct) {
         const rial = Number(direct[1].replace(/,/g, ""));
         if (Number.isSafeInteger(rial) && rial > 0) prices.dollar = Math.round(rial / 10);
@@ -148,13 +137,13 @@ function extractPricesFromMessage(text) {
 function extractMessages(html) {
   const messages = [];
   const wrapperRegex =
-    /<div class="tgme_widget_message_wrap[^"]*"[^>]*>([\\s\\S]*?)(?=<div class="tgme_widget_message_wrap|$)/gi;
+    /<div class="tgme_widget_message_wrap[^"]*"[^>]*>([\s\S]*?)(?=<div class="tgme_widget_message_wrap|$)/gi;
 
   let wrapperMatch;
   while ((wrapperMatch = wrapperRegex.exec(html)) !== null) {
     const wrapper = wrapperMatch[1];
     const textMatch = wrapper.match(
-      /<div class="tgme_widget_message_text[^"]*"[^>]*>([\\s\\S]*?)<\\/div>/i
+      /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i
     );
     if (!textMatch) continue;
 
