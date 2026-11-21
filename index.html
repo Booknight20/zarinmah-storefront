@@ -1688,6 +1688,42 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
 .slogan-demo-row strong{color:var(--gold)}
 .slogan-demo-row small{color:var(--muted)}
 @media(max-width:760px){.slogan-preview-grid{grid-template-columns:1fr}.slogan-live-card{order:-1}.slogan-line-row{grid-template-columns:1fr}}
+
+/* Restore the larger listing image frame; crop only inside the card preview. */
+.product-visual {
+  height:132px !important;
+  min-height:132px !important;
+  padding:4px !important;
+  display:block !important;
+  overflow:hidden !important;
+  background:linear-gradient(145deg,#111e25,#0b141a) !important;
+  border-bottom:0 !important;
+}
+.product-hero-frame {
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  aspect-ratio:auto !important;
+  border-radius:9px !important;
+  overflow:hidden !important;
+  background:transparent !important;
+}
+.product-hero-photo {
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  object-fit:cover !important;
+  object-position:center !important;
+}
+@media(max-width:650px) {
+  .product-visual {
+    height:112px !important;
+    min-height:112px !important;
+    padding:3px !important;
+  }
+}
+
 </style>
 
 </head>
