@@ -3439,7 +3439,9 @@ async function loadAdminPayments() {
       '<div class="full"><button class="btn" type="submit">ذخیره اطلاعات کارت و وضعیت پرداخت</button></div></form>'+
       '<p class="account-summary">درگاه بانکی در این مرحله متصل نیست. فعال‌سازی آن به اتصال و آزمایش جداگانه نیاز دارد.</p></section>'+
       '<section class="admin-members-section"><h4 class="admin-overview-subtitle">رسیدهای پرداخت و بررسی مدیر</h4>'+
-      '<div id="adminPaymentOrders" class="admin-payment-list"></div></section>';
+      '<div id="adminPaymentOrders" class="admin-payment-list"></div></section>'+
+      '<section class="admin-members-section"><h4 class="admin-overview-subtitle">مدیریت اشتراک‌های فعال و قبلی</h4>'+
+      '<div id="adminSellerSubscriptions" class="admin-payment-list"></div></section>';
     adminSellerPackages=Array.isArray(t.packages)?t.packages.map(p=>({...p})):[];renderAdminSellerPackages();
     document.getElementById("adminFreeQuota").value=Number(t.free_listing_quota??3);
     document.getElementById("adminListingFee").value=Number(t.listing_price_toman??25000);
@@ -3452,6 +3454,7 @@ async function loadAdminPayments() {
     document.getElementById("adminTariffSettingsForm").addEventListener("submit",saveAdminTariffSettings);
     document.getElementById("adminManualPaymentForm").addEventListener("submit",saveAdminPaymentSettings);
     renderAdminPaymentOrders(paymentData.payments||[]);
+    renderAdminSellerSubscriptions(paymentData.subscriptions||[]);
   }catch(error){box.replaceChildren(makeElement("p","account-empty",error.message||"دریافت اطلاعات پرداخت ناموفق بود."));}
 }
 
@@ -3493,6 +3496,32 @@ function renderAdminPaymentOrders(rows){
     }
     box.appendChild(card);
   });
+}
+
+function renderAdminSellerSubscriptions(rows){
+  const box=document.getElementById("adminSellerSubscriptions");if(!box)return;box.replaceChildren();
+  if(!rows.length){box.appendChild(makeElement("p","account-empty","هنوز اشتراکی فعال نشده است."));return;}
+  rows.forEach(sub=>{
+    const card=makeElement("article","admin-payment-card"),customer=sub.customer||{};
+    card.appendChild(makeElement("strong","","اشتراک "+(sub.package_name||"فروشنده")+" · #"+sub.id));
+    card.appendChild(makeElement("p","","فروشنده: "+(customer.full_name||"نامشخص")+" · "+(customer.mobile||"شماره ثبت‌نشده")));
+    card.appendChild(makeElement("p","","سقف آگهی: "+Number(sub.listing_limit||0).toLocaleString("fa-IR")+" · مبلغ: "+Number(sub.price_toman||0).toLocaleString("fa-IR")+" تومان"));
+    card.appendChild(makeElement("p","","شروع: "+formatRequestDateTime(sub.starts_at)+" · پایان: "+formatRequestDateTime(sub.ends_at)));
+    card.appendChild(makeElement("p","","وضعیت: "+(sub.status==="active"&&new Date(sub.ends_at).getTime()>Date.now()?"فعال":sub.status==="cancelled"?"لغوشده":"منقضی‌شده")));
+    const actions=makeElement("div","admin-payment-actions");
+    const extend=makeElement("button","account-action","تمدید اشتراک");extend.type="button";extend.addEventListener("click",()=>adminManageSellerSubscription(sub.id,"extend"));
+    const cancel=makeElement("button","account-action danger","لغو اشتراک");cancel.type="button";cancel.disabled=sub.status!=="active";cancel.addEventListener("click",()=>adminManageSellerSubscription(sub.id,"cancel"));
+    actions.append(extend,cancel);card.appendChild(actions);box.appendChild(card);
+  });
+}
+async function adminManageSellerSubscription(id,action){
+  if(!isSuperAdmin()||!currentAuthSession?.access_token)return;
+  let days=30;
+  if(action==="extend"){days=Number(prompt("چند روز به اشتراک اضافه شود؟","30"));if(!Number.isSafeInteger(days)||days<1||days>365)return showToast("مدت تمدید باید بین ۱ تا ۳۶۵ روز باشد.");}
+  else if(!confirm("اشتراک این فروشنده لغو شود؟"))return;
+  const fd=new FormData();fd.set("action","admin_seller_subscription_action");fd.set("subscription_id",String(id));fd.set("subscription_action",action);fd.set("days",String(days));
+  try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"مدیریت اشتراک انجام نشد.");showToast(result.message||"اشتراک به‌روزرسانی شد.");await loadAdminPayments();await loadAccountPanel();}
+  catch(error){showToast(error.message||"مدیریت اشتراک ناموفق بود.");}
 }
 
 async function adminReviewPayment(orderId,action){
