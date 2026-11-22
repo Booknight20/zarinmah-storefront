@@ -1248,6 +1248,8 @@ body.account-drawer-open #authModal .account-refresh{margin:12px 0}
 body.account-drawer-open #authModal #authLoggedIn>a,body.account-drawer-open #authModal #authLoggedIn>button{margin:4px 2px}
 body.account-drawer-open #profileModal{z-index:110}
 body.account-drawer-open #profileModal .modal{width:min(520px,100%);height:auto;max-height:90vh;margin:auto;border-radius:16px}
+body.account-page-open #profileModal{z-index:110}
+body.account-page-open #profileModal .modal{width:min(520px,100%);height:auto;max-height:90vh;margin:auto;border-radius:16px}
 @keyframes accountDrawerIn{from{transform:translateX(35px);opacity:.7}to{transform:translateX(0);opacity:1}}
 
 /* Dedicated member workspace at /account */
@@ -2961,6 +2963,7 @@ async function editUserProfile() {
     ? 'نام و شماره تماس را برای آزمایش Staging تکمیل کنید.'
     : 'نام و نام خانوادگی خود را ویرایش کنید. تغییر شماره موبایل نیازمند تأیید مجدد پیامکی است.';
   document.getElementById('profileModal').classList.add('show');
+  document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
 }
 
 async function saveUserProfile(event) {
