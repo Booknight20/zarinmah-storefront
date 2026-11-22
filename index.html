@@ -4758,7 +4758,7 @@ function renderAccountPayments(data){
     if(order.status==="under_review")card.appendChild(makeElement("p","account-summary","رسید شما دریافت شده و در صف بررسی مدیر است."));
     if(order.status==="approved")card.appendChild(makeElement("p","account-summary","پرداخت تأیید شد. آگهی شما اکنون در انتظار بررسی و انتشار مدیر است."));
     if(order.status==="rejected")card.appendChild(makeElement("p","account-summary","علت رد رسید: "+(order.rejection_reason||"لطفاً رسید صحیح را دوباره ارسال کنید.")));
-    if(["awaiting_receipt","rejected"].includes(order.status)){const config=data.payment_config||{};if(config.card_number&&config.card_owner)card.appendChild(createPaymentSubmissionCard(order,config));else card.appendChild(makeElement("p","account-empty","اطلاعات کارت‌به‌کارت فعلاً در دسترس نیست؛ با پشتیبانی تماس بگیرید."));}
+    if(["awaiting_receipt","rejected"].includes(order.status)){const meta=order.metadata||{};const config={...(data.payment_config||{}),card_number:meta.payment_card_number||data.payment_config?.card_number||"",card_owner:meta.payment_card_owner||data.payment_config?.card_owner||"",instructions:meta.payment_instructions||data.payment_config?.instructions||""};if(config.card_number&&config.card_owner)card.appendChild(createPaymentSubmissionCard(order,config));else card.appendChild(makeElement("p","account-empty","اطلاعات کارت‌به‌کارت فعلاً در دسترس نیست؛ با پشتیبانی تماس بگیرید."));}
     box.appendChild(card);
   });
 }
