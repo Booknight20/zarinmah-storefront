@@ -2679,13 +2679,7 @@ function updatePasswordStrength() {
 }
 function handleAuthOtpInput() {
   const input = document.getElementById('authOtp');
-  input.value = toEnglishDigits(input.value).replace(/\\D/g, '').slice(0, 6);
-  if (input.value.length === 6) {
-    clearTimeout(window.__zarinOtpSubmitTimer);
-    window.__zarinOtpSubmitTimer = setTimeout(() => {
-      if (document.getElementById('authOtpGroup').style.display !== 'none') verifyAuthOtp();
-    }, 250);
-  }
+  input.value = toEnglishDigits(input.value).replace(/\D/g, '').slice(0, 6);
 }
 function setPhoneAuthMode(mode) {
   phoneAuthMode = ['signup', 'recovery'].includes(mode) ? mode : 'login';
