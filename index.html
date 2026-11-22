@@ -253,6 +253,19 @@ header {
 .account-deadline span { color:var(--muted); font-size:10px; }
 .account-deadline.is-expired { border-color:rgba(210,90,90,.4); background:rgba(180,60,60,.08); }
 .account-deadline.is-expired strong { color:#ff9b9b; }
+
+.admin-payment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#0c1419;margin:12px 0}
+.admin-payment-form label{display:grid;gap:5px;color:#d9c79e;font-size:12px}
+.admin-payment-form input,.admin-payment-form select,.admin-payment-form textarea{width:100%;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#080f14;color:var(--text)}
+.admin-payment-form textarea{min-height:76px;resize:vertical}
+.admin-payment-form .full{grid-column:1/-1}
+.admin-payment-list{display:grid;gap:10px;margin-top:14px}
+.admin-payment-card{padding:13px;border:1px solid var(--line);border-radius:11px;background:#0d151b}
+.admin-payment-card p{margin:4px 0;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.admin-payment-card strong{color:#f0dfb7}
+.admin-payment-card a{display:inline-block;margin:6px 0;color:var(--gold);text-decoration:underline;font-size:11px}
+.admin-payment-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+@media(max-width:600px){.admin-payment-form{grid-template-columns:1fr}.admin-payment-form .full{grid-column:auto}}
 .admin-members-section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
 .admin-members-title { color:var(--gold); font-size:13px; margin:0 0 8px; }
 .admin-overview { display:grid; gap:18px; }
@@ -3334,6 +3347,106 @@ function initHeroSlogans(){
   let index=0;heroSloganTimer=setInterval(()=>{index=(index+1)%heroSlogans.length;heading.classList.add("slogan-changing");setTimeout(()=>{first.textContent=heroSlogans[index][0];second.textContent=heroSlogans[index][1];heading.classList.remove("slogan-changing");},320);},heroSloganDurationMs);
 }
 document.addEventListener("DOMContentLoaded",()=>{loadPublicBanners();loadPublicSiteSlogans().finally(initHeroSlogans);});
+
+
+async function loadAdminPayments() {
+  const box=document.getElementById("adminWorkspacePayments");
+  if(!box||!currentAuthSession?.access_token||!isSuperAdmin())return;
+  box.replaceChildren(makeElement("p","account-empty","در حال دریافت تعرفه‌ها و پرداخت‌ها…"));
+  try{
+    const headers={Authorization:"Bearer "+currentAuthSession.access_token,Accept:"application/json"};
+    const pair=await Promise.all([
+      fetch(LISTINGS_API+"?action=admin_payment_settings",{cache:"no-store",headers}),
+      fetch(LISTINGS_API+"?action=admin_payments",{cache:"no-store",headers})
+    ]);
+    const settings=await pair[0].json().catch(()=>({}));
+    const paymentData=await pair[1].json().catch(()=>({}));
+    if(!pair[0].ok||!settings.ok)throw new Error(settings.error||"دریافت تنظیمات پرداخت ناموفق بود.");
+    if(!pair[1].ok||!paymentData.ok)throw new Error(paymentData.error||"دریافت فهرست پرداخت‌ها ناموفق بود.");
+    const p=settings.payment||{},t=settings.tariff||{};
+    box.innerHTML =
+      '<h3 class="admin-members-title">مدیریت تعرفه و پرداخت فروشندگان</h3>'+
+      '<p class="account-summary">تمام تغییرات این بخش فقط با دسترسی مدیرکل ذخیره می‌شود. درگاه بانکی فعلاً غیرفعال است و روش فعلی کارت‌به‌کارت خواهد بود.</p>'+
+      '<section class="admin-members-section"><h4 class="admin-overview-subtitle">تعرفه آگهی‌های عادی</h4>'+
+      '<form id="adminTariffSettingsForm" class="admin-payment-form">'+
+      '<label>تعداد آگهی رایگان هر فروشنده<input id="adminFreeQuota" name="free_listing_quota" type="number" min="0" max="100" required></label>'+
+      '<label>هزینه هر آگهی پس از سهمیه (تومان)<input id="adminListingFee" name="listing_price_toman" type="number" min="0" required></label>'+
+      '<label>مدت نمایش آگهی (روز)<input id="adminListingDays" name="listing_duration_days" type="number" min="1" max="365" required></label>'+
+      '<div class="full"><button class="btn" type="submit">ذخیره تعرفه‌ها</button></div></form></section>'+
+      '<section class="admin-members-section"><h4 class="admin-overview-subtitle">اطلاعات کارت‌به‌کارت</h4>'+
+      '<form id="adminManualPaymentForm" class="admin-payment-form">'+
+      '<label>وضعیت دریافت پرداخت<select id="adminPaymentEnabled" name="enabled"><option value="false">غیرفعال</option><option value="true">فعال</option></select></label>'+
+      '<label>مهلت ارسال رسید (ساعت)<input id="adminReceiptDeadline" name="receipt_deadline_hours" type="number" min="1" max="168" required></label>'+
+      '<label>شماره کارت ۱۶ رقمی<input id="adminCardNumber" name="card_number" inputmode="numeric" maxlength="19" autocomplete="off"></label>'+
+      '<label>نام صاحب کارت<input id="adminCardOwner" name="card_owner" maxlength="100"></label>'+
+      '<label class="full">توضیحات برای پرداخت‌کننده<textarea id="adminPaymentInstructions" name="instructions" maxlength="700"></textarea></label>'+
+      '<div class="full"><button class="btn" type="submit">ذخیره اطلاعات کارت و وضعیت پرداخت</button></div></form>'+
+      '<p class="account-summary">درگاه بانکی در این مرحله متصل نیست. فعال‌سازی آن به اتصال و آزمایش جداگانه نیاز دارد.</p></section>'+
+      '<section class="admin-members-section"><h4 class="admin-overview-subtitle">رسیدهای پرداخت و بررسی مدیر</h4>'+
+      '<div id="adminPaymentOrders" class="admin-payment-list"></div></section>';
+    document.getElementById("adminFreeQuota").value=Number(t.free_listing_quota??3);
+    document.getElementById("adminListingFee").value=Number(t.listing_price_toman??25000);
+    document.getElementById("adminListingDays").value=Number(t.listing_duration_days??30);
+    document.getElementById("adminPaymentEnabled").value=p.enabled===true?"true":"false";
+    document.getElementById("adminReceiptDeadline").value=Number(p.receipt_deadline_hours??24);
+    document.getElementById("adminCardNumber").value=String(p.card_number||"");
+    document.getElementById("adminCardOwner").value=String(p.card_owner||"");
+    document.getElementById("adminPaymentInstructions").value=String(p.instructions||"");
+    document.getElementById("adminTariffSettingsForm").addEventListener("submit",saveAdminTariffSettings);
+    document.getElementById("adminManualPaymentForm").addEventListener("submit",saveAdminPaymentSettings);
+    renderAdminPaymentOrders(paymentData.payments||[]);
+  }catch(error){box.replaceChildren(makeElement("p","account-empty",error.message||"دریافت اطلاعات پرداخت ناموفق بود."));}
+}
+
+async function saveAdminTariffSettings(event){
+  event.preventDefault();if(!currentAuthSession?.access_token||!isSuperAdmin())return;
+  const form=event.currentTarget,fd=new FormData(form);fd.set("action","admin_tariff_settings_save");
+  const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="در حال ذخیره…";
+  try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"ذخیره تعرفه ناموفق بود.");showToast(result.message||"تعرفه ذخیره شد.");await loadAdminPayments();}
+  catch(error){showToast(error.message||"ذخیره تعرفه ناموفق بود.");}
+  finally{button.disabled=false;button.textContent="ذخیره تعرفه‌ها";}
+}
+
+async function saveAdminPaymentSettings(event){
+  event.preventDefault();if(!currentAuthSession?.access_token||!isSuperAdmin())return;
+  const form=event.currentTarget,fd=new FormData(form);fd.set("action","admin_payment_settings_save");
+  const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="در حال ذخیره…";
+  try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"ذخیره اطلاعات کارت ناموفق بود.");showToast(result.message||"اطلاعات کارت ذخیره شد.");await loadAdminPayments();}
+  catch(error){showToast(error.message||"ذخیره اطلاعات کارت ناموفق بود.");}
+  finally{button.disabled=false;button.textContent="ذخیره اطلاعات کارت و وضعیت پرداخت";}
+}
+
+function renderAdminPaymentOrders(rows){
+  const box=document.getElementById("adminPaymentOrders");if(!box)return;box.replaceChildren();
+  if(!rows.length){box.appendChild(makeElement("p","account-empty","هنوز سفارش پرداختی ثبت نشده است."));return;}
+  rows.forEach(order=>{
+    const card=makeElement("article","admin-payment-card"),customer=order.customer||{};
+    card.appendChild(makeElement("strong","","سفارش #"+order.id+" · "+(order.purpose==="package_purchase"?(order.package_name||"بسته فروشنده"):"هزینه ثبت آگهی")));
+    card.appendChild(makeElement("p","","کاربر: "+(customer.full_name||"نامشخص")+" · "+(customer.mobile||"شماره ثبت‌نشده")));
+    card.appendChild(makeElement("p","","مبلغ: "+Number(order.amount_toman||0).toLocaleString("fa-IR")+" تومان · وضعیت: "+paymentStatusLabel(order.status)));
+    card.appendChild(makeElement("p","","ثبت: "+formatRequestDateTime(order.created_at)+(order.tracking_code?" · پیگیری: "+order.tracking_code:"")));
+    if(order.payer_name)card.appendChild(makeElement("p","","پرداخت‌کننده: "+order.payer_name));
+    if(order.rejection_reason)card.appendChild(makeElement("p","","علت رد قبلی: "+order.rejection_reason));
+    if(order.receipt_url){const link=makeElement("a","","مشاهده رسید بانکی (لینک امن ۱۵ دقیقه‌ای)");link.href=order.receipt_url;link.target="_blank";link.rel="noopener noreferrer";card.appendChild(link);}
+    if(order.status==="under_review"){
+      const actions=makeElement("div","admin-payment-actions");
+      const approve=makeElement("button","btn","تأیید پرداخت");approve.type="button";approve.addEventListener("click",()=>adminReviewPayment(order.id,"approve"));
+      const reject=makeElement("button","account-action danger","رد رسید");reject.type="button";reject.addEventListener("click",()=>adminReviewPayment(order.id,"reject"));
+      actions.append(approve,reject);card.appendChild(actions);
+    }
+    box.appendChild(card);
+  });
+}
+
+async function adminReviewPayment(orderId,action){
+  if(!isSuperAdmin()||!currentAuthSession?.access_token)return;
+  let reason="";
+  if(action==="approve"){if(!confirm("پرداخت این سفارش تأیید شود؟"))return;}
+  else{reason=prompt("دلیل رد رسید را وارد کنید:")||"";if(reason.trim().length<4)return showToast("برای رد رسید، دلیل کوتاهی وارد کنید.");}
+  const fd=new FormData();fd.set("action","admin_payment_review");fd.set("payment_order_id",String(orderId));fd.set("review_action",action);fd.set("rejection_reason",reason);
+  try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"ثبت نتیجه بررسی ناموفق بود.");showToast(result.message||"وضعیت پرداخت تغییر کرد.");await loadAdminPayments();await loadAccountPanel();}
+  catch(error){showToast(error.message||"بررسی پرداخت ناموفق بود.");}
+}
 
 async function showAdminWorkspaceTab(tab) {
   if (!canOpenAdminWorkspace()) return;
