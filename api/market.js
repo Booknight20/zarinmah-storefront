@@ -633,9 +633,12 @@ async function fetchSourcePrices(maxAgeMs = MAX_SOURCE_AGE_MS) {
 // =========================================================
 
 module.exports = async function handler(req, res) {
+  // Cache identical public market responses at the Vercel CDN.
+  // This prevents every visitor and every browser poll from re-running
+  // Telegram scraping and history I/O independently.
   res.setHeader(
     "Cache-Control",
-    "no-store, max-age=0, must-revalidate"
+    "public, max-age=0, s-maxage=60, stale-while-revalidate=300"
   );
 
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -671,11 +674,13 @@ module.exports = async function handler(req, res) {
   let state = JSON.parse(JSON.stringify(INITIAL_STATE));
   let stateAvailable = false;
 
-  try {
-    state = await readState();
-    stateAvailable = true;
-  } catch (error) {
-    console.error("Market Blob read error:", error.message);
+  if (HISTORY_API_URL) {
+    try {
+      state = await readState();
+      stateAvailable = true;
+    } catch (error) {
+      console.error("Market history read failed:", error.message);
+    }
   }
 
   // جلوگیری از دریافت تکراری قیمت در فاصله کمتر از ۵۰ ثانیه
@@ -726,22 +731,27 @@ module.exports = async function handler(req, res) {
 
     let historySaved = false;
 
-    try {
-      const history = await saveTodayPrices(
-        sourceDateString,
-        prices,
-        updatedAt
-      );
+    // Do not repeatedly call a known-unconfigured storage endpoint.
+    // Live prices remain available; durable history can be re-enabled by
+    // configuring both history URL and write token.
+    if (HISTORY_API_URL && HISTORY_WRITE_TOKEN) {
+      try {
+        const history = await saveTodayPrices(
+          sourceDateString,
+          prices,
+          updatedAt
+        );
 
-      previousPrices = history.previousPrices;
-      comparisonDate = history.previousDate;
-      historySaved = history.saved;
+        previousPrices = history.previousPrices;
+        comparisonDate = history.previousDate;
+        historySaved = history.saved;
 
-    } catch (error) {
-      console.error(
-        "Market Blob history save error:",
-        error.message
-      );
+      } catch (error) {
+        console.error(
+          "Market history save failed:",
+          error.message
+        );
+      }
     }
 
     return res.status(200).json({
