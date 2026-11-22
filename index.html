@@ -28,6 +28,13 @@ body {
   line-height: 1.9;
 }
 button, input, select, textarea { font: inherit; }
+.password-input-wrap { display:flex; align-items:stretch; gap:8px; }
+.password-input-wrap input { flex:1; min-width:0; }
+.password-visibility-btn { flex:0 0 auto; min-width:64px; padding:8px 12px; border:1px solid var(--line); border-radius:10px; background:#17140e; color:var(--gold); font-size:12px; cursor:pointer; }
+.password-strength { display:block; margin-top:7px; color:var(--muted); font-size:11px; line-height:1.8; }
+.password-strength.good { color:#8bd6a5; }
+.password-strength.bad { color:#e8b36d; }
+
 button, .btn { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 .wrap { width: min(1160px, calc(100% - 32px)); margin: auto; }
@@ -2254,12 +2261,24 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       </div>
       <div class="field" id="authPhonePasswordGroup" style="margin-top:12px">
         <label id="authPhonePasswordLabel" for="authPassword">رمز عبور</label>
-        <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="حداقل ۸ نویسه">
+        <div class="password-input-wrap">
+          <input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="رمز عبور حساب" onkeydown="if(event.key==='Enter'){event.preventDefault();signInWithPhonePassword();}">
+          <button class="password-visibility-btn" type="button" onclick="togglePasswordVisibility('authPassword', this)" aria-label="نمایش یا مخفی‌کردن رمز عبور" aria-pressed="false">نمایش</button>
+        </div>
         <small id="authPhonePasswordHelp">برای ورود، رمز عبور حساب خود را وارد کنید.</small>
+        <small id="authPasswordStrength" class="password-strength" style="display:none"></small>
+      </div>
+      <div class="field" id="authConfirmPasswordGroup" style="display:none;margin-top:12px">
+        <label for="authConfirmPassword">تکرار رمز عبور</label>
+        <div class="password-input-wrap">
+          <input id="authConfirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="رمز عبور را دوباره وارد کنید" onkeydown="if(event.key==='Enter'){event.preventDefault();requestAuthOtp();}">
+          <button class="password-visibility-btn" type="button" onclick="togglePasswordVisibility('authConfirmPassword', this)" aria-label="نمایش یا مخفی‌کردن تکرار رمز عبور" aria-pressed="false">نمایش</button>
+        </div>
+        <small id="authConfirmPasswordHelp" class="password-strength">هر دو رمز باید دقیقاً یکسان باشند.</small>
       </div>
       <div class="field" id="authOtpGroup" style="display:none;margin-top:14px">
         <label for="authOtp">کد شش‌رقمی پیامک‌شده</label>
-        <input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد پیامک‌شده">
+        <input id="authOtp" name="one-time-code" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد پیامک‌شده" oninput="handleAuthOtpInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyAuthOtp();}">
         <small>کد را فقط در همین صفحه وارد کنید و در اختیار دیگران نگذارید.</small>
       </div>
       <div class="auth-actions">
@@ -2624,6 +2643,50 @@ function startAuthResendCooldown(seconds = 30) {
   }, 1000);
 }
 
+function togglePasswordVisibility(inputId, button) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  button.textContent = show ? 'پنهان' : 'نمایش';
+  button.setAttribute('aria-pressed', show ? 'true' : 'false');
+}
+function validateStrongPassword(password) {
+  const hasLetter = /\\p{L}/u.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^\\p{L}0-9\\s]/u.test(password);
+  return password.length >= 12 && hasLetter && hasNumber && hasSymbol;
+}
+function updatePasswordStrength() {
+  const input = document.getElementById('authPassword');
+  const hint = document.getElementById('authPasswordStrength');
+  const confirm = document.getElementById('authConfirmPassword');
+  const confirmHint = document.getElementById('authConfirmPasswordHelp');
+  if (!input || !hint) return;
+  if (phoneAuthMode === 'login') { hint.style.display = 'none'; return; }
+  hint.style.display = 'block';
+  const password = input.value;
+  const strong = validateStrongPassword(password);
+  hint.className = 'password-strength ' + (strong ? 'good' : 'bad');
+  hint.textContent = strong
+    ? 'رمز عبور مناسب است: طول کافی، حروف، عدد و نماد دارد.'
+    : 'برای امنیت بیشتر: حداقل ۱۲ نویسه شامل حرف، عدد و نماد انتخاب کنید.';
+  if (confirm && confirmHint) {
+    const matches = confirm.value.length > 0 && confirm.value === password;
+    confirmHint.className = 'password-strength ' + (matches ? 'good' : 'bad');
+    confirmHint.textContent = confirm.value.length === 0 ? 'رمز را دوباره وارد کنید.' : (matches ? 'تکرار رمز با رمز اصلی مطابقت دارد.' : 'دو رمز عبور یکسان نیستند.');
+  }
+}
+function handleAuthOtpInput() {
+  const input = document.getElementById('authOtp');
+  input.value = toEnglishDigits(input.value).replace(/\\D/g, '').slice(0, 6);
+  if (input.value.length === 6) {
+    clearTimeout(window.__zarinOtpSubmitTimer);
+    window.__zarinOtpSubmitTimer = setTimeout(() => {
+      if (document.getElementById('authOtpGroup').style.display !== 'none') verifyAuthOtp();
+    }, 250);
+  }
+}
 function setPhoneAuthMode(mode) {
   phoneAuthMode = ['signup', 'recovery'].includes(mode) ? mode : 'login';
   const setup = phoneAuthMode !== 'login';
@@ -2633,10 +2696,18 @@ function setPhoneAuthMode(mode) {
   document.getElementById('authOtpGroup').style.display = 'none';
   document.getElementById('authPhonePasswordLabel').textContent = setup ? 'رمز عبور جدید' : 'رمز عبور';
   document.getElementById('authPhonePasswordHelp').textContent = setup
-    ? 'رمز عبور جدید حداقل ۸ نویسه باشد؛ پس از تأیید پیامک روی حساب ذخیره می‌شود.'
+    ? 'حداقل ۱۲ نویسه شامل حرف، عدد و نماد انتخاب کنید.'
     : 'برای ورود، رمز عبور حساب خود را وارد کنید.';
+  document.getElementById('authConfirmPasswordGroup').style.display = setup ? 'grid' : 'none';
   document.getElementById('authPassword').value = '';
+  document.getElementById('authConfirmPassword').value = '';
+  document.getElementById('authPassword').type = 'password';
+  document.getElementById('authConfirmPassword').type = 'password';
+  document.querySelectorAll('#authPhonePasswordGroup .password-visibility-btn, #authConfirmPasswordGroup .password-visibility-btn').forEach(button => { button.textContent = 'نمایش'; button.setAttribute('aria-pressed', 'false'); });
   document.getElementById('authPassword').autocomplete = setup ? 'new-password' : 'current-password';
+  document.getElementById('authPassword').oninput = updatePasswordStrength;
+  document.getElementById('authConfirmPassword').oninput = updatePasswordStrength;
+  updatePasswordStrength();
   document.getElementById('authPasswordLoginButton').style.display = setup ? 'none' : 'inline-block';
   document.getElementById('authSignupButton').style.display = setup ? 'none' : 'inline-block';
   document.getElementById('authRecoveryButton').style.display = setup ? 'none' : 'inline-block';
@@ -2686,8 +2757,19 @@ async function requestAuthOtp(isResend = false) {
     setAuthMessage('شماره موبایل معتبر وارد کنید؛ مانند 09123456789.');
     return;
   }
+  if (!validateStrongPassword(password)) {
+    setAuthMessage('رمز عبور قوی انتخاب کنید: حداقل ۱۲ نویسه شامل حرف، عدد و نماد.');
+    document.getElementById('authPassword').focus();
+    return;
+  }
+  const confirmPassword = document.getElementById('authConfirmPassword').value;
+  if (password !== confirmPassword) {
+    setAuthMessage('رمز عبور و تکرار آن یکسان نیستند.');
+    document.getElementById('authConfirmPassword').focus();
+    return;
+  }
   if (password.length < 8) {
-    setAuthMessage('رمز جدید باید حداقل ۸ نویسه باشد.');
+    setAuthMessage('رمز جدید معتبر نیست.');
     document.getElementById('authPassword').focus();
     return;
   }
