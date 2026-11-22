@@ -2652,9 +2652,9 @@ function togglePasswordVisibility(inputId, button) {
   button.setAttribute('aria-pressed', show ? 'true' : 'false');
 }
 function validateStrongPassword(password) {
-  const hasLetter = /\\p{L}/u.test(password);
+  const hasLetter = /\p{L}/u.test(password);
   const hasNumber = /[0-9]/.test(password);
-  const hasSymbol = /[^\\p{L}0-9\\s]/u.test(password);
+  const hasSymbol = /[^\p{L}0-9\s]/u.test(password);
   return password.length >= 12 && hasLetter && hasNumber && hasSymbol;
 }
 function updatePasswordStrength() {
@@ -5439,7 +5439,7 @@ function isListingInPreferredCity(item, locationKey = getPreferredStoreLocationK
   const normalize = value => String(value || '').normalize('NFKC')
     .replace(/[ي]/g, 'ی').replace(/[ك]/g, 'ک')
     .replace(/[\\u200c\\u200e\\u200f\\u0640]/g, '')
-    .replace(/\\s+/g, ' ').trim();
+    .replace(/\s+/g, ' ').trim();
   return Boolean(province && city &&
     normalize(item.province) === normalize(province) &&
     normalize(item.city) === normalize(city));
