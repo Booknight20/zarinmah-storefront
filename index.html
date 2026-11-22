@@ -381,9 +381,9 @@ header {
 .admin-workspace-content { min-width:0; width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:14px; padding:18px; background:#11100d; min-height:55vh; }
 .admin-workspace-content > .account-list { max-height:none; overflow:visible; }
 .admin-workspace-content #accountAdmin { max-height:none; overflow:visible; }
-#adminWorkspaceListings,#adminWorkspaceRequests,#adminWorkspaceMembers,#adminWorkspaceStorage { display:none; }
+#adminWorkspaceListings,#adminWorkspaceRequests,#adminWorkspaceMembers,#adminWorkspaceStorage,#adminWorkspacePayments { display:none; }
 #adminWorkspaceListings { min-height:calc(100vh - 230px); box-sizing:border-box; }
-#adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active,#adminWorkspaceStorage.active { display:block; }
+#adminWorkspaceListings.active,#adminWorkspaceRequests.active,#adminWorkspaceMembers.active,#adminWorkspaceStorage.active,#adminWorkspacePayments.active { display:block; }
 #adminWorkspaceMembers .account-list { max-height:none; overflow:visible; }
 .account-request-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:2px 0 8px; }
 .account-request-heading h3 { margin:0; color:var(--gold); font-size:18px; line-height:1.6; }
@@ -2303,9 +2303,11 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
           <button class="account-tab active" type="button" data-account-tab="profile" onclick="showAccountTab('profile')">اطلاعات کاربر</button>
           <button class="account-tab" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
           <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌ها</button>
+          <button class="account-tab" type="button" data-account-tab="payments" onclick="showAccountTab('payments')">پرداخت‌ها</button>
           <button class="account-tab" type="button" data-account-tab="support" onclick="showAccountTab('support')">راهنما و پشتیبانی</button>
         </div>
         <div class="account-list account-profile-view" id="accountProfile" style="display:none"></div>
+        <div class="account-list" id="accountPayments" style="display:none"></div>
         <div class="account-list account-support-view" id="accountSupport" style="display:none">
           <section class="account-item"><strong>راهنمای استفاده از زرین ماه</strong><p>برای فروش طلا، از بخش «آگهی‌های من» آگهی ثبت کنید. آگهی پس از بررسی مدیر در سایت منتشر می‌شود.</p><p>برای خرید، از صفحه آگهی درخواست بفرستید. پس از تأیید فروشنده، مهلت پرداخت در بخش «درخواست‌ها» نمایش داده می‌شود.</p><p>تا پیش از پرداخت موفق، اطلاعات تماس فروشنده نمایش داده نمی‌شود.</p></section>
           <section class="account-item"><strong>پشتیبانی زرین ماه</strong><p>اگر در ثبت آگهی، درخواست خرید یا حساب کاربری مشکلی دارید، از راه ارتباطی پشتیبانی درج‌شده در سایت کمک بگیرید.</p></section>
@@ -2347,6 +2349,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <button type="button" data-admin-workspace-tab="archive" onclick="showAdminWorkspaceTab('archive')">بایگانی آگهی‌ها</button>
         <button type="button" data-admin-workspace-tab="requests" onclick="showAdminWorkspaceTab('requests')">درخواست‌های خرید</button>
         <button type="button" data-admin-workspace-tab="storage" onclick="showAdminWorkspaceTab('storage')">مدیریت فضا</button>
+        <button type="button" data-admin-workspace-tab="payments" onclick="showAdminWorkspaceTab('payments')">تعرفه و پرداخت‌ها</button>
       </div>
       <div class="admin-workspace-content">
         <div id="adminWorkspaceOverview"></div><div id="adminWorkspaceBanners" style="display:none"></div>
@@ -2355,6 +2358,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
         <div id="adminWorkspaceRequests"></div>
         <div id="adminWorkspaceMembers"></div>
         <div id="adminWorkspaceStorage"></div>
+        <div id="adminWorkspacePayments" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -3191,7 +3195,7 @@ async function openAdminWorkspace() {
   document.querySelectorAll("[data-admin-workspace-tab]").forEach(button => {
     const tab = button.dataset.adminWorkspaceTab;
     const allowed = isSuperAdmin()
-      || (canManageListings() && tab !== "members" && tab !== "storage" && tab !== "slogans")
+      || (canManageListings() && tab !== "members" && tab !== "storage" && tab !== "slogans" && tab !== "payments")
       || (canManageMembers() && tab === "members");
     button.hidden = !allowed;
   });
@@ -3342,8 +3346,9 @@ async function showAdminWorkspaceTab(tab) {
   if (tab === "overview" && !isSuperAdmin()) return;
   if (tab === "banners" && !isSuperAdmin()) return;
   if (tab === "slogans" && !isSuperAdmin()) return;
+  if (tab === "payments" && !isSuperAdmin()) return;
   const listingTabs = ["all","pending","published","sold","rejected","deleted","archive"];
-  const panels = ["overview","listings","requests","members","storage","banners","slogans"];
+  const panels = ["overview","listings","requests","members","storage","banners","slogans","payments"];
   panels.forEach(name => {
     const panel=document.getElementById("adminWorkspace"+name[0].toUpperCase()+name.slice(1));
     if(panel) panel.style.display = (name === "listings" && listingTabs.includes(tab)) || name === tab ? "block" : "none";
@@ -3375,7 +3380,7 @@ async function showAdminWorkspaceTab(tab) {
   } else if (tab === "storage") {
     const box = document.getElementById("adminWorkspaceStorage");
     await loadAdminStorageUsage(box);
-  } else if (tab === "banners") { await loadAdminBanners(); } else if (tab === "slogans") { try { await loadAdminSlogans(); renderAdminSlogansPreview(); } catch(error) { const box=document.getElementById("adminWorkspaceSlogans"); if(box)box.innerHTML='<p class="slogan-preview-note">'+escapeSloganText(error.message||"دریافت شعارها ناموفق بود.")+'</p><button type="button" onclick="showAdminWorkspaceTab(\'slogans\')">تلاش دوباره</button>'; } }
+  } else if (tab === "payments") { await loadAdminPayments(); } else if (tab === "banners") { await loadAdminBanners(); } else if (tab === "slogans") { try { await loadAdminSlogans(); renderAdminSlogansPreview(); } catch(error) { const box=document.getElementById("adminWorkspaceSlogans"); if(box)box.innerHTML='<p class="slogan-preview-note">'+escapeSloganText(error.message||"دریافت شعارها ناموفق بود.")+'</p><button type="button" onclick="showAdminWorkspaceTab(\'slogans\')">تلاش دوباره</button>'; } }
 }
 
 function closeAdminWorkspace() {
@@ -3535,7 +3540,7 @@ function startAccountNotificationPolling() {
 }
 
 function showAccountTab(tab) {
-  const panels = { profile:"accountProfile", listings:"accountListings", requests:"accountRequests", support:"accountSupport", admin:"accountAdmin" };
+  const panels = { profile:"accountProfile", listings:"accountListings", requests:"accountRequests", payments:"accountPayments", support:"accountSupport", admin:"accountAdmin" };
   Object.entries(panels).forEach(([name,id]) => {
     const panel = document.getElementById(id);
     const button = document.querySelector(`[data-account-tab="${name}"]`);
@@ -4595,11 +4600,62 @@ function renderAccountProfile() {
   edit.type = "button"; edit.addEventListener("click",editUserProfile); box.appendChild(edit);
 }
 
+
+function paymentStatusLabel(status) {
+  return ({awaiting_receipt:"در انتظار ثبت رسید",under_review:"در انتظار بررسی مدیر",approved:"پرداخت تأیید شد",rejected:"رسید نیازمند اصلاح",cancelled:"لغوشده",expired:"منقضی‌شده",gateway_pending:"در انتظار درگاه",gateway_failed:"پرداخت ناموفق"})[status] || "نامشخص";
+}
+function createPaymentSubmissionCard(order, config) {
+  const card=makeElement("section","account-item payment-submit-card");
+  card.appendChild(makeElement("strong","","پرداخت کارت‌به‌کارت · سفارش #"+order.id));
+  card.appendChild(makeElement("p","","مبلغ قابل پرداخت: "+Number(order.amount_toman||0).toLocaleString("fa-IR")+" تومان"));
+  const bank=makeElement("div","account-deadline"); bank.appendChild(makeElement("small","","شماره کارت مقصد"));
+  const number=makeElement("strong",""); number.style.direction="ltr"; number.style.textAlign="right";
+  number.textContent=String(config.card_number||"").replace(/\D/g,"").replace(/(\d{4})(?=\d)/g,"$1 ـ ");
+  bank.appendChild(number); bank.appendChild(makeElement("small","","به نام: "+(config.card_owner||"—"))); card.appendChild(bank);
+  if(config.instructions)card.appendChild(makeElement("p","",config.instructions));
+  const form=document.createElement("form"); form.style.display="grid"; form.style.gap="9px";
+  const payer=document.createElement("input"); payer.name="payer_name"; payer.required=true; payer.maxLength=100; payer.placeholder="نام پرداخت‌کننده";
+  const tracking=document.createElement("input"); tracking.name="tracking_code"; tracking.required=true; tracking.maxLength=100; tracking.placeholder="شماره پیگیری / مرجع بانکی";
+  const file=document.createElement("input"); file.name="payment_receipt"; file.type="file"; file.required=true; file.accept="image/jpeg,image/png,image/webp,application/pdf";
+  [payer,tracking,file].forEach(input=>{input.style.width="100%";input.style.padding="10px";input.style.border="1px solid var(--line)";input.style.borderRadius="9px";input.style.background="#0d151b";input.style.color="var(--text)";form.appendChild(input);});
+  const submit=makeElement("button","btn","ارسال رسید برای بررسی مدیر");submit.type="submit";form.appendChild(submit);
+  const status=makeElement("p","account-summary","پس از بررسی و تأیید مدیر، آگهی برای بررسی انتشار آماده می‌شود.");form.appendChild(status);
+  form.addEventListener("submit",async event=>{
+    event.preventDefault(); if(!currentAuthSession?.access_token)return openAuthModal();
+    if(!file.files?.[0]){status.textContent="تصویر یا PDF رسید را انتخاب کنید.";return;}
+    const fd=new FormData();fd.append("action","submit_payment_receipt");fd.append("payment_order_id",String(order.id));fd.append("amount_toman",String(order.amount_toman));fd.append("payer_name",payer.value.trim());fd.append("tracking_code",tracking.value.trim());fd.append("payment_receipt",file.files[0],file.files[0].name);
+    submit.disabled=true;submit.textContent="در حال ارسال رسید…";status.textContent="در حال بارگذاری امن رسید…";
+    try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd,cache:"no-store"});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"ثبت رسید ناموفق بود.");showToast(result.message||"رسید ارسال شد.");await loadAccountPanel();}
+    catch(error){status.textContent=error.message||"ارسال رسید ناموفق بود.";}
+    finally{submit.disabled=false;submit.textContent="ارسال رسید برای بررسی مدیر";}
+  });
+  card.appendChild(form);return card;
+}
+function renderAccountPayments(data){
+  const box=document.getElementById("accountPayments");if(!box)return;box.replaceChildren();
+  box.appendChild(makeElement("h3","admin-members-title","پرداخت‌های من"));
+  box.appendChild(makeElement("p","account-summary","رسیدهای کارت‌به‌کارت، وضعیت بررسی و سوابق پرداخت شما"));
+  const orders=Array.isArray(data.payment_orders)?data.payment_orders:[];
+  if(!orders.length){box.appendChild(makeElement("p","account-empty","هنوز سفارش پرداختی برای حساب شما ثبت نشده است."));return;}
+  orders.forEach(order=>{
+    const card=makeElement("section","account-item"),heading=makeElement("div","admin-listing-heading");
+    heading.append(makeElement("strong","","سفارش #"+order.id+" · "+(order.purpose==="package_purchase"?(order.package_name||"بسته فروشنده"):"هزینه ثبت آگهی")),makeElement("span","admin-request-status "+(order.status==="approved"?"approved":order.status==="rejected"?"rejected":"pending"),paymentStatusLabel(order.status)));
+    card.appendChild(heading);card.appendChild(makeElement("p","","مبلغ: "+Number(order.amount_toman||0).toLocaleString("fa-IR")+" تومان · تاریخ: "+formatRequestDateTime(order.created_at)));
+    if(order.tracking_code)card.appendChild(makeElement("p","","شماره پیگیری: "+order.tracking_code));
+    if(order.status==="under_review")card.appendChild(makeElement("p","account-summary","رسید شما دریافت شده و در صف بررسی مدیر است."));
+    if(order.status==="approved")card.appendChild(makeElement("p","account-summary","پرداخت تأیید شد. آگهی شما اکنون در انتظار بررسی و انتشار مدیر است."));
+    if(order.status==="rejected")card.appendChild(makeElement("p","account-summary","علت رد رسید: "+(order.rejection_reason||"لطفاً رسید صحیح را دوباره ارسال کنید.")));
+    if(["awaiting_receipt","rejected"].includes(order.status)){const config=data.payment_config||{};if(config.card_number&&config.card_owner)card.appendChild(createPaymentSubmissionCard(order,config));else card.appendChild(makeElement("p","account-empty","اطلاعات کارت‌به‌کارت فعلاً در دسترس نیست؛ با پشتیبانی تماس بگیرید."));}
+    box.appendChild(card);
+  });
+}
+
 function renderAccountPanel(data) {
   const listingsBox = document.getElementById("accountListings");
   const requestsBox = document.getElementById("accountRequests");
   const adminBox = document.getElementById("accountAdmin");
-  [listingsBox, requestsBox, adminBox].forEach(box => box.replaceChildren());
+  const paymentsBox = document.getElementById("accountPayments");
+  [listingsBox, requestsBox, adminBox, paymentsBox].filter(Boolean).forEach(box => box.replaceChildren());
   const admin = data.role === "admin";
   const listingManager = data.role === "listing_manager";
   const hasManagementAccess = ["admin","listing_manager","member_manager"].includes(data.role);
@@ -4614,6 +4670,7 @@ function renderAccountPanel(data) {
   listingsBox.appendChild(makeElement("p", "account-summary", `نمایش ${data.listings.length.toLocaleString("fa-IR")} از ${Number(listingsPage.total || 0).toLocaleString("fa-IR")} آگهی`));
   listingsBox.appendChild(makeElement("p", "admin-overview-note", "در فهرست جاری فقط آگهی‌های در انتظار بررسی و منتشرشده نمایش داده می‌شوند. آگهی‌های فروخته‌شده، ردشده یا حذف‌شده در بایگانی باقی می‌مانند و از بین نمی‌روند."));
   renderListingCards(listingsBox, data.listings, admin, listingManager);
+  renderAccountPayments(data);
   appendAccountPagination(listingsBox, "listings", listingsPage);
 
   const requestHeading = makeElement("div", "account-request-heading");
@@ -4698,7 +4755,7 @@ function renderAccountPanel(data) {
 async function loadAccountPanel() {
   if (!currentAuthSession?.access_token || !profileReady || accountLoading) return;
   accountLoading = true;
-  const boxes = ["accountListings", "accountRequests", "accountAdmin"].map(id => document.getElementById(id));
+  const boxes = ["accountListings", "accountRequests", "accountAdmin", "accountPayments"].map(id => document.getElementById(id)).filter(Boolean);
   boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
   try {
     const params = new URLSearchParams({ action: "account", ...accountQueryState });
@@ -6006,9 +6063,9 @@ document.getElementById('sellerForm').addEventListener(
       const resultBox = document.getElementById('sellerResult');
       resultBox.style.display = 'block';
 
-      resultBox.querySelector('h3').textContent = wasEditing
-        ? `ویرایش آگهی شماره ${editedId} ثبت شد`
-        : `آگهی شماره ${result.id} ثبت شد`;
+      resultBox.querySelector('h3').textContent = result.payment_required
+        ? "آگهی شماره " + result.id + " ثبت شد – پرداخت لازم است"
+        : (wasEditing ? "ویرایش آگهی شماره " + editedId + " ثبت شد" : "آگهی شماره " + result.id + " ثبت شد");
 
       resultBox.querySelector('p').textContent = wasEditing
         ? (result.admin_notification_sent
@@ -6020,8 +6077,14 @@ document.getElementById('sellerForm').addEventListener(
         : (result.admin_notification_sent
             ? ('آگهی ذخیره شد و برای بررسی مدیر ارسال شد. ' + (result.invoice_sent ? 'فاکتور نیز به مدیر ارسال شد.' : 'ارسال فاکتور به مدیر تأیید نشده است؛ لطفاً با پشتیبانی تماس بگیر.'))
             : 'آگهی ذخیره شده، اما ارسال پیام تأیید برای مدیر کامل نشده است. از ثبت دوباره آگهی خودداری کن.');
+      if (result.payment_required) resultBox.querySelector('p').textContent = result.message || 'برای تکمیل ثبت آگهی، مبلغ را کارت‌به‌کارت و رسید را ارسال کنید.';
 
-      showToast(wasEditing
+      if (result.payment_required && result.payment_order && result.payment_config) {
+        const oldPaymentCard=resultBox.querySelector(".payment-submit-card");
+        if(oldPaymentCard)oldPaymentCard.remove();
+        resultBox.appendChild(createPaymentSubmissionCard(result.payment_order,result.payment_config));
+        showToast("آگهی ثبت شد؛ برای ادامه، رسید پرداخت را ارسال کنید.");
+      } else       showToast(wasEditing
         ? 'ویرایش آگهی ذخیره شد و برای بررسی مجدد ارسال شد.'
         : (result.admin_notification_sent ? 'آگهی برای بررسی مدیر ارسال شد.' : 'آگهی ذخیره شد، اما ارسال پیام مدیر ناموفق بود.'));
       if (wasEditing) await loadAccountPanel();
