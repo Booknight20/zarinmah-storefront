@@ -2191,7 +2191,7 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
       </div>
       <div class="field">
         <label for="profileFullName">نام و نام خانوادگی *</label>
-        <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="مثلاً امیر عباسی">
+        <input id="profileFullName" name="full_name" required maxlength="100" autocomplete="name" placeholder="نام و نام خانوادگی خود را وارد کنید">
         <small>نام ثبت‌شده در درخواست خرید و آگهی فروش استفاده می‌شود.</small>
         <div class="field" style="margin-top:12px">
           <label for="profileProvince">استان محل سکونت *</label>
@@ -2927,7 +2927,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
         ? 'حساب کاربری شما غیرفعال است؛ با پشتیبانی تماس بگیرید.'
         : 'برای فعال‌شدن امکانات حساب، نام، آدرس محل سکونت و کد ملی معتبر خود را تکمیل کنید.';
       document.getElementById('profileSubmit').disabled = currentUserProfile?.is_active === false;
-      if (!isAccountPage) openAccountDrawer();
+      // Keep the user on the current page; show profile completion without forcing /account.
       document.getElementById('profileModal').classList.add('show');
       document.getElementById('profileModal').setAttribute('aria-hidden', 'false');
     }
