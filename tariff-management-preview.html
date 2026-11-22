@@ -17,6 +17,7 @@ button,input,select{font:inherit}.shell{max-width:1240px;margin:auto;padding:22p
 .section{margin-top:15px;padding:16px;border:1px solid var(--line);border-radius:13px;background:#0e171d}.section h2{font-size:14px;margin:0 0 13px;color:#f2e4c4}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:grid;gap:5px;color:#c1c8c9;font-size:11px}.field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#080f14;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--gold)}.hint{font-size:10px;color:var(--muted);margin:10px 0 0}
 .packages{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.package{padding:14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#17252d,#0c1419)}.package h3{margin:0;color:var(--gold);font-size:14px}.package p{font-size:10px;color:var(--muted);margin:5px 0}.package strong{display:block;color:#f5e5bd;font-size:18px;margin:9px 0}.package small{font-size:10px;color:var(--muted)}
 .extras{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:15px}.btn{border:1px solid var(--line);border-radius:9px;padding:9px 15px;background:#202a30;color:#b7bec0;font-size:11px;cursor:not-allowed}.actions span{font-size:10px;color:var(--muted)}
+.field input[type=file]{padding:8px}.field input[type=file]::file-selector-button{border:1px solid var(--line);border-radius:7px;padding:5px 9px;background:#202a30;color:var(--gold);margin-left:8px;cursor:pointer}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:none}}@media(max-width:620px){.shell{padding:10px}.kpis,.fields,.packages,.extras{grid-template-columns:1fr}.heading h1{font-size:17px}.kpi strong{font-size:19px}}
 </style></head>
 <body><div class="shell">
@@ -41,6 +42,47 @@ button,input,select{font:inherit}.shell{max-width:1240px;margin:auto;padding:22p
 <label class="field">درصد تخفیف کد<input id="couponPercent" type="number" min="1" max="100" value="20"></label>
 </div><div class="actions"><button class="btn" id="addCoupon" type="button" style="cursor:pointer;color:var(--gold)">＋ ثبت کد تخفیف</button></div><div id="couponRows" style="display:grid;gap:7px;margin-top:10px"></div>
 <p class="hint">مدیر می‌تواند کدهای تخفیف را بسازد و حذف کند، پرداخت را پس از اتصال درگاه فعال کند و تخفیف فروشگاه‌های همکار را تغییر دهد. گزارش پرداخت‌ها، فاکتورها، تمدیدها و درآمد نیز در پنل واقعی قابل مشاهده خواهد بود.</p></section>
+
+<section class="section"><h2>۴. تنظیم روش دریافت وجه (کارت‌به‌کارت فعلی، درگاه در آینده)</h2>
+<div class="notice">روش فعال فعلی کارت‌به‌کارت است. گزینه درگاه بانکی از همین حالا در ساختار پیش‌بینی شده، اما تا زمان عقد قرارداد و اتصال فنی غیرفعال می‌ماند.</div>
+<div class="fields">
+<label class="field">روش پرداخت فعال<select id="paymentMethod"><option value="card">کارت‌به‌کارت (فعال)</option><option value="gateway" disabled>درگاه بانکی (به‌زودی)</option></select></label>
+<label class="field">وضعیت دریافت پرداخت<select id="manualPayStatus"><option value="on">فعال – دریافت رسید و بررسی مدیر</option><option value="off">موقتاً غیرفعال</option></select></label>
+<label class="field">شماره کارت مقصد<input id="destinationCard" inputmode="numeric" maxlength="19" value="6037 ــــ ــــ ــــ ۱۲۳۴" placeholder="شماره کارت ۱۶ رقمی"></label>
+<label class="field">نام صاحب کارت<input id="cardOwner" value="نام صاحب حساب / زرین ماه" placeholder="نام صاحب کارت"></label>
+<label class="field">عنوان پرداخت<input id="paymentTitle" value="پرداخت هزینه ثبت آگهی یا خرید بسته"></label>
+<label class="field">مهلت ارسال رسید (ساعت)<input id="receiptDeadline" type="number" min="1" max="168" value="24"></label>
+</div>
+<label class="field" style="margin-top:12px">توضیحات پرداخت برای کاربر<input id="paymentInstructions" value="پس از واریز وجه، تصویر رسید و شماره پیگیری را در همین صفحه ثبت کنید. فعال‌سازی پس از بررسی مدیر انجام می‌شود."></label>
+<p class="hint">در نسخه واقعی، شماره کارت و تنظیمات فقط توسط مدیرکل قابل تغییر است. شماره کارت نمونه بالاست و باید پیش از فعال‌سازی با اطلاعات واقعی جایگزین شود.</p>
+</section>
+<section class="section"><h2>۵. پیش‌نمایش صفحه پرداخت فروشنده</h2>
+<div class="notice">این نمونه برای نمایش مسیر کاربر است؛ اطلاعات واریز و رسید در این صفحه آزمایشی ذخیره نمی‌شوند.</div>
+<div style="max-width:720px;margin:auto;padding:18px;border:1px solid var(--line);border-radius:13px;background:#111b21">
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><strong style="color:var(--gold)">تکمیل پرداخت آگهی / بسته</strong><span class="preview-tag">در انتظار پرداخت</span></div>
+<div class="fields" style="margin-top:12px">
+<div class="field"><span>شرح سفارش</span><strong style="color:var(--text)">بسته شروع – نمونه</strong></div>
+<div class="field"><span>مبلغ قابل پرداخت</span><strong style="color:var(--gold);font-size:20px">۲۹۹٬۰۰۰ تومان</strong></div>
+</div>
+<div style="margin:14px 0;padding:13px;border:1px dashed var(--gold);border-radius:10px;background:rgba(199,162,75,.06)">
+<div class="field"><span>شماره کارت مقصد</span><strong id="previewCard" style="font-size:17px;letter-spacing:1px;direction:ltr;text-align:right">6037 ــــ ــــ ــــ ۱۲۳۴</strong></div>
+<div class="field" style="margin-top:6px"><span>به نام</span><strong id="previewOwner">نام صاحب حساب / زرین ماه</strong></div>
+<p id="previewInstructions" class="hint">پس از واریز وجه، تصویر رسید و شماره پیگیری را ثبت کنید.</p>
+</div>
+<div class="fields">
+<label class="field">نام پرداخت‌کننده<input id="payerName" placeholder="نام و نام خانوادگی"></label>
+<label class="field">شماره پیگیری / مرجع<input id="trackingCode" placeholder="شماره درج‌شده روی رسید"></label>
+<label class="field">مبلغ واریزی (تومان)<input id="paidAmount" type="number" value="299000"></label>
+<label class="field">تصویر رسید بانکی<input id="receiptFile" type="file" accept="image/*"></label>
+</div>
+<div class="actions"><button class="btn" id="submitReceipt" type="button" style="cursor:pointer">ثبت رسید برای بررسی مدیر</button><span id="receiptFeedback">پس از ثبت، وضعیت سفارش «در انتظار تأیید مدیر» خواهد بود.</span></div>
+</div>
+</section>
+<section class="section"><h2>۶. بررسی پرداخت‌های کارت‌به‌کارت توسط مدیر</h2>
+<div class="notice">در پنل واقعی، فقط مدیر مجاز می‌تواند رسید را مشاهده و تأیید یا رد کند. تأیید پرداخت، بسته یا آگهی مرتبط را فعال می‌کند؛ رد پرداخت همراه با دلیل ثبت می‌شود.</div>
+<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:650px;font-size:11px"><thead><tr style="color:var(--gold);text-align:right"><th style="padding:9px;border-bottom:1px solid var(--line)">کاربر / سفارش</th><th style="padding:9px;border-bottom:1px solid var(--line)">مبلغ</th><th style="padding:9px;border-bottom:1px solid var(--line)">شماره پیگیری</th><th style="padding:9px;border-bottom:1px solid var(--line)">وضعیت</th><th style="padding:9px;border-bottom:1px solid var(--line)">عملیات مدیر</th></tr></thead><tbody id="paymentRows"><tr><td style="padding:9px">کاربر نمونه · بسته شروع</td><td style="padding:9px">۲۹۹٬۰۰۰ تومان</td><td style="padding:9px">۱۲۵۸۴۷۲</td><td id="samplePaymentStatus" style="padding:9px;color:#f3c86b">در انتظار بررسی</td><td style="padding:9px;white-space:nowrap"><button type="button" onclick="reviewSamplePayment(true)" style="border:0;background:none;color:#8fd2a6;cursor:pointer">تأیید</button><button type="button" onclick="reviewSamplePayment(false)" style="border:0;background:none;color:#e5a0a0;cursor:pointer">رد رسید</button></td></tr></tbody></table></div>
+<p class="hint">در سیستم واقعی، زمان ثبت، شناسه کاربر، سفارش، تصویر رسید، تصمیم مدیر و علت رد در سوابق پرداخت و گزارش حسابرسی نگهداری می‌شود.</p>
+</section>
 <div class="actions"><button class="btn" disabled>ذخیره تعرفه‌ها (پس از تأیید طرح)</button><span>پس از تأیید ظاهر و امکانات، پیاده‌سازی واقعی فقط در Preview و Supabase Staging انجام می‌شود.</span></div>
 </main></div></div>
 <script>
@@ -56,5 +98,10 @@ function deletePackage(i){if(confirm('این بسته از فهرست پیش‌�
 document.getElementById('addPackage').addEventListener('click',addPackage);renderPackages();
 let coupons=[];
 function renderCoupons(){document.getElementById('couponRows').innerHTML=coupons.map((c,i)=>'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:11px"><span><b style="color:var(--gold)">'+c.code+'</b> · '+nf.format(c.percent)+'٪ تخفیف</span><button onclick="coupons.splice('+i+',1);renderCoupons()" style="background:none;border:0;color:#e5a0a0;cursor:pointer">حذف کد</button></div>').join('')}
+
+function syncPaymentPreview(){document.getElementById('previewCard').textContent=document.getElementById('destinationCard').value||'شماره کارت تعیین نشده';document.getElementById('previewOwner').textContent=document.getElementById('cardOwner').value||'نام صاحب کارت';document.getElementById('previewInstructions').textContent=document.getElementById('paymentInstructions').value}
+['destinationCard','cardOwner','paymentInstructions'].forEach(id=>document.getElementById(id).addEventListener('input',syncPaymentPreview));syncPaymentPreview();
+document.getElementById('submitReceipt').addEventListener('click',()=>{const name=document.getElementById('payerName').value.trim(),code=document.getElementById('trackingCode').value.trim(),amount=Number(document.getElementById('paidAmount').value),file=document.getElementById('receiptFile').files[0];const out=document.getElementById('receiptFeedback');if(!name||!code||amount<=0||!file){out.textContent='لطفاً نام، مبلغ، شماره پیگیری و تصویر رسید را تکمیل کنید.';return}out.textContent='رسید نمونه ثبت شد؛ در سامانه واقعی برای بررسی مدیر ارسال می‌شود. (این پیش‌نمایش اطلاعات را ذخیره نمی‌کند.)'});
+function reviewSamplePayment(approved){const el=document.getElementById('samplePaymentStatus');el.textContent=approved?'تأییدشده – سفارش فعال می‌شود':'ردشده – نیازمند اصلاح رسید';el.style.color=approved?'#8fd2a6':'#e5a0a0'}
 document.getElementById('addCoupon').addEventListener('click',()=>{const code=document.getElementById('couponCode').value.trim().toUpperCase(),percent=Number(document.getElementById('couponPercent').value);if(!code||percent<1||percent>100){alert('کد و درصد تخفیف معتبر وارد کنید.');return}coupons.push({code,percent});document.getElementById('couponCode').value='';renderCoupons()});
 </script></body></html>
