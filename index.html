@@ -266,6 +266,17 @@ header {
 .admin-payment-card a{display:inline-block;margin:6px 0;color:var(--gold);text-decoration:underline;font-size:11px}
 .admin-payment-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 @media(max-width:600px){.admin-payment-form{grid-template-columns:1fr}.admin-payment-form .full{grid-column:auto}}
+.seller-package-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+.seller-package-card{display:flex;flex-direction:column;gap:7px;padding:14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#17252d,#0c1419)}
+.seller-package-card h4{margin:0;color:var(--gold);font-size:14px}
+.seller-package-price{font-size:19px;font-weight:800;color:#f5e5bd}
+.seller-package-card p{margin:0;color:var(--muted);font-size:11px}
+.seller-package-card button{margin-top:auto}
+.admin-package-table{width:100%;border-collapse:collapse;min-width:620px;font-size:11px}
+.admin-package-table th,.admin-package-table td{padding:9px;text-align:right;border-bottom:1px solid #26333a}
+.admin-package-table th{color:var(--gold)}
+@media(max-width:700px){.seller-package-grid{grid-template-columns:1fr}}
+
 .admin-members-section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
 .admin-members-title { color:var(--gold); font-size:13px; margin:0 0 8px; }
 .admin-overview { display:grid; gap:18px; }
@@ -2317,10 +2328,12 @@ footer { border-top:1px solid rgba(216,180,91,.14); }
           <button class="account-tab" type="button" data-account-tab="listings" onclick="showAccountTab('listings')">آگهی‌های من</button>
           <button class="account-tab" type="button" data-account-tab="requests" onclick="showAccountTab('requests')">درخواست‌ها</button>
           <button class="account-tab" type="button" data-account-tab="payments" onclick="showAccountTab('payments')">پرداخت‌ها</button>
+          <button class="account-tab" type="button" data-account-tab="packages" onclick="showAccountTab('packages')">اشتراک فروشندگان</button>
           <button class="account-tab" type="button" data-account-tab="support" onclick="showAccountTab('support')">راهنما و پشتیبانی</button>
         </div>
         <div class="account-list account-profile-view" id="accountProfile" style="display:none"></div>
         <div class="account-list" id="accountPayments" style="display:none"></div>
+        <div class="account-list" id="accountPackages" style="display:none"></div>
         <div class="account-list account-support-view" id="accountSupport" style="display:none">
           <section class="account-item"><strong>راهنمای استفاده از زرین ماه</strong><p>برای فروش طلا، از بخش «آگهی‌های من» آگهی ثبت کنید. آگهی پس از بررسی مدیر در سایت منتشر می‌شود.</p><p>برای خرید، از صفحه آگهی درخواست بفرستید. پس از تأیید فروشنده، مهلت پرداخت در بخش «درخواست‌ها» نمایش داده می‌شود.</p><p>تا پیش از پرداخت موفق، اطلاعات تماس فروشنده نمایش داده نمی‌شود.</p></section>
           <section class="account-item"><strong>پشتیبانی زرین ماه</strong><p>اگر در ثبت آگهی، درخواست خرید یا حساب کاربری مشکلی دارید، از راه ارتباطی پشتیبانی درج‌شده در سایت کمک بگیرید.</p></section>
@@ -3349,6 +3362,47 @@ function initHeroSlogans(){
 document.addEventListener("DOMContentLoaded",()=>{loadPublicBanners();loadPublicSiteSlogans().finally(initHeroSlogans);});
 
 
+let adminSellerPackages=[];
+function renderAdminSellerPackages(){
+  const host=document.getElementById("adminSellerPackages");if(!host)return;host.replaceChildren();
+  const wrap=makeElement("div","");
+  const tableWrap=makeElement("div","");tableWrap.style.overflowX="auto";
+  const table=makeElement("table","admin-package-table");
+  const head=document.createElement("thead"),hr=document.createElement("tr");
+  ["نام طرح","قیمت","سقف آگهی فعال","مدت اعتبار","وضعیت","عملیات"].forEach(v=>hr.appendChild(makeElement("th","",v)));
+  head.appendChild(hr);table.appendChild(head);
+  const body=document.createElement("tbody");
+  adminSellerPackages.forEach((plan,index)=>{
+    const tr=document.createElement("tr");
+    [plan.name,Number(plan.price_toman).toLocaleString("fa-IR")+" تومان",Number(plan.listing_limit).toLocaleString("fa-IR"),Number(plan.duration_days).toLocaleString("fa-IR")+" روز",plan.active?"فعال":"غیرفعال"].forEach(v=>tr.appendChild(makeElement("td","",v)));
+    const actions=makeElement("td","");
+    const edit=makeElement("button","account-action","ویرایش");edit.type="button";edit.addEventListener("click",()=>editAdminSellerPackage(index));
+    const toggle=makeElement("button","account-action",plan.active?"غیرفعال‌کردن":"فعال‌کردن");toggle.type="button";toggle.addEventListener("click",()=>{adminSellerPackages[index].active=!adminSellerPackages[index].active;renderAdminSellerPackages();});
+    const del=makeElement("button","account-action danger","حذف");del.type="button";del.addEventListener("click",()=>{if(confirm("این طرح از فهرست خریدهای جدید حذف شود؟ سفارش‌ها و اشتراک‌های قبلی باقی می‌مانند.")){adminSellerPackages.splice(index,1);renderAdminSellerPackages();}});
+    actions.append(edit,toggle,del);tr.appendChild(actions);body.appendChild(tr);
+  });
+  if(!adminSellerPackages.length){const tr=document.createElement("tr"),td=makeElement("td","","هنوز طرحی تعریف نشده است.");td.colSpan=6;tr.appendChild(td);body.appendChild(tr);}
+  table.appendChild(body);tableWrap.appendChild(table);wrap.appendChild(tableWrap);
+  const add=makeElement("button","btn btn-outline","＋ افزودن طرح فروشندگان");add.type="button";add.style.marginTop="12px";add.addEventListener("click",addAdminSellerPackage);wrap.appendChild(add);
+  const hint=makeElement("p","account-summary","برای ثبت تغییرات، دکمه «ذخیره تعرفه‌ها و طرح‌ها» را در بخش تعرفه عادی بزنید. حذف طرح، اشتراک‌های قبلی را لغو نمی‌کند.");
+  wrap.appendChild(hint);host.appendChild(wrap);
+}
+function addAdminSellerPackage(){
+  const name=prompt("نام طرح جدید؟");if(!name||!name.trim())return;
+  const price=Number(prompt("قیمت به تومان؟","350000")),limit=Number(prompt("حداکثر آگهی فعال؟","15")),days=Number(prompt("مدت اعتبار به روز؟","30"));
+  if(!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(limit)||limit<1||!Number.isSafeInteger(days)||days<1){showToast("مقادیر طرح معتبر نیست.");return;}
+  const base=name.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g,"-").replace(/^-|-$/g,"").slice(0,20)||"plan";
+  let code=base.replace(/[^a-z0-9_-]/g,"")||"plan";if(adminSellerPackages.some(p=>p.code===code))code=code+"-"+Date.now().toString().slice(-5);
+  adminSellerPackages.push({code,name:name.trim(),price_toman:price,listing_limit:limit,duration_days:days,active:true});renderAdminSellerPackages();
+}
+function editAdminSellerPackage(index){
+  const p=adminSellerPackages[index];if(!p)return;
+  const name=prompt("نام طرح",p.name);if(name===null)return;
+  const price=Number(prompt("قیمت به تومان",p.price_toman)),limit=Number(prompt("حداکثر آگهی فعال",p.listing_limit)),days=Number(prompt("مدت اعتبار به روز",p.duration_days));
+  if(!name.trim()||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(limit)||limit<1||!Number.isSafeInteger(days)||days<1){showToast("مقادیر طرح معتبر نیست.");return;}
+  adminSellerPackages[index]={...p,name:name.trim(),price_toman:price,listing_limit:limit,duration_days:days};renderAdminSellerPackages();
+}
+
 async function loadAdminPayments() {
   const box=document.getElementById("adminWorkspacePayments");
   if(!box||!currentAuthSession?.access_token||!isSuperAdmin())return;
@@ -3373,6 +3427,8 @@ async function loadAdminPayments() {
       '<label>هزینه هر آگهی پس از سهمیه (تومان)<input id="adminListingFee" name="listing_price_toman" type="number" min="0" required></label>'+
       '<label>مدت نمایش آگهی (روز)<input id="adminListingDays" name="listing_duration_days" type="number" min="1" max="365" required></label>'+
       '<div class="full"><button class="btn" type="submit">ذخیره تعرفه‌ها</button></div></form></section>'+
+      '<section class="admin-members-section"><h4 class="admin-overview-subtitle">طرح‌های اشتراکی فروشندگان</h4>'+
+      '<div id="adminSellerPackages"></div></section>'+
       '<section class="admin-members-section"><h4 class="admin-overview-subtitle">اطلاعات کارت‌به‌کارت</h4>'+
       '<form id="adminManualPaymentForm" class="admin-payment-form">'+
       '<label>وضعیت دریافت پرداخت<select id="adminPaymentEnabled" name="enabled"><option value="false">غیرفعال</option><option value="true">فعال</option></select></label>'+
@@ -3384,6 +3440,7 @@ async function loadAdminPayments() {
       '<p class="account-summary">درگاه بانکی در این مرحله متصل نیست. فعال‌سازی آن به اتصال و آزمایش جداگانه نیاز دارد.</p></section>'+
       '<section class="admin-members-section"><h4 class="admin-overview-subtitle">رسیدهای پرداخت و بررسی مدیر</h4>'+
       '<div id="adminPaymentOrders" class="admin-payment-list"></div></section>';
+    adminSellerPackages=Array.isArray(t.packages)?t.packages.map(p=>({...p})):[];renderAdminSellerPackages();
     document.getElementById("adminFreeQuota").value=Number(t.free_listing_quota??3);
     document.getElementById("adminListingFee").value=Number(t.listing_price_toman??25000);
     document.getElementById("adminListingDays").value=Number(t.listing_duration_days??30);
@@ -3400,7 +3457,7 @@ async function loadAdminPayments() {
 
 async function saveAdminTariffSettings(event){
   event.preventDefault();if(!currentAuthSession?.access_token||!isSuperAdmin())return;
-  const form=event.currentTarget,fd=new FormData(form);fd.set("action","admin_tariff_settings_save");
+  const form=event.currentTarget,fd=new FormData(form);fd.set("action","admin_tariff_settings_save");fd.set("packages_json",JSON.stringify(adminSellerPackages));
   const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="در حال ذخیره…";
   try{const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"ذخیره تعرفه ناموفق بود.");showToast(result.message||"تعرفه ذخیره شد.");await loadAdminPayments();}
   catch(error){showToast(error.message||"ذخیره تعرفه ناموفق بود.");}
@@ -3653,7 +3710,7 @@ function startAccountNotificationPolling() {
 }
 
 function showAccountTab(tab) {
-  const panels = { profile:"accountProfile", listings:"accountListings", requests:"accountRequests", payments:"accountPayments", support:"accountSupport", admin:"accountAdmin" };
+  const panels = { profile:"accountProfile", listings:"accountListings", requests:"accountRequests", payments:"accountPayments", packages:"accountPackages", support:"accountSupport", admin:"accountAdmin" };
   Object.entries(panels).forEach(([name,id]) => {
     const panel = document.getElementById(id);
     const button = document.querySelector(`[data-account-tab="${name}"]`);
@@ -3662,6 +3719,7 @@ function showAccountTab(tab) {
   });
   if (tab === "admin" && !canManageMembers()) { showAccountTab("profile"); return; }
   if (tab === "profile") renderAccountProfile();
+  if (tab === "packages" && accountDataCache) renderSellerPackages(accountDataCache);
   if (tab === "admin" && !adminMembersLoaded) loadAdminMembers();
 }
 
@@ -4744,6 +4802,54 @@ function createPaymentSubmissionCard(order, config) {
   });
   card.appendChild(form);return card;
 }
+function renderSellerPackages(data){
+  const box=document.getElementById("accountPackages");if(!box)return;box.replaceChildren();
+  box.appendChild(makeElement("h3","admin-members-title","طرح‌های اشتراکی فروشندگان"));
+  box.appendChild(makeElement("p","account-summary","با خرید اشتراک، سقف آگهی فعال حساب شما مطابق طرح انتخابی افزایش پیدا می‌کند. اشتراک پس از تأیید رسید توسط مدیر فعال می‌شود."));
+  const subscriptions=Array.isArray(data.seller_subscriptions)?data.seller_subscriptions:[];
+  const active=subscriptions.find(item=>item.status==="active"&&new Date(item.ends_at).getTime()>Date.now());
+  if(active){
+    const current=makeElement("section","account-item");
+    current.appendChild(makeElement("strong","","اشتراک فعال شما: "+active.package_name));
+    current.appendChild(makeElement("p","","سقف آگهی فعال: "+Number(active.listing_limit).toLocaleString("fa-IR")+" · پایان اعتبار: "+formatRequestDateTime(active.ends_at)));
+    box.appendChild(current);
+  }else{
+    box.appendChild(makeElement("p","account-empty","در حال حاضر اشتراک فعالی ندارید. می‌توانید یکی از طرح‌های زیر را انتخاب کنید."));
+  }
+  const packages=Array.isArray(data.seller_packages)?data.seller_packages:[];
+  if(!packages.length){box.appendChild(makeElement("p","account-empty","در حال حاضر طرح اشتراکی فعالی برای خرید وجود ندارد."));return;}
+  const grid=makeElement("div","seller-package-grid");
+  packages.forEach(plan=>{
+    const card=makeElement("article","seller-package-card");
+    card.appendChild(makeElement("h4","",plan.name||"طرح فروشنده"));
+    card.appendChild(makeElement("div","seller-package-price",Number(plan.price_toman||0).toLocaleString("fa-IR")+" تومان"));
+    card.appendChild(makeElement("p","","تا "+Number(plan.listing_limit||0).toLocaleString("fa-IR")+" آگهی فعال"));
+    card.appendChild(makeElement("p","",Number(plan.duration_days||0).toLocaleString("fa-IR")+" روز اعتبار"));
+    const buy=makeElement("button","btn","انتخاب و خرید طرح");buy.type="button";
+    const payment=data.payment_config||{};
+    buy.disabled=!payment.enabled||!payment.card_number||!payment.card_owner;
+    if(buy.disabled)buy.title="پرداخت اشتراک هنوز توسط مدیر فعال نشده است.";
+    buy.addEventListener("click",()=>createSellerPackageOrder(plan.code,buy));
+    card.appendChild(buy);grid.appendChild(card);
+  });
+  box.appendChild(grid);
+  if(!(data.payment_config||{}).enabled)box.appendChild(makeElement("p","account-summary","خرید اشتراک پس از فعال‌سازی کارت‌به‌کارت توسط مدیر امکان‌پذیر می‌شود."));
+}
+async function createSellerPackageOrder(code,button){
+  if(!currentAuthSession?.access_token)return openAuthModal();
+  if(!code)return;
+  button.disabled=true;const old=button.textContent;button.textContent="در حال ایجاد سفارش…";
+  try{
+    const fd=new FormData();fd.append("action","create_seller_package_order");fd.append("package_code",code);
+    const response=await fetch(LISTINGS_API,{method:"POST",headers:{Authorization:"Bearer "+currentAuthSession.access_token},body:fd,cache:"no-store"});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||!result.ok)throw new Error(result.error||"ایجاد سفارش اشتراک ناموفق بود.");
+    showToast(result.message||"سفارش اشتراک ایجاد شد.");
+    await loadAccountPanel();showAccountTab("payments");
+  }catch(error){showToast(error.message||"خرید اشتراک انجام نشد.");}
+  finally{button.disabled=false;button.textContent=old;}
+}
+
 function renderAccountPayments(data){
   const box=document.getElementById("accountPayments");if(!box)return;box.replaceChildren();
   box.appendChild(makeElement("h3","admin-members-title","پرداخت‌های من"));
@@ -4756,7 +4862,7 @@ function renderAccountPayments(data){
     card.appendChild(heading);card.appendChild(makeElement("p","","مبلغ: "+Number(order.amount_toman||0).toLocaleString("fa-IR")+" تومان · تاریخ: "+formatRequestDateTime(order.created_at)));
     if(order.tracking_code)card.appendChild(makeElement("p","","شماره پیگیری: "+order.tracking_code));
     if(order.status==="under_review")card.appendChild(makeElement("p","account-summary","رسید شما دریافت شده و در صف بررسی مدیر است."));
-    if(order.status==="approved")card.appendChild(makeElement("p","account-summary","پرداخت تأیید شد. آگهی شما اکنون در انتظار بررسی و انتشار مدیر است."));
+    if(order.status==="approved")card.appendChild(makeElement("p","account-summary",order.purpose==="package_purchase"?"پرداخت تأیید شد و اشتراک فروشندگی شما فعال شده است.":"پرداخت تأیید شد. آگهی شما اکنون در انتظار بررسی و انتشار مدیر است."));
     if(order.status==="rejected")card.appendChild(makeElement("p","account-summary","علت رد رسید: "+(order.rejection_reason||"لطفاً رسید صحیح را دوباره ارسال کنید.")));
     if(["awaiting_receipt","rejected"].includes(order.status)){const meta=order.metadata||{};const config={...(data.payment_config||{}),card_number:meta.payment_card_number||data.payment_config?.card_number||"",card_owner:meta.payment_card_owner||data.payment_config?.card_owner||"",instructions:meta.payment_instructions||data.payment_config?.instructions||""};if(config.card_number&&config.card_owner)card.appendChild(createPaymentSubmissionCard(order,config));else card.appendChild(makeElement("p","account-empty","اطلاعات کارت‌به‌کارت فعلاً در دسترس نیست؛ با پشتیبانی تماس بگیرید."));}
     box.appendChild(card);
@@ -4784,6 +4890,7 @@ function renderAccountPanel(data) {
   listingsBox.appendChild(makeElement("p", "admin-overview-note", "در فهرست جاری فقط آگهی‌های در انتظار بررسی و منتشرشده نمایش داده می‌شوند. آگهی‌های فروخته‌شده، ردشده یا حذف‌شده در بایگانی باقی می‌مانند و از بین نمی‌روند."));
   renderListingCards(listingsBox, data.listings, admin, listingManager);
   renderAccountPayments(data);
+  renderSellerPackages(data);
   appendAccountPagination(listingsBox, "listings", listingsPage);
 
   const requestHeading = makeElement("div", "account-request-heading");
