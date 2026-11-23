@@ -2966,7 +2966,7 @@ async function loadCurrentProfile(session = currentAuthSession) {
   const requestId = ++profileRequestId;
   profileLoadingUserId = userId;
   try {
-    const response = await fetch(LISTINGS_API + '?action=profile', {
+    const response = await fetch('/api/profile-native', {
       method: 'GET',
       cache: 'no-store',
       headers: {
