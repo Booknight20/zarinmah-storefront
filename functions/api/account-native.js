@@ -10,7 +10,18 @@ function json(data, status = 200) {
 }
 function clean(v, n = 100) { return String(v || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, n); }
 function page(v) { const n = Number.parseInt(v || "1", 10); return Number.isFinite(n) ? Math.max(1, Math.min(n, 100000)) : 1; }
-function search(v) { return clean(v, 80).replace(/[^0-9A-Za-z\u0600-\u06FF\s@._+\-]/g, "").trim(); }
+function search(v) { return clean(v, 80).replace(/[^0-9A-Za-z\\u0600-\\u06FF\\s@._+\\-]/g, "").trim(); }
+
+const PROVINCES = new Set(["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"]);
+function digits(v) { return String(v || "").replace(/[۰-۹٠-٩]/g, ch => "۰۱۲۳۴۵۶۷۸۹0١٢٣٤٥٦٧٨٩".indexOf(ch) < 10 ? String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch)) : String("0123456789".indexOf(ch))); }
+function validNationalId(v) {
+  const value = digits(v);
+  if (!/^\\d{10}$/.test(value) || new Set(value).size === 1) return false;
+  const check = Number(value[9]);
+  const sum = [...value.slice(0, 9)].reduce((n, d, i) => n + Number(d) * (10 - i), 0);
+  const rem = sum % 11;
+  return check === (rem < 2 ? rem : 11 - rem);
+}
 
 async function rest(base, key, auth, path, params = {}, counted = false) {
   const url = new URL(base + path);
@@ -61,8 +72,10 @@ export async function onRequest({ request, env }) {
       rest(base, key, headersAuth, "/rest/v1/user_roles", { user_id: "eq." + user.id, select: "role", limit: 1 }),
     ]);
     const profile = profiles[0] || null;
-    if (!profile || profile.is_active !== true || !clean(profile.full_name) || !clean(profile.username) ||
-        clean(profile.address).length < 10 || !clean(profile.national_id) || !clean(profile.province) || !clean(profile.city)) {
+    if (!profile || profile.is_active !== true || !clean(profile.full_name, 100) ||
+        !/^[A-Za-z0-9][A-Za-z0-9_.-]{2,23}$/.test(clean(profile.username, 24)) ||
+        clean(profile.address, 500).length < 10 || !validNationalId(profile.national_id) ||
+        !PROVINCES.has(clean(profile.province, 80)) || !clean(profile.city, 100)) {
       return json({ ok: false, code: "PROFILE_INCOMPLETE", error: "برای مشاهده پنل، ابتدا اطلاعات پروفایل خود را کامل کنید." }, 409);
     }
     const role = roles[0]?.role || "user";
