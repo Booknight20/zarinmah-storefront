@@ -2,7 +2,7 @@ const STAGING_URL = "https://qijahxokldkaqmjinfvy.supabase.co";
 
 export async function onRequest({ env }) {
   const supabaseUrl = String(env.SUPABASE_URL || "").trim().replace(/\/$/, "");
-  const publishableKey = String(env.SUPABASE_PUBLISHABLE_KEY || "").trim();
+  const publishableKey = String(env.PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
 
   if (supabaseUrl !== STAGING_URL || !publishableKey) {
     return new Response("window.ZARINMAH_PUBLIC_CONFIG = null;", {
