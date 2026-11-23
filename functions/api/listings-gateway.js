@@ -32,7 +32,7 @@ export async function onRequest({ request, env }) {
     return jsonError(405, "Method not allowed");
   }
 
-  const configured = String(env.ZARINMAH_BACKEND_API_URL || "").trim();
+  const configured = String(env.ZARINMAH_BACKEND_API_URL || "https://zarinmah-seller-bot-git-fix-phone-passw-9f0f7b-booknight20-7409.vercel.app/api/listings").trim();
   if (!configured) return jsonError(503, "Backend API is not configured.");
 
   let target;
