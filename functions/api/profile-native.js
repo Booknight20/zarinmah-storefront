@@ -14,19 +14,19 @@ function json(data, status = 200) {
 }
 
 
-function clean(v, n = 1500) { return String(v || "").replace(/[\\u0000-\\u001f]/g, "").trim().slice(0, n); }
+function clean(v, n = 1500) { return String(v || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, n); }
 function digits(v) {
   return String(v || "").replace(/[۰-۹]/g, ch => String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch))).replace(/[٠-٩]/g, ch => String("٠١٢٣٤٥٦٧٨٩".indexOf(ch)));
 }
 const PROVINCES = new Set(["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"]);
 function validNationalId(v) {
   const value = digits(v);
-  if (!/^\\d{10}$/.test(value) || new Set(value).size === 1) return false;
+  if (!/^\d{10}$/.test(value) || new Set(value).size === 1) return false;
   const sum = [...value.slice(0, 9)].reduce((n, d, i) => n + Number(d) * (10 - i), 0);
   const rem = sum % 11, check = Number(value[9]);
   return check === (rem < 2 ? rem : 11 - rem);
 }
-function validPhone(v) { return /^\\d{8,15}$/.test(digits(v).replace(/\\D/g, "")); }
+function validPhone(v) { return /^\d{8,15}$/.test(digits(v).replace(/\D/g, "")); }
 
 async function saveProfile(base, key, authorization, user, data) {
   const fullName = clean(data.full_name, 100);
@@ -36,9 +36,9 @@ async function saveProfile(base, key, authorization, user, data) {
   const city = clean(data.city, 100);
   const address = clean(data.address, 500);
   const nationalId = digits(data.national_id);
-  if (fullName.length < 5 || fullName.split(/\\s+/).filter(Boolean).length < 2) throw Object.assign(new Error("نام و نام خانوادگی کامل را وارد کنید."), { status: 400 });
+  if (fullName.length < 5 || fullName.split(/\s+/).filter(Boolean).length < 2) throw Object.assign(new Error("نام و نام خانوادگی کامل را وارد کنید."), { status: 400 });
   if (!/^[a-z0-9][a-z0-9_.-]{2,23}$/.test(username)) throw Object.assign(new Error("نام کاربری باید ۳ تا ۲۴ نویسه و شامل حروف انگلیسی، عدد، نقطه، خط تیره یا زیرخط باشد."), { status: 400 });
-  if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw Object.assign(new Error("نشانی ایمیل معتبر وارد کنید یا کادر آن را خالی بگذارید."), { status: 400 });
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw Object.assign(new Error("نشانی ایمیل معتبر وارد کنید یا کادر آن را خالی بگذارید."), { status: 400 });
   if (!PROVINCES.has(province) || !city) throw Object.assign(new Error("استان و شهر محل سکونت را از فهرست انتخاب کنید."), { status: 400 });
   if (address.length < 10) throw Object.assign(new Error("آدرس کامل محل سکونت را وارد کنید."), { status: 400 });
   if (!validNationalId(nationalId)) throw Object.assign(new Error("کد ملی معتبر ۱۰ رقمی وارد کنید."), { status: 400 });
@@ -46,7 +46,7 @@ async function saveProfile(base, key, authorization, user, data) {
   const isStagingEmail = base === STAGING_URL && !user.phone && Boolean(user.email);
   let mobile = String(user.phone || "");
   if (isStagingEmail) {
-    mobile = digits(data.mobile).replace(/\\D/g, "");
+    mobile = digits(data.mobile).replace(/\D/g, "");
     if (!validPhone(mobile)) throw Object.assign(new Error("برای حساب آزمایشی، شماره تماس معتبر وارد کنید."), { status: 400 });
   }
   const headers = { apikey: key, Authorization: authorization, "Content-Type": "application/json", Prefer: "return=representation" };
@@ -73,7 +73,9 @@ async function saveProfile(base, key, authorization, user, data) {
   if (!Array.isArray(rows) || !rows[0]) throw Object.assign(new Error("ذخیره پروفایل انجام نشد. کمی بعد دوباره تلاش کنید."), { status: 502 });
   return rows[0];
 }
-\nexport async function onRequest({ request, env }) {
+
+
+export async function onRequest({ request, env }) {
   if (request.method === "OPTIONS") return json({}, 204);
   if (request.method !== "GET" && request.method !== "POST") return json({ ok: false, error: "Method not allowed" }, 405);
 
