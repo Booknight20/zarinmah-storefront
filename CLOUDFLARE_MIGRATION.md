@@ -46,7 +46,7 @@ Status: preparation only. This branch is isolated from the active Vercel branch 
 - Verified the Staging project contains `public.market_history_state` with one existing history record. The table is RLS-enabled and documented as service-role-only.
 - No Supabase schema or data was changed during this implementation.
 - These functions require Cloudflare Pages runtime variables/secrets before they can work:
-  - Plain text: `SUPABASE_URL` (must equal `https://qijahxokldkaqmjinfvy.supabase.co`), `SUPABASE_PUBLISHABLE_KEY`, `ZARINMAH_BACKEND_API_URL` (HTTPS Vercel `/api/listings` endpoint).
+  - Plain text: `SUPABASE_URL` (must equal `https://qijahxokldkaqmjinfvy.supabase.co`), `SUPABASE_PUBLISHABLE_KEY`, optional `ZARINMAH_BACKEND_API_URL` (defaults to the verified Vercel Preview `/api/listings` endpoint on branch `fix/phone-password-username-profile-2026-11-21`).
   - Encrypted secret: `SUPABASE_SERVICE_ROLE_KEY` (Staging project only), optional `ZARINMAH_BACKEND_PROTECTION_BYPASS`.
 - Do not set these variables to Production Supabase values. Do not place secret values in GitHub files, commits, browser config, or chat.
 - Next: inspect the new Pages deployment/build logs, configure the Staging-only runtime variables in Cloudflare, then test `/api/market`, `/api/news`, `/api/public-config.js`, and `/api/listings-gateway` before any broader rollout.
