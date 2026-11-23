@@ -13,7 +13,7 @@ function page(v) { const n = Number.parseInt(v || "1", 10); return Number.isFini
 function search(v) { return clean(v, 80).replace(/[^0-9A-Za-z\\u0600-\\u06FF\\s@._+\\-]/g, "").trim(); }
 
 const PROVINCES = new Set(["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"]);
-function digits(v) { return String(v || "").replace(/[۰-۹٠-٩]/g, ch => "۰۱۲۳۴۵۶۷۸۹0١٢٣٤٥٦٧٨٩".indexOf(ch) < 10 ? String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch)) : String("0123456789".indexOf(ch))); }
+function digits(v) { return String(v || "").replace(/[۰-۹]/g, ch => String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch))).replace(/[٠-٩]/g, ch => String("٠١٢٣٤٥٦٧٨٩".indexOf(ch))); }
 function validNationalId(v) {
   const value = digits(v);
   if (!/^\\d{10}$/.test(value) || new Set(value).size === 1) return false;
