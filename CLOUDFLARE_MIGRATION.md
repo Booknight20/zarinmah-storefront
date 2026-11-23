@@ -35,3 +35,19 @@ Status: preparation only. This branch is isolated from the active Vercel branch 
 - Do not use Production credentials or copy Production data into Staging.
 - Do not delete or overwrite the current Vercel deployment or the active Git branches.
 - Deploy only to a Cloudflare `pages.dev` preview after all required API routes are implemented and verified.
+
+
+## Preview implementation progress (2026-11-23)
+- Added Pages Functions routes:
+  - `functions/api/market.js`: adapted live price scraping and daily history persistence to the Staging-only `market_history_state` table.
+  - `functions/api/news.js`: adapted the existing news feed handler to the Pages runtime.
+  - `functions/api/public-config.js`: emits only the Staging Supabase URL and publishable key; rejects non-Staging URLs.
+  - `functions/api/listings-gateway.js`: transitional gateway to the existing HTTPS Vercel listings API, with strict host/path validation and optional Vercel protection bypass secret.
+- Verified the Staging project contains `public.market_history_state` with one existing history record. The table is RLS-enabled and documented as service-role-only.
+- No Supabase schema or data was changed during this implementation.
+- These functions require Cloudflare Pages runtime variables/secrets before they can work:
+  - Plain text: `SUPABASE_URL` (must equal `https://qijahxokldkaqmjinfvy.supabase.co`), `SUPABASE_PUBLISHABLE_KEY`, `ZARINMAH_BACKEND_API_URL` (HTTPS Vercel `/api/listings` endpoint).
+  - Encrypted secret: `SUPABASE_SERVICE_ROLE_KEY` (Staging project only), optional `ZARINMAH_BACKEND_PROTECTION_BYPASS`.
+- Do not set these variables to Production Supabase values. Do not place secret values in GitHub files, commits, browser config, or chat.
+- Next: inspect the new Pages deployment/build logs, configure the Staging-only runtime variables in Cloudflare, then test `/api/market`, `/api/news`, `/api/public-config.js`, and `/api/listings-gateway` before any broader rollout.
+- Listings currently use a temporary gateway to the existing Vercel backend; this is not yet a full backend migration to Cloudflare.
