@@ -5008,7 +5008,7 @@ async function loadAccountPanel() {
   boxes.forEach(box => box.replaceChildren(makeElement("p", "account-empty", "در حال دریافت اطلاعات…")));
   try {
     const params = new URLSearchParams({ action: "account", ...accountQueryState });
-    const response = await fetch(LISTINGS_API + "?" + params.toString(), {
+    const response = await fetch("/api/account-native?" + params.toString(), {
       cache: "no-store",
       headers: { "Accept": "application/json", "Authorization": `Bearer ${currentAuthSession.access_token}` }
     });
