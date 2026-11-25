@@ -16,7 +16,7 @@ const PROVINCES = new Set(["آذربایجان شرقی","آذربایجان غ�
 function digits(v) { return String(v || "").replace(/[۰-۹]/g, ch => String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch))).replace(/[٠-٩]/g, ch => String("٠١٢٣٤٥٦٧٨٩".indexOf(ch))); }
 function validNationalId(v) {
   const value = digits(v);
-  if (!/^\\d{10}$/.test(value) || new Set(value).size === 1) return false;
+  if (!/^\d{10}$/.test(value) || new Set(value).size === 1) return false;
   const check = Number(value[9]);
   const sum = [...value.slice(0, 9)].reduce((n, d, i) => n + Number(d) * (10 - i), 0);
   const rem = sum % 11;
