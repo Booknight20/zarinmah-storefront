@@ -5697,7 +5697,7 @@ async function loadListings() {
   if (listingsLoading) return;
   listingsLoading = true;
   try {
-    const response = await fetch(LISTINGS_API, {
+    const response = await fetch('/api/listings-native', {
       method: 'GET',
       cache: 'no-store',
       headers: { 'Accept': 'application/json' }
